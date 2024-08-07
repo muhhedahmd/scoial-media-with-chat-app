@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+  super_admin
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  first_name String
+  Last_name String
+  role       Role     @default(user)
+  password  String   @default("abc")
+  profile    profile?
+  post       post[]
+  category_post_User category_post_User[]
+}
+
+model profile {
+  id      Int    @id @default(autoincrement())
+  bio     String
+  user_id Int    @unique
+  User    User   @relation(fields: [user_id], references: [id])
+}
+
+model post {
+  id         Int       @id @default(autoincrement())
+  author_id  Int
+  author     User      @relation(fields: [author_id], references: [id] , onDelete: Cascade)
+  title      String
+  like_num   Int        @default( autoincrement()  )
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  published  Boolean   @default(false)
+  categories category_post[]
+}
+
+model category {
+  id    Int            @id @default(autoincrement())
+  name  String 
+  posts category_post[]
+}
+
+model category_post {
+  id         Int      @id  @unique @default(autoincrement())
+  post_id     Int 
+  category_id Int
+  assigned_at DateTime @default(now())
+  post        post      @relation(fields: [post_id], references: [id] ,onDelete: Cascade)
+  category    category  @relation(fields: [category_id], references: [id] , onDelete: Cascade)
+  category_post_User category_post_User?
+
+  @@unique([post_id, category_id])
+ 
+}
+
+model category_post_User {
+  id              Int      @id @default(autoincrement())
+  user_id         Int
+  category_post_id Int
+  User            User      @relation(fields: [user_id], references: [id] , onDelete: Cascade)
+  category_post   category_post @relation(fields: [category_post_id], references: [id] , onDelete:  Cascade)
+  @@unique([ category_post_id])
+}

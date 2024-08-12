@@ -2,6 +2,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -12,24 +13,64 @@ enum Role {
   admin
   super_admin
 }
+enum ReactionType {
+      like 
+       love
+        haha
+         wow 
+          sad
+           angry
+
+}
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
 
 model User {
   id         Int      @id @default(autoincrement())
   email      String   @unique
   first_name String
-  Last_name String
   role       Role     @default(user)
   password  String   @default("abc")
-  profile    profile?
+  profile    Profile?
   post       post[]
+  comments   Comment[]
+  replay   replay[]
+  last_name  String
+  user_name  String @unique
+  isCompleteProfile Boolean @default(false) @unique
   category_post_User category_post_User[]
+
 }
 
-model profile {
-  id      Int    @id @default(autoincrement())
-  bio     String
-  user_id Int    @unique
-  User    User   @relation(fields: [user_id], references: [id])
+model Profile {
+  id             Int       @id @default(autoincrement())
+  user_id        Int       @unique
+  user           User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  bio            String?
+  profile_picture String?
+  cover_picture  String?
+  location       String?
+  website        String?
+  birthdate      String
+  gender         Gender
+  PhoneNumber    Int? 
+  isVerified    Boolean @default(false)
+
+  followers      Follows[]  @relation("UserFollowers")
+  following      Follows[]  @relation("UserFollowing")
+}
+
+model Follows {
+  id           Int      @id @default(autoincrement())
+  followerId   Int @unique
+  followingId  Int @unique
+  follower     Profile  @relation("UserFollowers", fields: [followerId], references: [id] ,onDelete: Cascade)
+  following    Profile  @relation("UserFollowing", fields: [followingId], references: [id] , onDelete: Cascade)
+  createdAt    DateTime @default(now())
 }
 
 model post {
@@ -37,11 +78,13 @@ model post {
   author_id  Int
   author     User      @relation(fields: [author_id], references: [id] , onDelete: Cascade)
   title      String
-  like_num   Int        @default( autoincrement()  )
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   published  Boolean   @default(false)
   categories category_post[]
+  post_image post_image[]
+  Comment Comment[]
+  reaction Reaction[]
 }
 
 model category {
@@ -71,3 +114,65 @@ model category_post_User {
   category_post   category_post @relation(fields: [category_post_id], references: [id] , onDelete:  Cascade)
   @@unique([ category_post_id])
 }
+
+
+model post_image {
+  id         Int       @id @default(autoincrement())
+  img_path   String 
+  post_id    Int 
+  post post @relation(fields: [post_id]  , references: [id], onDelete: Cascade)
+
+}
+
+model Comment {
+  id         Int       @id @default(autoincrement())
+  content    String 
+  post_id   Int 
+  author_id  Int 
+  author   User @relation(fields: [author_id] , references: [id])
+  post post @relation(fields: [post_id]  , references: [id], onDelete: Cascade)
+  
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt 
+  replay replay[]
+  }
+
+
+model replay {
+    id         Int       @id @default(autoincrement())
+  comment_id Int
+  comment    Comment   @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+  author_id  Int
+  author     User      @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  content    String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+}
+
+model Reaction {
+  id         Int       @id @default(autoincrement())
+  post_id    Int      
+  post       post     @relation(fields: [post_id], references: [id], onDelete: Cascade ,onUpdate: Cascade)
+  type       ReactionType @unique
+  count      Int
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+}
+
+// model conversion {
+//   id         Int       @id @default(autoincrement())
+
+
+// } 
+
+
+// model conversion_group{
+//   id         Int       @id @default(autoincrement())
+
+// }
+
+
+
+
+
+

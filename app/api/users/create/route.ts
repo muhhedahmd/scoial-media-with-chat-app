@@ -1,76 +1,139 @@
-import prisma from "@/lib/prisma"
-import { User } from "@prisma/client"
-import { hash } from "bcrypt"
-import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma";
+import { Upload_coludnairy } from "@/utils";
+import { Gender, Role } from "@prisma/client";
+import { hash } from "bcrypt";
+import { NextResponse } from "next/server";
+import { any } from "zod";
 
-  export async function POST( ReqUser :Request) {
-    const body : {email : string, password : string,   name :string ,   } =await  ReqUser.json()
-    if(!ReqUser) return 
+export async function POST(req: Request) {
 
-    console.log(body)
+  try {
+    const formData = await req.formData();
+
+
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const firstName = formData.get("first_name") as string;
+    const lastName = formData.get("last_name") as string;
+
+    const gender = formData.get("gender") as Gender;
+    const userName = formData.get("user_name") as string;
+    const role = formData.get("role") as Role;
+
    
- 
-    if(!body || !body.email || !body.password) return NextResponse.json({message : "the password or email doesn't entered "} , {status:400})
 
-    const EmailCheck  =  await prisma.user.findUnique({
-        where :{
-            email : body.email
-        }
-    })
-    if(!!EmailCheck) return NextResponse.json({message : "this email is already exisit"} , {status : 400})
+    if (
+      
+      !email ||
+      !password ||
+      !firstName ||
 
-        else {
-            const password = await hash(body.password , 10)
-            const user = await prisma.user.create({
-                data: {
-                    email : body.email ,
-                    first_name:body.name,
-                    password:password
-                }
-            })
+      !gender ||
+      !role ||
+  
+      !userName ||
+      !lastName
+    ) {
+      return NextResponse.json(
+        {
+          message: "Missing required fields",
+          email,
+          password,
+          firstName,
+          lastName,
 
-            const {email , first_name , role}  = user
-            return NextResponse.json({email ,first_name , role} , {
-                status : 201
-            })
-        
-        }
-        
+          gender,
+          userName,
+          role,
 
+
+        },
+        { status: 400 }
+      );
+    }
+
+    const existingUser = await prisma.user.findMany({
+      where: {
+        OR: [{ email }, { user_name: userName }],
+      },
+    });
+
+    if (existingUser.length > 0) {
+      return NextResponse.json(
+        { message: "Email or username already exists" },
+        { status: 400 }
+      );
+    }
+
+    const hashedPassword = await hash(password, 10);
+
+    // Create the user in the database
+    const user = await prisma.user.create({
+      data: {
+        email: email,
+        first_name: firstName,
+        password: hashedPassword,
+        last_name: lastName,
+        user_name: userName,
+        role,
+
+      
+      },
+      select :{
+        id: true,
+        email: true,
+        first_name : true ,
+        last_name : true , 
+        user_name : true ,
+        isCompleteProfile:true ,
+        role : true ,
+
+
+      }
+    });
 
     
+    return NextResponse.json(
+      user ,
+      { status: 201 }
+    );
+  } catch (error) {
+    
+    console.error("Error in POST request:", error);
+    return NextResponse.json(
+      { message: "Error processing request" , error },
+      { status: 500 }
+    );
+  }
 }
 
 
-  // const user = await prisma.user.create({
-  //     data: {
-  //         email: "clientTest100@prisma.com",
-  //         first_name: "test",
-  //         role: "user",
-  //         post: {
-          
-          
-          
-  //             create: {
-  //                 title: "test post with connect",
-  //                 published: true,
-  //                 like_num: 2,
-  //                 categories: {
-  //                         create : { 
-  //                             category  : {
-  //                                   connectOrCreate:{
-  //                                     where : { 
-  //                                         id :5
-  //                                     }    , 
-  //                                    create :  {
-  //                                         name:"abc"
-  //                                     }
-  //                                   }
-  //                             }
-  //                         }
-  //                 },
-  //             },
-  //         },
-     
-  //     },
-  // });
+    // const [coverPictureRes , profilePictureRes]   = await Promise.all([
+    //   Upload_coludnairy(coverPicture, userName),
+    //   Upload_coludnairy(profilePicture, userName),
+    // ]);
+
+    // // console.log(coverPictureRes, profilePictureRes);
+
+    // if (coverPictureRes.status !== 200 || profilePictureRes.status !== 200) {
+    //   return NextResponse.json(
+    //     {
+    //       message: 'Failed to upload pictures',
+    //        formData, // Convert to plain object
+    //       type: typeof coverPicture,
+    //       coverPicture: formData.getAll("cover_picture"),
+    //       profilePicture: Object.assign({}, profilePicture),
+    //       coverPictured: coverPicture ? {
+    //         name: coverPicture.name,
+    //         size: coverPicture.size,
+    //         type: coverPicture.type,
+    //       } : {},
+    //       profilePictured: profilePicture ? {
+    //         name: profilePicture.name,
+    //         size: profilePicture.size,
+    //         type: profilePicture.type,
+    //       } : {},
+    //     },
+    //     { status: 400 }
+    //   );
+    // }

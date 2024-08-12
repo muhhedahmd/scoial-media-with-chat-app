@@ -3,32 +3,45 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "./prisma";
 import { compare, hash } from "bcrypt";
+import axios from "axios";
 
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
-      id: "signin",
+      id: "sigin",
       name: "Sign In",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "hello@example.com" },
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "hello@example.com",
+        },
         password: { label: "Password", type: "password" },
+        user_name: { label: "User name", type: "text" },
       },
       authorize: async (credentials) => {
-        if (!credentials?.email || !credentials.password) return null;
+        try {
+          const response = await axios.post(
+            "http://localhost:3000/api/users/Login",
+           credentials ,
 
-        const userPrisma = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
 
-        if (userPrisma) {
-          const isValidPassword = await compare(credentials.password, userPrisma.password);
-          if (isValidPassword) {
-            return {
-              id: userPrisma.id.toString(),
-              name: userPrisma.first_name,
-              email: userPrisma.email,
-            };
+          );
+
+          if (response.status === 200) {
+            console.log("Response Data:", response.data);
+            return response.data;
           }
+        } catch (error: any) {
+          console.log(error.response.data)
+          throw new Error(
+            JSON.stringify({
+              errors: error.response.data,
+              status: 400,
+              ok: false,
+            })
+          );
+
         }
         return null;
       },
@@ -37,61 +50,78 @@ export const authOptions: AuthOptions = {
       id: "signup",
       name: "Sign Up",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "hello@example.com" },
-        first_name: { label: "First Name", type: "text", placeholder: "John" },
-        password: { label: "Password", type: "password" },
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "hello@example.com",
+        },
+        role: { label: "role", type: "text" },
       },
-      authorize: async (credentials) => {
-        if (!credentials?.email || !credentials.password || !credentials.first_name) return null;
+      async authorize(credentials: Record<string, any>) {
+        console.log("credentials next auth", credentials);
 
-        const userPrisma = await prisma.user.findUnique({
-          where: { email: credentials.email },
+        const formData = new FormData();
+
+        Object.keys(credentials).map((k) => {
+          formData.append(k, credentials[k]);
         });
 
-        if (userPrisma) {
-          return null; // User already exists
+        try {
+          const response = await axios.post(
+            "http://localhost:3000/api/users/create",
+            formData,
+
+            {
+              headers: {
+                "Content-Type": "multipart/form-data", // Ensure proper headers for file upload
+              },
+            }
+          );
+
+          if (response.status === 201) {
+            console.log("Response Data:", response.data);
+            return response.data;
+          }
+        } catch (error: any) {
+          throw new Error(
+            JSON.stringify({
+              errors: error.response.data,
+              status: 400,
+              ok: false,
+            })
+          )
         }
 
-        const user = await prisma.user.create({
-          data: {
-            first_name: credentials.first_name,
-            email: credentials.email,
-            password: await hash(credentials.password, 10),
-          },
-        });
-
-        return {
-          id: user.id.toString(),
-          name: user.first_name,
-          email: user.email,
-        };
+        console.log("skipped");
+        return null;
       },
     }),
   ],
+
   jwt: {
     async encode({ secret, token }) {
       return jwt.sign(token!, secret);
     },
     async decode({ secret, token }) {
-      return jwt.verify(token!, secret) as JwtPayload;
+      const decodedToken = jwt.verify(token!, secret) as JwtPayload;
+      // console.log('Decoded token:', decodedToken);
+      return decodedToken;
     },
+
     secret: process.env.JWT_SECRET!,
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        Object.assign(token, user);
-      }
-      return token;
+      // console.log("User Data in JWT:", user, token); // Debug log
+      return { ...token, ...user };
     },
-    async session({ session, token }) {
-      if (token) {
-        Object.assign(session.user!, token.user);
-      }
+    async session({ session, token, user }) {
+      // console.log("Session Token:", token, session, user); // Debug log
+      session.user = token;
       return session;
     },
     async redirect({ url, baseUrl }) {
-      console.log(url  ,baseUrl)
+      // console.log(url, baseUrl);
       // Redirect users to the home page after sign in/sign up
       return baseUrl;
     },
@@ -101,10 +131,11 @@ export const authOptions: AuthOptions = {
     maxAge: 1 * 24 * 60 * 60,
   },
   pages: {
-    signIn: "api/auth/signin",
-    newUser: "api/auth/signup",
-    error: "api/auth/error",
+    signIn: "/signin",
+    newUser: "/signup",
+    signOut: "/signout",
+    error: "/error",
   },
+
   secret: process.env.NEXTAUTH_SECRET!,
 };
-

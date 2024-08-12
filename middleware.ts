@@ -1,13 +1,16 @@
-import { getToken } from "next-auth/jwt";
+import { decode, getToken } from "next-auth/jwt";
 import { withAuth } from "next-auth/middleware";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import * as jose from "jose";
 
-
+const jwtConfig = {
+  secret: new TextEncoder().encode(process.env.NEXTAUTH_SECRET)!,
+};
 
 export default withAuth(
   async function middleware(Request: NextRequest) {
-    console.log(Request.nextUrl.pathname)
-    const secret = process.env.NEXTAUTH_SECRET;
+    console.log("test 1 ")
+    const secret = process.env.NEXTAUTH_SECRET!;
 
     const pathname = Request.nextUrl.pathname;
     const isAuth = await getToken({
@@ -15,34 +18,62 @@ export default withAuth(
       secret: secret,
       raw: true,
     });
-    const ProtectedRoute = [ "/" , "/profile" , "/product" , "/todo" ,"/upload" , "/users"];
-    console.log("isAuth" ,isAuth )
 
-    const AuthRoute = pathname.startsWith("/auth");
+    const ProtectedRoute = ["/product","/profile" ,  "/todo", "/upload", "/users"];
+    const AuthRoute = pathname.startsWith("/api/auth");
     const isProtectedRoute = ProtectedRoute.some((route) => {
       return pathname.startsWith(route);
     });
-    if (!isAuth && isProtectedRoute) {
-      return Response.redirect(new URL("api/auth/signin", Request.url));
+
+    if (isAuth && pathname.includes("/api/auth")) {
+      console.log("test");
+      // Try rewriting the URL instead of redirecting
+      return NextResponse.rewrite(new URL("/", Request.url));
     }
-    if(isAuth && AuthRoute)
-{
-  return Response.redirect(new URL("/", Request.url));
-}
+
+    if (!isAuth && isProtectedRoute) {
+      return NextResponse.redirect(new URL("auth/signin", Request.url));
+    }
+    console.log({
+      isAuth ,
+      pathname ,
+      isProtectedRoute
+    })
+
+    if (isAuth) {
+      const tokenData = await jose.jwtVerify(isAuth, jwtConfig.secret);
+      if (!tokenData.payload.isCompleteProfile && pathname !== "/profile" && pathname !== "/")  {
+        // If profile is not complete, redirect to profile page
+        return NextResponse.redirect(new URL("/profile", Request.url));
+      } else if (AuthRoute && tokenData.payload.isCompleteProfile && pathname !== "/") {
+        // If profile is complete and user is on auth route, redirect to homepage
+        return NextResponse.redirect(new URL("/", Request.url));
+      }
+    }
+    
+    return NextResponse.next();
   },
   {
     callbacks: {
-     authorized({token , req}){
-     const auth_token =  req.cookies.get("next-auth.session-token")
-  //     name: 'next-auth.session-token',
-  // value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoibW9oYW1lZCIsImVtYWlsIjoiYXNzaHh4QGdtYWlsLmNvbSIsInN1YiI6IjI4IiwiaWQiOiIyOCIsImlhdCI6MTcyMjk4OTYyMX0.33LDtwOQ3DdAA2gbWJm_0zy6pSvGqiddCtxFs8EVI6U'
-      console.log( "middleware", {token   , auth_token})
-        return true
-    }, 
-
+      authorized({ token, req }) {
+        console.log("Authorizedmethotoken"  ,token)
+        console.log("req"  ,JSON.stringify(req))
+        return true;
+      },
     },
   }
 );
+
 export const config = {
-    matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
-  };
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)", "/api/auth(.*)"],
+};
+
+//   console.log(tokenData)
+//  if (
+//   isAuth && isProtectedRoute
+// )
+// {
+//   console.log("edkwdf")
+//   return NextResponse.redirect(new URL("/", Request.url));
+
+// }

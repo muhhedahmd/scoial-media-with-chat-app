@@ -1,4 +1,4 @@
-import NextAuth, { AuthOptions } from "next-auth";
+import NextAuth, { AuthOptions, RequestInternal } from "next-auth";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "./prisma";
@@ -57,10 +57,10 @@ export const authOptions: AuthOptions = {
         },
         role: { label: "role", type: "text" },
       },
-      async authorize(credentials: Record<string, any>) {
+      async authorize(credentials: Record<string, any> | undefined) {
         console.log("credentials next auth", credentials);
-
-        const formData = new FormData();
+        if(!credentials) return
+                const formData = new FormData();
 
         Object.keys(credentials).map((k) => {
           formData.append(k, credentials[k]);

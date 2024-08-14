@@ -57,7 +57,7 @@ export const POST = async (req: Request, { params }: { params: { id: string } })
         if (post) {
             const image = await prisma.post_image.create({
                 data: {
-                    img_path: result, // Use the URL returned by Cloudinary
+                    img_path: result.s, // Use the URL returned by Cloudinary
                     post_id: +params.id,
                 },
             });

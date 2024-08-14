@@ -2,6 +2,7 @@ import { decode, getToken } from "next-auth/jwt";
 import { withAuth } from "next-auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import * as jose from "jose";
+import { User } from "@prisma/client";
 
 const jwtConfig = {
   secret: new TextEncoder().encode(process.env.NEXTAUTH_SECRET)!,
@@ -19,7 +20,7 @@ export default withAuth(
       raw: true,
     });
 
-    const ProtectedRoute = ["/product","/profile" ,  "/todo", "/upload", "/users"];
+    const ProtectedRoute = ["/product","/profile"  , "/Maintimeline",  "/todo", "/upload", "/users"];
     const AuthRoute = pathname.startsWith("/api/auth");
     const isProtectedRoute = ProtectedRoute.some((route) => {
       return pathname.startsWith(route);
@@ -39,19 +40,23 @@ export default withAuth(
       pathname ,
       isProtectedRoute
     })
+    if (isAuth  && pathname.startsWith("/auth")) {
+            return NextResponse.redirect(new URL("/", Request.url));
 
-    if (isAuth) {
-      const tokenData = await jose.jwtVerify(isAuth, jwtConfig.secret);
-      if (!tokenData.payload.isCompleteProfile && pathname !== "/profile" && pathname !== "/")  {
-        // If profile is not complete, redirect to profile page
-        return NextResponse.redirect(new URL("/profile", Request.url));
-      } else if (AuthRoute && tokenData.payload.isCompleteProfile && pathname !== "/") {
-        // If profile is complete and user is on auth route, redirect to homepage
-        return NextResponse.redirect(new URL("/", Request.url));
-      }
     }
-    
-    return NextResponse.next();
+
+    if (isAuth && AuthRoute) {
+      return NextResponse.next();
+      // const tokenData = (await jose.jwtVerify(isAuth, jwtConfig.secret)).payload as User;
+      // if (!tokenData.isCompleteProfile && pathname !== "/profile" && pathname !== "/" && !pathname.startsWith("/api"))  {
+      //   // If profile is not complete, redirect to profile page
+      //   return NextResponse.redirect(new URL("/profile", Request.url));
+      // } else if (AuthRoute && tokenData.payload.isCompleteProfile  && pathname !== "/") {
+      //   // If profile is complete and user is on auth route, redirect to homepage
+      //   return NextResponse.redirect(new URL("/", Request.url));
+      // }
+    } 
+  
   },
   {
     callbacks: {

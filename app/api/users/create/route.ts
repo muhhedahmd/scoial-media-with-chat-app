@@ -33,6 +33,7 @@ export async function POST(req: Request) {
   
       !userName ||
       !lastName
+      || false
     ) {
       return NextResponse.json(
         {
@@ -41,7 +42,6 @@ export async function POST(req: Request) {
           password,
           firstName,
           lastName,
-
           gender,
           userName,
           role,
@@ -75,9 +75,13 @@ export async function POST(req: Request) {
         password: hashedPassword,
         last_name: lastName,
         user_name: userName,
+        gender ,
         role,
-
-      
+        profile : {
+          create: {
+          
+          }
+        }
       },
       select :{
         id: true,
@@ -85,10 +89,7 @@ export async function POST(req: Request) {
         first_name : true ,
         last_name : true , 
         user_name : true ,
-        isCompleteProfile:true ,
         role : true ,
-
-
       }
     });
 

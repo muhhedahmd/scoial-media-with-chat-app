@@ -28,10 +28,6 @@ const SignUp = () => {
     trigger: () => Promise<boolean>;
     UserValues: () => Promise<any>;
   } | null>(null);
-  const ProfileInfoRef = useRef<{
-    trigger: () => Promise<boolean>;
-    ProfileValues: () => Promise<any>;
-  } | null>(null);
 
 
   const SubmitCreationUser = async () => {

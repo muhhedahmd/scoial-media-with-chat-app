@@ -29,20 +29,75 @@ enum Gender {
   PREFER_NOT_TO_SAY
 }
 
+enum NotificationType {
+  MENTION
+  LIKE
+  COMMENT
+  COMMENTREACT
+  REPLAYREACT
+  REPLAY
+  FOLLOW
+  SHARE
+  SYSTEM
+}
+
 model User {
-  id                 Int                  @id @default(autoincrement())
-  email              String               @unique
-  first_name         String
-  role               Role                 @default(user)
-  password           String               @default("abc")
-  profile            Profile?
-  post               post[]
-  comments           Comment[]
-  replay             replay[]
-  gender             Gender               @default(MALE)
-  last_name          String
-  user_name          String               @unique
-  category_post_User category_post_User[]
+  id         Int        @id @default(autoincrement())
+  email      String     @unique
+  first_name String
+  role       Role       @default(user)
+  password   String
+  profile    Profile?
+  post       post[]
+  comments   Comment[]
+  replay     replay[]
+  reactions  Reaction[]
+  gender     Gender     @default(MALE)
+  last_name  String
+  expiresAt  DateTime   @default(dbgenerated("NOW() + INTERVAL '6 months'")) // Automatically set expiration date
+
+  user_name             String               @unique
+  category_post_User    category_post_User[]
+  reactionsComment      reactionsComment[]
+  share                 Share[]
+  notificationsSent     Notification[]       @relation("UserNotifier")
+  notificationsReceived Notification[]       @relation("UserNotifying")
+}
+
+model Notification {
+  id          Int              @id @default(autoincrement())
+  notifierId  Int // The user who performed the action
+  notifyingId Int // The user who will receive the notification
+  type        NotificationType // Type of notification (e.g., LIKE, COMMENT)
+  postId      Int?              // Foreign key to the post
+  post        post?            @relation("postNotifcation", fields: [postId], references: [id], onDelete: Cascade)
+
+  commentId         Int?     // Optional: The comment related to the notification
+  commentNotication Comment? @relation("commentNotication" ,fields: [commentId], references: [id], onDelete: Cascade)
+
+  replayId         Int? 
+  replayNotication replay? @relation("replayNotication" ,fields: [replayId], references: [id], onDelete: Cascade)
+
+  shareId         Int? 
+  shareNotication Share? @relation( "shareNotication", fields: [shareId], references: [id], onDelete: Cascade)
+
+  // replayReactionId          Int?
+  // replayReactionNotication  Reaction @relation(fields: [replayReactionId], references: [id], onDelete: Cascade)
+
+  PostReactionId Int? 
+  postReactionNotication Reaction? @relation("postReactionNotication", fields: [PostReactionId] , references: [id] ,onDelete: Cascade)
+
+  commentReactionId         Int? 
+  commentReactionNotication reactionsComment? @relation("commentReactionNotication" ,fields: [commentReactionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  read      Boolean  @default(false) // Mark notification as read or unread
+
+  notifier   User      @relation("UserNotifier", fields: [notifierId], references: [id])
+  notifying  User      @relation("UserNotifying", fields: [notifyingId], references: [id])
+
+  @@index([notifierId, notifyingId])
 }
 
 model Profile {
@@ -65,25 +120,29 @@ model Profile {
 
 model Follows {
   id          Int      @id @default(autoincrement())
-  followerId  Int      @unique
-  followingId Int      @unique
+  followerId  Int
+  followingId Int
   follower    Profile  @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
   following   Profile  @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
 }
 
 model post {
-  id         Int             @id @default(autoincrement())
-  author_id  Int
-  author     User            @relation(fields: [author_id], references: [id], onDelete: Cascade)
-  title      String
-  created_at DateTime        @default(now())
-  updated_at DateTime        @updatedAt
-  published  Boolean         @default(false)
-  categories category_post[]
-  post_image post_image[]
-  Comment    Comment[]
-  reaction   Reaction[]
+  id           Int             @id @default(autoincrement())
+  author_id    Int
+  author       User            @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  title        String
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+  published    Boolean         @default(false)
+  categories   category_post[]
+  post_image   post_image[]
+  Comment      Comment[]
+  reaction     Reaction[]
+  share        Share[]
+  Notification Notification[]   @relation("postNotifcation")
 }
 
 model category {
@@ -115,44 +174,84 @@ model category_post_User {
 }
 
 model post_image {
-  id       Int    @id @default(autoincrement())
-  img_path String
-  post_id  Int
-  post     post   @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  id           Int    @id @default(autoincrement())
+  img_path     String
+  post_id      Int
+  public_id    String
+  asset_id     String
+  width        Int
+  height       Int
+  asset_folder String
+  display_name String
+  tags         Json   @default("[]")
+  type         String
+  post         post   @relation(fields: [post_id], references: [id], onDelete: Cascade)
+}
+
+model reactionsComment {
+  id         Int     @id @default(autoincrement())
+  comment_id Int
+  comment    Comment @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+  author_id  Int
+  author     User    @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  emoji      String
+  names      Json    @default("[]")
+  imageUrl   String
+  Notification     Notification[] @relation("commentReactionNotication")
+
+  @@unique([comment_id, author_id])
 }
 
 model Comment {
-  id        Int    @id @default(autoincrement())
-  content   String
-  post_id   Int
-  author_id Int
-  author    User   @relation(fields: [author_id], references: [id])
-  post      post   @relation(fields: [post_id], references: [id], onDelete: Cascade)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  replay     replay[]
+  id               Int                @id @default(autoincrement())
+  content          String
+  post_id          Int
+  author_id        Int
+  author           User               @relation(fields: [author_id], references: [id])
+  post             post               @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  reactionsComment reactionsComment[]
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+  replay           replay[]
+  Notification     Notification[] @relation("commentNotication")
 }
 
 model replay {
-  id         Int      @id @default(autoincrement())
-  comment_id Int
-  comment    Comment  @relation(fields: [comment_id], references: [id], onDelete: Cascade)
-  author_id  Int
-  author     User     @relation(fields: [author_id], references: [id], onDelete: Cascade)
-  content    String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id           Int            @id @default(autoincrement())
+  comment_id   Int
+  comment      Comment        @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+  author_id    Int
+  author       User           @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  content      String
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  Notification Notification[] @relation("replayNotication")
 }
 
 model Reaction {
-  id         Int          @id @default(autoincrement())
-  post_id    Int
-  post       post         @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  type       ReactionType @unique
-  count      Int
-  created_at DateTime     @default(now())
-  updated_at DateTime     @updatedAt
+  id           Int            @id @default(autoincrement())
+  post_id      Int
+  user_id      Int
+  users        User           @relation(fields: [user_id], references: [id])
+  post         post           @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  type         ReactionType
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  Notification Notification[] @relation("postReactionNotication")
+
+  @@unique([post_id, user_id])
+}
+
+model Share {
+  id           Int            @id @default(autoincrement())
+  post_id      Int
+  author_id    Int
+  content      String
+  user         User[]
+  post         post[]
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  Notification Notification[] @relation("shareNotication")
 }
 
 // model conversion {

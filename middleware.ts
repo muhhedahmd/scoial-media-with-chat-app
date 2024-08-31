@@ -20,21 +20,22 @@ export default withAuth(
       raw: true,
     });
 
-    const ProtectedRoute = ["/product","/profile"  , "/Maintimeline",  "/todo", "/upload", "/users"];
+    const ProtectedRoute = ["/product","/profile" ,
+      // "/api" ,
+       "/maintimeline",  "/todo", "/upload", "/users"];
     const AuthRoute = pathname.startsWith("/api/auth");
     const isProtectedRoute = ProtectedRoute.some((route) => {
       return pathname.startsWith(route);
     });
 
-    if (isAuth && pathname.includes("/api/auth")) {
-      console.log("test");
-      // Try rewriting the URL instead of redirecting
-      return NextResponse.rewrite(new URL("/", Request.url));
+    if (isAuth && pathname.includes("/auth")) {
+      return NextResponse.redirect(new URL("/", Request.url));
     }
 
     if (!isAuth && isProtectedRoute) {
       return NextResponse.redirect(new URL("auth/signin", Request.url));
     }
+
     console.log({
       isAuth ,
       pathname ,

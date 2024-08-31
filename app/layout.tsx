@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "./StoreProvider";
+import { Toaster } from "@/components/ui/toaster";
+import { PaginationProvider } from "@/context/pagganition";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,10 +22,17 @@ export default function RootLayout({
     <html lang="en">
 
       <body className={inter.className}>
+
+      
       <StoreProvider>
+
         {children}
+        <Toaster /> 
+
       </StoreProvider>
         </body>
+
+
     </html>
   );
 }

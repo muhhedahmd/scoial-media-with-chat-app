@@ -13,35 +13,47 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { User } from "@prisma/client";
 import { useSession } from "next-auth/react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import AutocompleteSingleValue from "./AutocompleteSinglValus";
 import AutocompleteMultiValue from "./AutocompleteMultivalue";
-import {
-  editProfile,
-  fetchProfile,
-  selectProfile,
-  selectProfileError,
-  selectProfileStatus,
-} from "@/store/Reducers/ProfileSlice";
+
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/store/store";
 
 import { useToast } from "@/components/ui/use-toast";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEditProfileMutation, useGetProfileQuery } from "@/store/api/apiProfile";
 
 const MainInfo = () => {
-  const profile = useSelector(selectProfile);
+
+
+
+
   const Router = useRouter();
   const { toast } = useToast();
   const { data } = useSession();
   const user = data?.user as User;
 
-  const dispatch = useDispatch<AppDispatch>();
-  const status = useSelector(selectProfileStatus);
-  const error = useSelector(selectProfileError);
+  
+  
+  const   {
+    data : profile , 
+    isLoading :status,
+    isSuccess  ,
+    isError
+  } = useGetProfileQuery({userId : user?.id})
+
+  const  [EditProfile  , {
+    isLoading : editStatus ,
+    isSuccess : editSuccess ,
+    isError : editError ,
+    
+  }]  = useEditProfileMutation()
+  
+  // if(!user.id) return
   const form = useForm<z.infer<typeof ProfileSchema>>({
     resolver: zodResolver(ProfileSchema),
     defaultValues: {
@@ -56,18 +68,11 @@ const MainInfo = () => {
     },
   });
 
-  useEffect(() => {
-    console.log({ BeforeFetch: profile });
-    if (!profile) {
-      console.log({ isFetched: profile });
 
-      dispatch(fetchProfile(+user.id)); // Fetch profile on component mount
-    }
-  }, [dispatch, user.id, profile]);
 
   useEffect(() => {
     let toastId;
-    if (status === "loading") {
+    if (status ) {
       toastId = toast({
         title: "Updating Profile",
         description: "Please wait while we update your profile.",
@@ -75,7 +80,7 @@ const MainInfo = () => {
       });
     }
 
-    if (status === "succeeded") {
+    if (isSuccess) {
       form.setValue("title", profile?.title || "");
       form.setValue("PhoneNumber", profile?.PhoneNumber || "0");
       form.setValue("bio", profile?.bio || "");
@@ -90,14 +95,15 @@ const MainInfo = () => {
       });
     }
 
-    if (status === "failed") {
+    if (isError) {
       toast({
         title: "Error",
-        description: error || "There was an error updating your profile.",
+        description:  "There was an error updating your profile.",
         variant: "destructive",
       });
     }
-  }, [status, error, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, toast]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -107,37 +113,41 @@ const MainInfo = () => {
       const formData = new FormData();
 
       Object.keys(updatedProfile).forEach((k) => {
+        let key = k as keyof typeof updatedProfile;
+
         if (
-          typeof updatedProfile[k] === "object" &&
+          typeof updatedProfile[key] === "object" &&
           k !== "cover_picture" &&
           k !== "birthdate" &&
           k !== "profile_picture"
         ) {
-          formData.append(k, JSON.stringify(updatedProfile[k]));
+          formData.append(k, JSON.stringify(updatedProfile[key]));
         } else {
-          formData.append(k, updatedProfile[k]);
+          formData.append(k, updatedProfile[key]);
         }
       });
 
-      dispatch(editProfile({ userId: user.id, profileData: formData }))
-        .unwrap()
-        .then(() => {
-          // console.log("Added successfully");
+
+        EditProfile({ userId: user.id, profileData: formData }).then(()=>{
+
           toast({
             title: "Profile Updated",
             description: "Your profile has been updated successfully.",
-            variant: "default",
-          });
-          Router.push("/Maintimeline");
-        })
-        .catch(() => {
-          // console.log("Error while updating profile");
-          toast({
-            title: "Error",
-            description: "There was an error updating your profile.",
-            variant: "destructive",
-          });
-        });
+            variant: "success",
+            
+          })
+          Router.push("/maintimeline")
+          
+        }
+      ).catch((err)=>{
+        toast({
+          title: "Error",
+          description:  "There was an error updating your profile.",
+          variant: "destructive",
+          
+        }) })
+        // Router.push("/maintimeline")
+      
       // console.log(status);
     }
   };
@@ -148,9 +158,12 @@ const MainInfo = () => {
         <p className="text-2xl ">
           Hello , {user?.first_name} {user?.last_name}
         </p>
-        <p className="text-destructive text-sm">{error && error}</p>
-        <Form {...form}>
+        {/* <p className="text-destructive text-sm"></p> */}
+        <Form
+        
+        {...form}>
           <form
+            
             className=" flex-col w-full h-full flex justify-between items-start"
             onSubmit={(e) => onSubmit(e)}
           >
@@ -324,22 +337,27 @@ const MainInfo = () => {
             </div>
             <div className="p-2 flex justify-between items-start w-full">
               <Button
-                disabled={status === "loading"}
+                disabled={editStatus }
                 className="w-2/6"
                 type="submit"
               >
-                {status === "loading" ? (
+                {editStatus  ? (
                   <LoaderCircle className="animate-spin w-4 h-4  " />
                 ) : (
                   "submit"
                 )}
               </Button>
               <Button
+              disabled={editStatus}
                 onClick={() => Router.push("/maintimeline")}
                 variant={"ghost"}
                 type="button"
               >
-                skip
+                {editStatus ? (
+                  <LoaderCircle className="animate-spin w-4 h-4  " />
+                ) : (
+                  "skip"
+                )}
               </Button>
             </div>
           </form>

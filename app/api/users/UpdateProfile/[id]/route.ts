@@ -1,5 +1,5 @@
-import prisma from "@/lib/prisma";
-import { Upload_coludnairy } from "@/utils";
+import {prisma} from "@/lib/prisma";
+import { CloudinaryUploadResponse, Upload_coludnairy } from "@/utils";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -21,16 +21,6 @@ export const PUT = async (
   const title = formData.get("title")  as string
   
 
-  // console.log({cover_picture ,title ,birthdate ,websiteValue :JSON.parse(websiteValue)})
-  // return NextResponse.json({bio , birthdate 
-  //   , cover_picture, location, PhoneNumber   , profile_picture, websiteValue
-
-  // } , {status :200})
-  
-  // const website = JSON.parse(websiteValue) as Record<string, string>;
-  
-  // const errors: string[] = [];
-
 
 
   const selectUser = await prisma.user.findFirst({
@@ -45,23 +35,24 @@ export const PUT = async (
       },
     });
 
-    const [coverPictureRes, profilePictureRes] = await Promise.all([
-      Upload_coludnairy(cover_picture, selectUser.user_name),
-      Upload_coludnairy(profile_picture, selectUser.user_name),
-  ]);
+    const [coverPictureRes   , profilePictureRes  ]    = await Promise.all([
+      Upload_coludnairy(cover_picture, selectUser.user_name) as Promise<{ status: number; data: CloudinaryUploadResponse }> ,
+      Upload_coludnairy(profile_picture, selectUser.user_name) as Promise<{ status: number; data: CloudinaryUploadResponse }> ,
+  ])
 
   if (coverPictureRes.status !== 200 || profilePictureRes.status !== 200) {
       return NextResponse.json(
           {
-              message: 'Failed to upload pictures',
+              message: 'Failed to upload Images',
               formData, 
           },
           { status: 400 }
       );
   }
 
-    console.log(coverPictureRes ,profilePictureRes)
   
+    console.log(coverPictureRes ,profilePictureRes)
+    
     // if (!!findUserProfile) {
         const updateProfile = await prisma.profile.upsert({
             where: {
@@ -70,10 +61,10 @@ export const PUT = async (
             update: {
               bio: bio || findUserProfile?.bio || "",
               birthdate: new Date(birthdate).toISOString() || findUserProfile?.birthdate || "",
-              cover_picture: coverPictureRes.data || findUserProfile?.cover_picture || "",
+              cover_picture: coverPictureRes.data.secure_url || findUserProfile?.cover_picture || "",
               location: location || findUserProfile?.location || "",
               PhoneNumber: PhoneNumber || findUserProfile?.PhoneNumber || 0,
-              profile_picture: profilePictureRes.data || findUserProfile?.profile_picture || "",
+              profile_picture: profilePictureRes.data.secure_url || findUserProfile?.profile_picture || "",
               website: JSON.parse(websiteValue) || findUserProfile?.website ||{},
               title : title || findUserProfile?.title ||"",
               isCompleteProfile :true
@@ -81,11 +72,11 @@ export const PUT = async (
             create: {
               bio: bio || "",
               birthdate:new Date(birthdate).toISOString()  || "",
-              cover_picture: coverPictureRes.data|| "",
+              cover_picture: coverPictureRes.data.secure_url|| "",
               user_id: +params.id,
               location: location || "",
               PhoneNumber: Number(formData.get("PhoneNumber")) || 0,
-              profile_picture: profilePictureRes.data  || "",
+              profile_picture: profilePictureRes.data.secure_url  || "",
               website: JSON.parse(websiteValue) || {},
               title : title || "",
               isCompleteProfile :true

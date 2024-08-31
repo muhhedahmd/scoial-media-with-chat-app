@@ -1,0 +1,44 @@
+.example {
+    user-select: none;
+}
+
+.example__cropper {
+    border: solid 1px #36393F;
+    min-height: 400px;
+    max-height: 600px;
+    width: 100%;
+}
+
+.example__cropper-background {
+    background: black;
+}
+
+.example__cropper-wrapper {
+    position: relative;
+}
+
+.example__buttons-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.example__button {
+    border: none;
+    outline: solid transparent;
+    color: white;
+    font-size: 16px;
+    padding: 10px 20px;
+    background: #36393F;
+    cursor: pointer;
+    transition: background 0.5s;
+    width: 100%;
+}
+
+.example__button:hover,
+.example__button:focus {
+    background: #20232A;
+}
+
+.example__button input {
+    display: none;
+}

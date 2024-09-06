@@ -38,6 +38,7 @@ const Posts = ({
   });
   const { isMessageOpen } = useMessageOpen();
 
+
   const handleScroll = useCallback(() => {
     if (!postsContainerRef.current || isFetching || !FetchPostData?.hasMore)
       return;
@@ -107,18 +108,22 @@ const Posts = ({
                 <div className="w-[91.5%] pr-3 flex justify-start items-start flex-col">
                   <ContentPost postId={id} content={title} />
                   <ReactionReactionOptions
+                  created_at={created_at}
+                  title={title}
+                  user={user}
                     MainUserProfile={MainUserProfile}
                     userId={user.id}
                     postId={id}
                     author_id={author_id}
                   />
-                  {isMessageOpen?.id === id ? <Comments post_id={id} userId={user.id} /> : ""}
+                  {isMessageOpen?.id === id ? <Comments post_id={id}
+                  author_id={author_id}
+                  userId={user.id} /> : ""}
                 </div>
               </div>
             );
           }
         )}
-        <div></div>
       </div>
     );
   }

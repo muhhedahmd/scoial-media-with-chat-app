@@ -1,5 +1,8 @@
+import { reactionType } from "@/app/api/posts/reactions/route";
+import { ReactionInfo } from "@/app/api/posts/ReactToggle/route";
 import { post, post_image, Reaction, ReactionType } from "@prisma/client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
 interface profilePostData {
   user: {
     first_name: string;
@@ -18,42 +21,26 @@ export const apiSlice = createApi({
     getPosts: builder.query<{ posts: post[]; hasMore: boolean }, any>({
       query: ({ pgnum, pgsize }: { pgnum: number; pgsize: number }) =>
         `/posts?pgnum=${+pgnum}&pgsize=${+pgsize}`,
-      serializeQueryArgs: ({ endpointName }) => {
-        return endpointName;
-      },
-      // Always merge incoming data to the cache entry
+      serializeQueryArgs: ({ endpointName }) => endpointName,
       merge: (currentCache, newItems) => {
         currentCache.posts.push(...newItems.posts);
-        currentCache.hasMore = newItems.hasMore; 
+        currentCache.hasMore = newItems.hasMore;
       },
-      // Refetch when the page arg changes
-      forceRefetch({ currentArg, previousArg, state }) {
+      forceRefetch({ currentArg, previousArg }) {
         return currentArg !== previousArg;
       },
-      transformResponse(response: post[],meta , arg) {
-        
-        // let hasMore = response.length >= arg.pgsize || response.length !==  0 ;
-        let hasMore = response.length !==  0 ;
-        return { posts: response, hasMore: hasMore };
+      transformResponse(response: post[], meta, arg) {
+        const hasMore = response.length !== 0;
+        return { posts: response, hasMore };
       },
     }),
 
-    getPostImages: builder.query<post_image[], any>({
-      query: (id: number) => `/posts/post_image?PostId=${+id}`,
+    getPostImages: builder.query<post_image[], number>({
+      query: (id) => `/posts/post_image?PostId=${id}`,
     }),
-    getPostReactions: builder.query<Reaction[], any>({
-      providesTags: ["Reactions"],
-      query: (id: number) => `/posts/reactions?PostId=${+id}`,
-    }),
+
     getPostComments: builder.query({
-      query: (id: number) => `/posts/comments?PostId=${+id}`,
-    }),
-    getCommentsReplay: builder.query({
-      query: (id: number) => `/posts/replay?commentId=${+id}`,
-    }),
-    getProfilePost: builder.query<profilePostData, any>({
-      query: ({ PostId, author_id }: { PostId: number; author_id: number }) =>
-        `/posts/profilepost?PostId=${PostId}&author_id=${author_id}`,
+      query: (id: number) => `/posts/comments?PostId=${id}`,
     }),
 
     AddPost: builder.mutation({
@@ -67,7 +54,7 @@ export const apiSlice = createApi({
           const { data } = await queryFulfilled;
           dispatch(
             apiSlice.util.updateQueryData("getPosts", undefined, (draft) => {
-              draft.posts?.push(data);
+              draft.posts.push(data);
             })
           );
         } catch (err) {
@@ -75,8 +62,30 @@ export const apiSlice = createApi({
         }
       },
     }),
+
+    getCommentsReplay: builder.query({
+      query: (id: number) => `/posts/replay?commentId=${id}`,
+    }),
+
+    getProfilePost: builder.query<profilePostData, any>({
+      query: ({ PostId, author_id }: { PostId: number; author_id: number }) =>
+        `/posts/profilepost?PostId=${PostId}&author_id=${author_id}`,
+    }),
+
+    getPostReactions: builder.query<reactionType[], { post_id: number }>({
+      query: ({ post_id }) => `/posts/reactions?PostId=${post_id}`,
+      providesTags: (result, error, { post_id }) => [
+        { type: "Reactions", id: post_id },
+      ],
+      serializeQueryArgs({ endpointName, queryArgs }) {
+        const key = `${endpointName}-${queryArgs.post_id}`;
+        console.log("Generated Cache Key:", key);
+
+        return `${endpointName}-${queryArgs.post_id}`;
+      },
+    }),
     toggleReact: builder.mutation({
-      query: (body: reactionInfo) => ({
+      query: (body: ReactionInfo & { postId: number }) => ({
         url: "/posts/ReactToggle",
         method: "POST",
         body,
@@ -84,36 +93,60 @@ export const apiSlice = createApi({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          const res = data as Reaction;
+          const res = data as {react :{
+            id: number;
+            type: ReactionType;
+            created_at: Date;
+            updated_at: Date;
+            innteractId: number;
+            interactionShareId: number | null;
+        };
+        tag: string
+      }
+      
+    
+          console.log(
+            "Updating Cache for Key:",
+            `getPostReactions-${arg.postId}`
+          );
 
           dispatch(
             apiSlice.util.updateQueryData(
               "getPostReactions",
-              arg.postId,
+              { post_id: arg.postId },
               (draft) => {
-                if (res.add) {
-                  // If `add` is true, add the reaction
-                  draft.push(res);
-                } else if (res.updated) {
-                  // If the reaction is updated, find the existing one and update its type
-                  const indexToUpdate = draft.findIndex(
-                    (reaction) => reaction.id === res.id
+                console.log(
+                  "Draft content before update:",
+                  JSON.stringify(draft, null, 2)
+                );
+                console.log("Before update:");
+                if (res.tag === "add") {
+                  draft?.push(res.react as reactionType);
+                  console.log(
+                    "Draft add content before update:",
+                    JSON.stringify(draft, null, 2)
                   );
-                  if (indexToUpdate !== -1) {
-                    draft[indexToUpdate].type = res.type;
-                  }
-                } else {
-                  // If `add` is false and `updated` is not true, remove the reaction
-                  const indexToRemove = draft.findIndex(
-                    (reaction) => reaction.id === res.id
-                  );
-                  if (indexToRemove !== -1) {
-                    draft.splice(indexToRemove, 1);
+                }
+                if (res.tag === "update") {
+                  const index = draft?.findIndex((item) => item.id === res.react.id);
+                  if (index !== -1 && index !== undefined && draft) {
+                    
+                    draft[index].type = res.react.type;
                   }
                 }
+                if (res.tag === "delete") {
+                  const index = draft?.findIndex((item) => item.id === res.react.id);
+                  if (index !== -1 &&  index !== undefined) {
+                    draft?.splice(index, 1);
+                  }
+               
+                }
+                console.log("Before update:", JSON.stringify(draft, null, 2));
               }
             )
           );
+
+
         } catch (err) {
           console.error("Error toggling reaction:", err);
         }
@@ -124,10 +157,10 @@ export const apiSlice = createApi({
 
 export const {
   useGetProfilePostQuery,
+  useGetCommentsReplayQuery,
   useGetPostsQuery,
   useAddPostMutation,
   useGetPostReactionsQuery,
-  useGetCommentsReplayQuery,
   useGetPostCommentsQuery,
   useGetPostImagesQuery,
   useToggleReactMutation,

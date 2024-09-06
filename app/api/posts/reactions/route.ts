@@ -1,6 +1,20 @@
 import prisma from "@/lib/prisma";
+import { ReactionType } from "@prisma/client";
 import { NextResponse } from "next/server";
 
+
+
+
+export type reactionType = {
+  author_id: number;
+  post_id: number;
+  id: number;
+  type: ReactionType;
+  created_at: Date;
+  updated_at: Date;
+  innteractId: number;
+  interactionShareId: number | null;
+}
 export const GET = async (req: Request) => {
   const { searchParams } = new URL(req.url);
 
@@ -23,20 +37,39 @@ export const GET = async (req: Request) => {
 
   if (!!FindPost) {
     try {
-        const Reactions = await prisma.reaction.findMany({
-            where: {
-                post_id: +PostId
-            }           
-        })
-
-
-        return NextResponse.json(
-            Reactions ,
    
-            {
-                status :200
-            }
-        )
+      const FindInteraction = await prisma.interaction.findMany({
+        where: {
+          type :"REACTION",
+          postId : PostId
+        },
+        select:{
+          reaction : true,
+          author_id: true
+        }
+      });
+      const Fixed = FindInteraction.flatMap((d)=>{
+        return    d.reaction.map((x)=>{
+              return {
+                ...x ,
+                author_id: d.author_id,
+                post_id : PostId,
+
+
+              }
+            }) 
+          
+        
+      })
+  
+
+      return NextResponse.json(
+        Fixed,
+
+        {
+          status: 200,
+        }
+      );
     } catch (err: any) {
       return NextResponse.json({
         error: "reactions prisma canont find ",

@@ -8,8 +8,10 @@ import { useToast } from "@/components/ui/use-toast";
 
 export const Emoji = ({
   userId,
+  post_id ,
   commentId,
 }: {
+  post_id: number;
   userId: number;
   commentId: number;
 }) => {
@@ -22,7 +24,9 @@ const {toast} = useToast()
       emojiObject
     ){
 
+
       addReact({
+        post_Id: post_id,
         author_id:userId ,
         comment_id: commentId,
         emoji: emojiObject.emoji,

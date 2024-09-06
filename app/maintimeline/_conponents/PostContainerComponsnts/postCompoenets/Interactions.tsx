@@ -15,8 +15,7 @@ interface InteractionsProps {
 }
 
 const Interactions = ({ author_id,  MainUserProfile, postId  ,data , isLoading}: InteractionsProps) => {
-const uniqe  = Array.from(new Set(data.map(item=>item.type)))
-
+const uniqe  = Array?.from(new Set(data?.map(item=>item.type)))
   if (isLoading) {
     return (
       <div className="flex mt-3 justify-start items-center gap-3 w-full">

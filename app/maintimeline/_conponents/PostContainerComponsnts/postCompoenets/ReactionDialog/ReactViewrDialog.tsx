@@ -66,7 +66,7 @@ const ReactViewrDialog = ({ MainUserProfile, uniqe, data  , author_id}: ReactVie
     <Dialog>
       <DialogTrigger asChild>
         <div className="flex cursor-pointer justify-start my-1 items-center">
-          {uniqe.map((react, i) => {
+          {uniqe?.map((react, i) => {
             return (
               <div key={i} className="flex justify-start items-center w-max">
                 <p className={`-rotate-3 ${getColor(react)}`}>
@@ -90,7 +90,7 @@ const ReactViewrDialog = ({ MainUserProfile, uniqe, data  , author_id}: ReactVie
       </div>
         <div  className="w-full h-full flex justify-start flex-col gap-4 items-start ">
           {data.map((react) => {
-            if(react.user_id)
+            if(react?.user_id)
             return <ReactViewrDialogSingle
             MainUserProfile={MainUserProfile}
             author_id={author_id} key={react.id} {...react} />;

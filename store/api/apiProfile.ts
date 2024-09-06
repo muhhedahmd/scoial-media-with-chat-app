@@ -1,11 +1,18 @@
 import { Profile } from "@prisma/client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+
+type  a = Profile &{  user: {
+    first_name: string;
+    last_name: string;
+ 
+}}
+
 export const apiProfile = createApi({
   reducerPath: "profile",
   baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API! }),
   endpoints: (build) => ({
-    getProfile: build.query<Profile, any>({
+    getProfile: build.query<a, any>({
       query: ({ userId }) => `/users/profile/${userId}`,
     }),
     editProfile: build.mutation<Profile, any>({

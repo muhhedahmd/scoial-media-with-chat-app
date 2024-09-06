@@ -122,7 +122,7 @@ const [ ToggleReact, { isLoading , isSuccess ,data  }] = useToggleReactMutation(
             size={"icon"}
             className={cn(`${getColor(ReactName)} bg-white  hover:bg-white flex justify-center items-center `  )}
             key={i}>
-           {getEmoji(ReactName, findReactions)}
+           {getEmoji(ReactName, findReactions )}
       </Button>
         })}
 

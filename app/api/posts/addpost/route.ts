@@ -76,7 +76,11 @@ export const POST = async (req: NextRequest) => {
         
         },
         include: {
-          reaction: true,
+          Interactions :{
+             select :{
+              reaction :true
+             }
+          }
         },
       });
       console.log(CreatePost);

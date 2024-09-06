@@ -1,5 +1,5 @@
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { prisma } from "../../../lib/prisma";
 
 export const GET = async (req: Request) => {
   const { searchParams } = new URL(req.url);
@@ -10,12 +10,13 @@ export const GET = async (req: Request) => {
 
   const posts = await prisma.post.findMany({
 
+  
     orderBy: {
       created_at:"desc"
     },
-
+    
     skip: pgNum * pgSize ,
-    take :pgSize
+    take :pgSize,
 
   });
   return NextResponse.json(

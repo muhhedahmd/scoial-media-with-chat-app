@@ -13,6 +13,7 @@ interface HeaderPostProps {
   user: User;
   created_at?: Date;
   author_id: number;
+  share?: boolean;
 }
 
 const HeaderPost = ({
@@ -20,10 +21,8 @@ const HeaderPost = ({
   user,
   author_id,
   created_at,
-
-
+  share,
 }: HeaderPostProps) => {
-  
   const {
     data: profileData,
     isLoading,
@@ -36,7 +35,7 @@ const HeaderPost = ({
         addSuffix: true,
       })
     : null;
-
+console.log({profileData})
   // imageLoader
   return (
     <div className=" w-full flex justify-start items-center gap-3">
@@ -55,7 +54,7 @@ const HeaderPost = ({
         </div>
       )}
 
-      {!profileData?.user  ? (
+      {!profileData?.user ? (
         <div className="flex w-full justify-start items-start gap-2 flex-col">
           <Skeleton className="w-1/4 h-2 bg-gray-300" />
           <Skeleton className="w-1/5 h-2 bg-gray-300" />
@@ -67,12 +66,11 @@ const HeaderPost = ({
           ) : (
             <div className="flex justify-between items-center w-full">
               <p className="">
-                by{" "}
-                {profileData?.user?.id === user?.id
-                  ? "me"
-                  : profileData?.user?.first_name +
-                    " " +
-                    profileData?.user.last_name}
+                {share
+                  ? `${profileData?.user?.first_name} ${profileData?.user?.last_name}`
+                  : profileData?.user?.id === user?.id
+                  ? "you"
+                  : `${profileData?.user?.first_name} ${profileData?.user?.last_name}`}
               </p>
               {date && <p className="text-muted-foreground">{date}</p>}
             </div>

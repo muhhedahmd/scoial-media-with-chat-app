@@ -20,6 +20,14 @@ console.log(params)
         const findUserProfile  = await prisma.profile.findUnique({
             where  :{
                 user_id : +params.id
+            },
+            include :{
+                user :{
+                    select : {
+                        first_name :true ,
+                        last_name: true 
+                    }
+                }
             }
         })
         

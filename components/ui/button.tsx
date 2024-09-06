@@ -18,8 +18,8 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        reaction: "rounded-full p-2 hover:bg-gray-100 hover:text-gray-600", // new variant for reaction buttons
-        share: "px-4 py-2 bg-gray-200 text-gray-600 hover:bg-gray-300 hover:text-gray-800", // new variant for share buttons
+        reaction: " bg-[#d4fff8db] p-2 hover:bg-gray-100 hover:text-gray-600", // new variant for reaction buttons
+        share: "px-4 py-2  bg-gray-200 text-gray-600 hover:bg-gray-300 hover:text-gray-800", // new variant for share buttons
       },
       size: {
         default: "h-10 px-4 py-2",

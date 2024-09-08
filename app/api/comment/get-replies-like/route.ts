@@ -50,7 +50,6 @@ export const GET = async (req: Request) => {
           created_at: d.created_at,
           updated_at: d.updated_at,
           innteractId: d.innteractId,
-          interactionShareId: d.interactionShareId,
           author_id: d?.Interaction?.author_id,
           post_id: d?.Interaction?.postId,
         };

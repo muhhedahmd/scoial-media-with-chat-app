@@ -1,9 +1,9 @@
 import React, { useCallback } from "react";
 import { InteractionButtonsLoader } from "./Loaderes";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Send } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { ReactPoper } from "./ReactPoper";
-import { Reaction, ReactionType, User } from "@prisma/client";
+import { ReactionType, User } from "@prisma/client";
 import { useMessageOpen } from "@/app/maintimeline/layout";
 import ShareDialog from "./ShareComp/ShareDialog";
 interface InteractionButtonsProps {
@@ -13,19 +13,22 @@ interface InteractionButtonsProps {
   data: {
     author_id: number;
     reaction: {
-        id: number;
-        type: ReactionType;
-        created_at: Date;
-        updated_at: Date;
-        innteractId: number;
-        interactionShareId: number | null;
+      id: number;
+      type: ReactionType;
+      created_at: Date;
+      updated_at: Date;
+      innteractId: number;
+      interactionShareId: number | null;
     }[];
-} | null
+  } | null;
 
   userId: number;
-  created_at :Date
-  title:string
-  user:User
+  created_at: Date;
+  title: string;
+  user: User;
+  parentTitle?: string;
+  Post_parent_id?: number;
+  parent_author_id?: number;
 }
 
 const InteractionButtons = ({
@@ -36,21 +39,25 @@ const InteractionButtons = ({
   isLoading,
   created_at,
   title,
-  user
-
+  user,
+  Post_parent_id,
+  parentTitle,
+  parent_author_id,
 }: InteractionButtonsProps) => {
   const findReactionsCallback = useCallback(() => {
-    if(data )
-    return data.reaction?.filter((react) => data.author_id=== userId).map((r) => r.type);
+    if (data)
+      return data.reaction
+        ?.filter((react) => data.author_id === userId)
+        .map((r) => r.type);
   }, [userId, data]);
   const { toggleMessageOpen } = useMessageOpen();
 
   const findReactions = findReactionsCallback();
 
   console.log({
-    findReactions ,
-    data
-  })
+    findReactions,
+    data,
+  });
 
   if (!postId || isLoading) return <InteractionButtonsLoader />;
   else {
@@ -63,15 +70,14 @@ const InteractionButtons = ({
           postId={postId}
         />
         <ShareDialog
-          author_id={author_id}
-          postId={postId}
+          author_id={Post_parent_id ? Post_parent_id : author_id}
+          postId={Post_parent_id ? Post_parent_id : postId}
           created_at={created_at}
-          title={title}
+          title={parentTitle ? parentTitle : title}
           user={user}
         />
         <Button
           onClick={() => {
-            console.log({ postId });
             toggleMessageOpen(postId, true);
           }}
           variant={"ghost"}

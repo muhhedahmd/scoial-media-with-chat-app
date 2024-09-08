@@ -52,7 +52,6 @@ export const GET = async (req: Request) => {
         author_id: react.Interaction.author_id,
         post_id: react.Interaction.postId,
         innteractId: react.innteractId,
-        interactionShareId: react.interactionShareId,
       };
     }) as ShapeOfreactionsComments[]
 

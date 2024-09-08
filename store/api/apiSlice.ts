@@ -1,5 +1,6 @@
 import { reactionType } from "@/app/api/posts/reactions/route";
 import { ReactionInfo } from "@/app/api/posts/ReactToggle/route";
+import { shapeOfPostsRes } from "@/app/api/posts/route";
 import { post, post_image, Reaction, ReactionType } from "@prisma/client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
@@ -18,7 +19,13 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API! }),
   tagTypes: ["Posts", "Reactions"],
   endpoints: (builder) => ({
-    getPosts: builder.query<{ posts: post[]; hasMore: boolean }, any>({
+    getPosts: builder.query<
+      {
+        posts:  shapeOfPostsRes[]
+        hasMore: boolean;
+      },
+      any
+    >({
       query: ({ pgnum, pgsize }: { pgnum: number; pgsize: number }) =>
         `/posts?pgnum=${+pgnum}&pgsize=${+pgsize}`,
       serializeQueryArgs: ({ endpointName }) => endpointName,
@@ -29,7 +36,11 @@ export const apiSlice = createApi({
       forceRefetch({ currentArg, previousArg }) {
         return currentArg !== previousArg;
       },
-      transformResponse(response: post[], meta, arg) {
+      transformResponse(
+        response :shapeOfPostsRes[],
+        meta,
+        arg
+      ) {
         const hasMore = response.length !== 0;
         return { posts: response, hasMore };
       },
@@ -93,18 +104,18 @@ export const apiSlice = createApi({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          const res = data as {react :{
-            id: number;
-            type: ReactionType;
-            created_at: Date;
-            updated_at: Date;
-            innteractId: number;
-            interactionShareId: number | null;
-        };
-        tag: string
-      }
-      
-    
+          const res = data as {
+            react: {
+              id: number;
+              type: ReactionType;
+              created_at: Date;
+              updated_at: Date;
+              innteractId: number;
+              interactionShareId: number | null;
+            };
+            tag: string;
+          };
+
           console.log(
             "Updating Cache for Key:",
             `getPostReactions-${arg.postId}`
@@ -128,34 +139,76 @@ export const apiSlice = createApi({
                   );
                 }
                 if (res.tag === "update") {
-                  const index = draft?.findIndex((item) => item.id === res.react.id);
+                  const index = draft?.findIndex(
+                    (item) => item.id === res.react.id
+                  );
                   if (index !== -1 && index !== undefined && draft) {
-                    
                     draft[index].type = res.react.type;
                   }
                 }
                 if (res.tag === "delete") {
-                  const index = draft?.findIndex((item) => item.id === res.react.id);
-                  if (index !== -1 &&  index !== undefined) {
+                  const index = draft?.findIndex(
+                    (item) => item.id === res.react.id
+                  );
+                  if (index !== -1 && index !== undefined) {
                     draft?.splice(index, 1);
                   }
-               
                 }
                 console.log("Before update:", JSON.stringify(draft, null, 2));
               }
             )
           );
-
-
         } catch (err) {
           console.error("Error toggling reaction:", err);
         }
       },
     }),
+    addShare : builder.mutation({
+      query: (body  :{
+        
+
+          "content": string
+          , "post_id": number ,
+           "author_id": number
+      
+      }
+      )=>{
+        return        {
+          url  : "/share/add-share",
+          method :"POST",
+          body  :body
+
+        }
+      },
+       
+      async onQueryStarted(arg,{dispatch , queryFulfilled} ) {
+          
+          const res  = (await queryFulfilled).data as shapeOfPostsRes
+          try {
+            
+            dispatch(
+              apiSlice.util.updateQueryData("getPosts" , undefined  , (draft)=>{
+                if (draft) {
+                draft.posts.unshift(res)
+                }
+              })
+            )
+
+
+          } catch (error) {
+            throw error
+          }
+
+
+
+
+      },
+    })
   }),
 });
 
 export const {
+  useAddShareMutation,
   useGetProfilePostQuery,
   useGetCommentsReplayQuery,
   useGetPostsQuery,

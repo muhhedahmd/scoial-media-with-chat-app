@@ -142,7 +142,6 @@ export const POST = async (req: Request) => {
         updated_at: c.updated_at,
         parentId : c.parentId ,
         innteractId: c.innteractId,
-        interactionShareId: c.interactionShareId,
         author_id: c.Interaction?.author_id,
         post_id: c.Interaction?.postId,
       } as shapeOfNestedReplayRes

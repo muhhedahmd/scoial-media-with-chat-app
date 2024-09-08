@@ -114,7 +114,6 @@ export const POST = async (req: Request) => {
         created_at: c.created_at,
         updated_at: c.updated_at,
         innteractId: c.innteractId,
-        interactionShareId: c.interactionShareId,
         author_id: c.Interaction?.author_id,
         post_id: c.Interaction?.postId,
       };

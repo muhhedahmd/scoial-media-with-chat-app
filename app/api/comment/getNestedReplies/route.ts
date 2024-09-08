@@ -31,7 +31,6 @@ export const GET = async (req: Request) => {
         id: c.id,
         content: c.content,
         innteractId: c.innteractId,
-        interactionShareId: c.interactionShareId,
         author_id: c.Interaction?.author_id,
         post_id: c.Interaction?.postId,
         parentId: c.parentId,

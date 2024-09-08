@@ -12,6 +12,10 @@ interface ReactionReactionOptionsProps {
   created_at :Date
   title:string
   user:User
+  parentTitle? :string 
+Post_parent_id? :number 
+parent_author_id? : number 
+
 
 }
 
@@ -22,11 +26,19 @@ const ReactionReactionOptions = ({
   postId,
   created_at ,
   title,
-  user
+  user,
+  Post_parent_id ,
+  parentTitle ,
+  parent_author_id,
+
 }: ReactionReactionOptionsProps) => {
   const { data, isLoading } = useGetPostReactionsQuery({post_id :postId});
   const d = data as any
-  console.log(data)      
+  console.log({
+    data: d,
+    author_id,
+    postId
+  })      
 
   return (
     <>
@@ -38,6 +50,11 @@ const ReactionReactionOptions = ({
         postId={postId}
       />
       <InteractionButtons
+    Post_parent_id={Post_parent_id}
+parentTitle={parentTitle}
+parent_author_id={parent_author_id}
+
+
       created_at={created_at}
       title={title}
       user={user}

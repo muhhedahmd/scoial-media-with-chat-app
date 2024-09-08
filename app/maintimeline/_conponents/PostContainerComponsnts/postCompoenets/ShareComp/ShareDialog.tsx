@@ -7,14 +7,16 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { Send } from "lucide-react";
-import React, { useState } from "react";
+import { LoaderCircle, Send } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import HeaderPost from "../HeaderPost";
 import ContentPost from "../ContentPost";
 import ReactionReactionOptions from "../Reaction&ReactionOptions";
 import { User } from "@prisma/client";
 import SharePostCard from "./SharePostCard";
 import { Input } from "@/components/ui/input";
+import MinmalCard from "./MinmalCard";
+import { useAddShareMutation } from "@/store/api/apiSlice";
 
 const ShareDialog = ({
   postId,
@@ -31,12 +33,36 @@ const ShareDialog = ({
 }) => {
 
     const [ShareContent ,setShareContent] =useState("")
-    
-    const handleShare =()=>{
+    const  [ share , {isLoading , isSuccess , isError }] = useAddShareMutation()
+  console.log({
+    author_id ,
+    postId
+  }
+  
+)
+const [openDialog , setOpenDialog]= useState<boolean>(false)
 
+    const handleShare =()=>{
+      if(ShareContent.trim()){
+
+        share({
+          author_id : user.id ,
+          post_id  : postId  ,
+          content : ShareContent
+        }).then(()=>{})
+
+      }
     }
+
+    useEffect(()=>{
+      if(isSuccess){
+        setOpenDialog(false)
+      }
+    } , [setOpenDialog , isSuccess])
+    
+
   return (
-    <Dialog>
+    <Dialog open={openDialog} onOpenChange={setOpenDialog} >
       <DialogTrigger asChild>
         <Button
           // disabled={true}
@@ -56,13 +82,14 @@ const ShareDialog = ({
         author_id={user.id}
         user={user}
       />
-      <Input
+      <input
+
       placeholder="Share the moment...."
-      className="w-full"
+      className="w-full bg-gray-100  border-b-2 border-t-0 border-l-0 my-4 border-r-0  border-gray-400 p-2 pb-1 py-4 pt-1  outline-none focus:outline-none"
       value={ShareContent}
       onChange={(e)=>setShareContent(e.target.value)}
       />
-        <SharePostCard
+        <MinmalCard
           author_id={author_id}
           postId={postId}
           user={user}
@@ -71,8 +98,18 @@ const ShareDialog = ({
           </div>
 
         <DialogFooter className="flex justify-start flex-col sm:flex-row w-full gap-2 ">
-          <DialogClose >Later</DialogClose>
-          <Button onClick={()=>handleShare()}>Share</Button>
+          <DialogClose   disabled={isLoading}>{ 
+          isLoading  ? 
+          <LoaderCircle  className="animate-spin text-gray-600 w-4 h-4"/>
+          :
+          "Later"
+          }</DialogClose>
+          <Button disabled={isLoading} onClick={()=>handleShare()} >
+          {isLoading  ? 
+          <LoaderCircle  className="animate-spin text-gray-600 w-4 h-4"/>
+          :
+            "Share"
+            }</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

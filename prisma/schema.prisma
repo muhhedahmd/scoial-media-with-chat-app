@@ -61,7 +61,7 @@ model User {
   Mention               Mention[]
   HashtagFollow         HashtagFollow[]
   Interaction           Interaction[]
-  InteractionShare      InteractionShare[]
+  // InteractionShare      InteractionShare[]
 }
 
 model Hashtag {
@@ -188,7 +188,7 @@ model post {
   id           Int             @id @default(autoincrement())
   author_id    Int
   author       User            @relation(fields: [author_id], references: [id], onDelete: Cascade)
-  title        String
+  title        String?
   created_at   DateTime        @default(now())
   updated_at   DateTime        @updatedAt
   published    Boolean         @default(false)
@@ -198,7 +198,10 @@ model post {
   Interactions Interaction[]
   PostHashtag  PostHashtag[]
   Mention      Mention[]
-  Share        Share[]
+  parentId Int?
+  parent   post?  @relation("nestedPostForShare", fields: [parentId], references: [id])
+  post  post[] @relation("nestedPostForShare")
+  Share        Share?
 }
 
 model reactionsComment {
@@ -212,23 +215,26 @@ model reactionsComment {
   Interaction  Interaction    @relation(fields: [innteractId], references: [id], onDelete: Cascade)
   Notification Notification[] @relation("commentReactionNotication")
 
-  InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
-  interactionShareId Int?
-  @@unique([comment_id ,innteractId ])
-  @@unique([comment_id  , interactionShareId ])
+  // InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
+  // interactionShareId Int?
+  // @@unique([comment_id, interactionShareId])
 
+  @@unique([comment_id, innteractId])
 }
 
 model Share {
-  id               Int                @id @default(autoincrement())
-  content          String
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  post_id          Int
-  post             post               @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  Notification     Notification[]     @relation("shareNotication")
-  InteractionShare InteractionShare[]
-  ShareHashtag     ShareHashtag[]
+  id           Int            @id @default(autoincrement())
+  content      String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  post_id      Int?           @unique
+  post         post?          @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  Notification Notification[] @relation("shareNotication")
+
+  ShareHashtag ShareHashtag[]
+
+  // InteractionShare InteractionShare[]
+  // Interaction  Interaction[]
 }
 
 enum InteractionType {
@@ -255,6 +261,9 @@ model Interaction {
   postId Int?
   post   post? @relation(fields: [postId], references: [id], onDelete: Cascade)
 
+  // shareId Int?
+  // share   Share? @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
   // Arrays for different types of interactions
   commentReaction reactionsComment[]
   replay          replay[]
@@ -263,70 +272,70 @@ model Interaction {
   replayLikes     replayLikes[]
   Mention         Mention[]
 
-  @@unique([author_id, postId , type])
+  @@unique([author_id, postId, type])
 }
 
-model InteractionShare {
-  id        Int             @id @default(autoincrement())
-  type      InteractionType
-  author_id Int
+// model InteractionShare {
+//   id        Int             @id @default(autoincrement())
+//   type      InteractionType
+//   author_id Int
 
-  // Relations
-  author User @relation(fields: [author_id], references: [id], onDelete: Cascade)
+//   // Relations
+//   author User @relation(fields: [author_id], references: [id], onDelete: Cascade)
 
-  // Optional relations
+//   // Optional relations
 
-  shareId Int?
-  share   Share? @relation(fields: [shareId], references: [id], onDelete: Cascade)
+//   shareId Int?
+//   share   Share? @relation(fields: [shareId], references: [id], onDelete: Cascade)
 
-  // Arrays for different types of interactions
+//   // Arrays for different types of interactions
 
-  commentReaction reactionsComment[]
-  Mention         Mention[]
+//   commentReaction reactionsComment[]
+//   Mention         Mention[]
 
-  replay      replay[]
-  comment     Comment[]
-  reaction    Reaction[]
-  replayLikes replayLikes[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+//   replay      replay[]
+//   comment     Comment[]
+//   reaction    Reaction[]
+//   replayLikes replayLikes[]
+//   createdAt   DateTime      @default(now())
+//   updatedAt   DateTime      @updatedAt
 
-  @@unique([author_id, shareId])
-}
+//   @@unique([author_id, shareId])
+// }
 
 model Comment {
-  id      Int    @id @default(autoincrement())
-  content String
-  reactionsComment   reactionsComment[]
-  created_at         DateTime           @default(now())
-  updated_at         DateTime           @updatedAt
-  replay             replay[]
-  Notification       Notification[]     @relation("commentNotication")
-  innteractId        Int?
-  Interaction        Interaction?       @relation(fields: [innteractId], references: [id], onDelete: Cascade)
-  interactionShareId Int?
-  InteractionShare   InteractionShare?  @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
-  Mention            Mention[]
+  id               Int                @id @default(autoincrement())
+  content          String
+  reactionsComment reactionsComment[]
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+  replay           replay[]
+  Notification     Notification[]     @relation("commentNotication")
+  innteractId      Int?
+  Interaction      Interaction?       @relation(fields: [innteractId], references: [id], onDelete: Cascade)
+  // interactionShareId Int?
+  // InteractionShare   InteractionShare?  @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
+  Mention          Mention[]
 }
 
 model replay {
-  id                 Int               @id @default(autoincrement())
-  comment_id         Int
-  comment            Comment           @relation(fields: [comment_id], references: [id], onDelete: Cascade)
-  content            String
-  created_at         DateTime          @default(now())
-  updated_at         DateTime          @updatedAt
-  Notification       Notification[]    @relation("replayNotication")
-  replayLikes        replayLikes[]
-  innteractId        Int?
-  Interaction        Interaction?      @relation(fields: [innteractId], references: [id], onDelete: Cascade)
-  Mention            Mention[]
-  InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
-  interactionShareId Int?
+  id           Int            @id @default(autoincrement())
+  comment_id   Int
+  comment      Comment        @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+  content      String
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  Notification Notification[] @relation("replayNotication")
+  replayLikes  replayLikes[]
+  innteractId  Int?
+  Interaction  Interaction?   @relation(fields: [innteractId], references: [id], onDelete: Cascade)
+  Mention      Mention[]
+  // InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
+  // interactionShareId Int?
 
-  parentId           Int?
-  parent             replay?           @relation("ReplayReplies", fields: [parentId], references: [id])
-  replies            replay[]          @relation("ReplayReplies")
+  parentId Int?
+  parent   replay?  @relation("ReplayReplies", fields: [parentId], references: [id])
+  replies  replay[] @relation("ReplayReplies")
 
   @@index([comment_id])
 }
@@ -339,57 +348,54 @@ enum mentionType {
 }
 
 model Mention {
-  id                 Int               @id @default(autoincrement())
-  userId             Int
-  postId             Int?
-  shareId            Int?
-  commentId          Int?
-  replayId           Int?
-  startPos           Int?              @default(0)
-  endPos             Int?              @default(0)
-  mentionType        mentionType
-  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post               post[]
-  // ?       @relation(fields: [postId], references: [id], onDelete: Cascade)
-  interactionShareId Int?
-  InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
+  id          Int         @id @default(autoincrement())
+  userId      Int
+  postId      Int?
+  shareId     Int?
+  commentId   Int?
+  replayId    Int?
+  startPos    Int?        @default(0)
+  endPos      Int?        @default(0)
+  mentionType mentionType
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post        post[]
+  // interactionShareId Int?
+  // InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
 
   interactioneId Int?
   Interaction    Interaction? @relation(fields: [interactioneId], references: [id], onDelete: Cascade)
-  // ?      @relation(fields: [shareId], references: [id], onDelete: Cascade)
   comment        Comment[]
-  // ?    @relation(fields: [commentId], references: [id], onDelete: Cascade)
   replay         replay[]
-  // ?     @relation(fields: [replayId], references: [id], onDelete: Cascade)
   created_at     DateTime     @default(now())
   updated_at     DateTime     @updatedAt
 }
 
 model replayLikes {
-  id                 Int               @id @default(autoincrement())
-  replay_id          Int
-  replay             replay            @relation(fields: [replay_id], references: [id], onDelete: Cascade)
-  created_at         DateTime          @default(now())
-  updated_at         DateTime          @updatedAt
-  Notification       Notification[]    @relation("ReplayLikesNotication")
-  innteractId        Int
-  Interaction        Interaction       @relation(fields: [innteractId], references: [id])
-  InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
-  interactionShareId Int?
-  @@unique([replay_id ,innteractId ])
-  @@unique([replay_id  , interactionShareId ])
+  id           Int            @id @default(autoincrement())
+  replay_id    Int
+  replay       replay         @relation(fields: [replay_id], references: [id], onDelete: Cascade)
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  Notification Notification[] @relation("ReplayLikesNotication")
+  innteractId  Int
+  Interaction  Interaction    @relation(fields: [innteractId], references: [id])
+  // InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
+  // interactionShareId Int?
+  // @@unique([replay_id, interactionShareId])
+
+  @@unique([replay_id, innteractId])
 }
 
 model Reaction {
-  id                 Int               @id @default(autoincrement())
-  type               ReactionType
-  created_at         DateTime          @default(now())
-  updated_at         DateTime          @updatedAt
-  innteractId        Int
-  Interaction        Interaction       @relation(fields: [innteractId], references: [id], onDelete: Cascade)
-  Notification       Notification[]    @relation("postReactionNotication")
-  InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
-  interactionShareId Int?
+  id           Int            @id @default(autoincrement())
+  type         ReactionType
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  innteractId  Int
+  Interaction  Interaction    @relation(fields: [innteractId], references: [id], onDelete: Cascade)
+  Notification Notification[] @relation("postReactionNotication")
+  // InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
+  // interactionShareId Int?
 }
 
 model category {

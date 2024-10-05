@@ -1,26 +1,22 @@
 import React, { useCallback } from "react";
 import { InteractionButtonsLoader } from "./Loaderes";
 import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
+import { 
+ MessageCircle } from "lucide-react";
 import { ReactPoper } from "./ReactPoper";
-import { ReactionType, User } from "@prisma/client";
-import { useMessageOpen } from "@/app/maintimeline/layout";
+import {  User } from "@prisma/client";
 import ShareDialog from "./ShareComp/ShareDialog";
+
+import { reactionType } from "@/app/api/posts/reactions/route";
+
+import SavePopup from "./SaveComp/SavePopup";
+import { useMessageOpen } from "@/context/comment";
 interface InteractionButtonsProps {
   postId: number;
   author_id: number;
   isLoading: boolean;
-  data: {
-    author_id: number;
-    reaction: {
-      id: number;
-      type: ReactionType;
-      created_at: Date;
-      updated_at: Date;
-      innteractId: number;
-      interactionShareId: number | null;
-    }[];
-  } | null;
+  data:  reactionType[]
+
 
   userId: number;
   created_at: Date;
@@ -45,9 +41,10 @@ const InteractionButtons = ({
   parent_author_id,
 }: InteractionButtonsProps) => {
   const findReactionsCallback = useCallback(() => {
+
     if (data)
-      return data.reaction
-        ?.filter((react) => data.author_id === userId)
+      return data
+        ?.filter((react) => react.author_id === userId)
         .map((r) => r.type);
   }, [userId, data]);
   const { toggleMessageOpen } = useMessageOpen();
@@ -56,7 +53,7 @@ const InteractionButtons = ({
 
   console.log({
     findReactions,
-    data,
+    data
   });
 
   if (!postId || isLoading) return <InteractionButtonsLoader />;
@@ -64,13 +61,13 @@ const InteractionButtons = ({
     return (
       <div className="flex justify-start items-center gap-3 mt-3 w-full">
         <ReactPoper
-          userId={userId}
           findReactions={findReactions || []}
           author_id={author_id}
+          userId={userId}
           postId={postId}
         />
         <ShareDialog
-          author_id={Post_parent_id ? Post_parent_id : author_id}
+          author_id={parent_author_id ? parent_author_id : author_id}
           postId={Post_parent_id ? Post_parent_id : postId}
           created_at={created_at}
           title={parentTitle ? parentTitle : title}
@@ -86,6 +83,12 @@ const InteractionButtons = ({
           <p>Comment</p>
           <MessageCircle className="w-4 h-4" />
         </Button>
+          <SavePopup
+               userId={userId}
+               postId={postId}
+          
+          
+          />
       </div>
     );
   }

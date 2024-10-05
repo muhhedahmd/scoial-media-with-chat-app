@@ -25,15 +25,15 @@ export const GET = async (req: Request) => {
 
   if (!!FindPost) {
     try {
-        const Comments_and_Replay = await prisma.comment.findMany({
-            where: {
-                post_id: +PostId
-            }           
-        })
+        // const Comments_and_Replay = await prisma.comment.findMany({
+        //     where: {
+        //         pos: +PostId
+        //     }           
+        // })
 
 
         return NextResponse.json(
-            Comments_and_Replay ,
+            [] ,
    
             {
                 status :200

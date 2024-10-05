@@ -6,10 +6,8 @@ import { NextResponse } from "next/server";
 import { any } from "zod";
 
 export async function POST(req: Request) {
-
   try {
     const formData = await req.formData();
-
 
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
@@ -20,20 +18,15 @@ export async function POST(req: Request) {
     const userName = formData.get("user_name") as string;
     const role = formData.get("role") as Role;
 
-   
-
     if (
-      
       !email ||
       !password ||
       !firstName ||
-
       !gender ||
       !role ||
-  
       !userName ||
-      !lastName
-      || false
+      !lastName ||
+      false
     ) {
       return NextResponse.json(
         {
@@ -45,8 +38,6 @@ export async function POST(req: Request) {
           gender,
           userName,
           role,
-
-
         },
         { status: 400 }
       );
@@ -70,71 +61,64 @@ export async function POST(req: Request) {
     // Create the user in the database
     const user = await prisma.user.create({
       data: {
-        email: email,
-        first_name: firstName,
-        password: hashedPassword,
-        last_name: lastName,
-        user_name: userName,
-        gender ,
+        email: email.trim(),
+        first_name: firstName.trim(),
+        password: hashedPassword.trim(),
+        last_name: lastName.trim(),
+        user_name: userName.trim(),
+        gender,
         role,
-        profile : {
-          create: {
-          
-          }
-        }
+        profile: {
+          create: {},
+        },
+ 
       },
-      select :{
+      select: {
         id: true,
         email: true,
-        first_name : true ,
-        last_name : true , 
-        user_name : true ,
-        role : true ,
-      }
+        first_name: true,
+        last_name: true,
+        user_name: true,
+        role: true,
+      },
     });
 
-    
-    return NextResponse.json(
-      user ,
-      { status: 201 }
-    );
+    return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    
     console.error("Error in POST request:", error);
     return NextResponse.json(
-      { message: "Error processing request" , error },
+      { message: "Error processing request", error },
       { status: 500 }
     );
   }
 }
 
+// const [coverPictureRes , profilePictureRes]   = await Promise.all([
+//   Upload_coludnairy(coverPicture, userName),
+//   Upload_coludnairy(profilePicture, userName),
+// ]);
 
-    // const [coverPictureRes , profilePictureRes]   = await Promise.all([
-    //   Upload_coludnairy(coverPicture, userName),
-    //   Upload_coludnairy(profilePicture, userName),
-    // ]);
+// // console.log(coverPictureRes, profilePictureRes);
 
-    // // console.log(coverPictureRes, profilePictureRes);
-
-    // if (coverPictureRes.status !== 200 || profilePictureRes.status !== 200) {
-    //   return NextResponse.json(
-    //     {
-    //       message: 'Failed to upload pictures',
-    //        formData, // Convert to plain object
-    //       type: typeof coverPicture,
-    //       coverPicture: formData.getAll("cover_picture"),
-    //       profilePicture: Object.assign({}, profilePicture),
-    //       coverPictured: coverPicture ? {
-    //         name: coverPicture.name,
-    //         size: coverPicture.size,
-    //         type: coverPicture.type,
-    //       } : {},
-    //       profilePictured: profilePicture ? {
-    //         name: profilePicture.name,
-    //         size: profilePicture.size,
-    //         type: profilePicture.type,
-    //       } : {},
-    //     },
-    //     { status: 400 }
-    //   );
-    // }
+// if (coverPictureRes.status !== 200 || profilePictureRes.status !== 200) {
+//   return NextResponse.json(
+//     {
+//       message: 'Failed to upload pictures',
+//        formData, // Convert to plain object
+//       type: typeof coverPicture,
+//       coverPicture: formData.getAll("cover_picture"),
+//       profilePicture: Object.assign({}, profilePicture),
+//       coverPictured: coverPicture ? {
+//         name: coverPicture.name,
+//         size: coverPicture.size,
+//         type: coverPicture.type,
+//       } : {},
+//       profilePictured: profilePicture ? {
+//         name: profilePicture.name,
+//         size: profilePicture.size,
+//         type: profilePicture.type,
+//       } : {},
+//     },
+//     { status: 400 }
+//   );
+// }

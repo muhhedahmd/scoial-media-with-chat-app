@@ -60,7 +60,7 @@ export const GET = async (req: Request) => {
             }) 
           
         
-      })
+      }) as reactionType[]
   
 
       return NextResponse.json(

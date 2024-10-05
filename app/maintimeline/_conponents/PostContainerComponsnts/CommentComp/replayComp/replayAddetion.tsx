@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  useAddCommentMutation,
+
   useAddReplayMutation,
-  useGetRepliesQuery,
+
 } from "@/store/api/apicomment";
-import { useGetUserQuery } from "@/store/api/apiUser";
 import React, { useState } from "react";
+import InputWithAndHastags from "../../../InputWithAndHastags";
+import { parseDataType } from "../CommentAddation";
 
 interface ReplayAdditonProps {
   comment_id: number;
@@ -15,10 +16,16 @@ interface ReplayAdditonProps {
 }
 
 const ReplayAdditon = ({ userId, comment_id, post_id }: ReplayAdditonProps) => {
+  const [parsedData, setParsedData] = useState<parseDataType>({
+    mentions: [] as Array<{ value: string; startIndex: number; endIndex: number; id :number }>,
+    hashtags: [] as Array<{ value: string; startIndex: number; endIndex: number;  id : number}>,
+    ignoredMentions: [] as Array<{ value: string; startIndex: number; endIndex: number; }>,
+    regularTexts: [] as Array<{ text: string; startIndex: number; endIndex: number; }>,
+    fullText: "",
+  });
   const [replay, setReplay] = useState("");
 
   const [addReplay, { data: data, isLoading }] = useAddReplayMutation();
-  const {} = useGetUserQuery
 
   const handleSubmit = () => {
     if (replay.trim()) {
@@ -28,25 +35,27 @@ const ReplayAdditon = ({ userId, comment_id, post_id }: ReplayAdditonProps) => {
         content: replay.trim(),
       });
       addReplay({
+        parsedData : JSON.stringify(parsedData),
         author_id: userId,
         comment_id: comment_id,
         content: replay.trim(),
         post_id: post_id,
       });
       setReplay("");
-      // console.log(isLoading , isError ,data ,
-      // )
+
     }
   };
   return (
-    <form className=" flex w-1/2 mt-3 gap-3 justify-start items-center">
-      <Input
-        disabled={isLoading}
-        placeholder="Enter your comment"
-        onChange={(e) => setReplay(e.target.value)}
-        value={replay}
-        className="w-3/4"
-      />
+    <form className="md:ml-[-70px]   mt-3 ml-0 flex w-3/4 gap-3 justify-start items-center">
+    <InputWithAndHastags
+    disabled={isLoading}
+    placeholder="Enter your comment"
+    setVal={setReplay}
+    val={replay}
+    setParsedData={setParsedData}
+    parsedData={parsedData}
+    className="w-3/4"
+    />
       <Button
         variant={"ghost"}
         disabled={isLoading}

@@ -4,14 +4,13 @@ import "swiper/css";
 import UserInfo from "./_comsponents/UserInfo";
 import "swiper/css";
 import "swiper/css/effect-creative";
-import { useEffect, useRef, useState } from "react";
+import {  useRef, useState } from "react";
 import { LoaderCircle, LucideStepBack } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { NextResponse } from "next/server";
 import { useRouter } from "next/navigation";
 
 interface ResponseState {
@@ -54,7 +53,7 @@ const SignUp = () => {
             router.push("/profile"); // Redirect to profile
           }, 300);
         } else {
-          console.log("Error response", JSON.parse(res?.error));
+          console.log("Error response", res?.error);
         }
       } else {
         throw new Error("Form validation failed");

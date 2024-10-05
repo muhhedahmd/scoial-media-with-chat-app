@@ -34,7 +34,7 @@ interface ProfileInfoProps {
     last_name: string;
     user_name: string;
     gender: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
-}
+}|  any | undefined
 }
 
 const ProfileInfo = forwardRef<ProfileInfoProps, {}>((_, ref) => {

@@ -4,7 +4,7 @@ import { Profile, User } from "@prisma/client";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Icon, LoaderCircle, Rocket, Target } from "lucide-react";
+import { Icon, LoaderCircle, Rocket, Target, User2 } from "lucide-react";
 import PostCreationOptions from "./postCompoenets/PostCreationOptions";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,14 +13,12 @@ import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import ReactPlayer from "react-player";
 
-import {
-  FormField,
-  FormItem,
-} from "@/components/ui/form";
+import { FormField, FormItem } from "@/components/ui/form";
 import ImageGrid from "./postCompoenets/ImageGrid";
 import { useAddPostMutation } from "@/store/api/apiSlice";
 import { useToast } from "@/components/ui/use-toast";
 import MultiCropModel from "@/app/_componsents/crop-model/multiCrop";
+import MentionInput, { parserData } from "@/app/_componsents/mentionComp/MentionDropDown";
 
 interface PostContainerProps {
   user: User;
@@ -31,37 +29,40 @@ interface PostContainerProps {
 export type ImageWithId = {
   id: string;
   file: File;
-  isCroped : boolean
+  isCroped: boolean;
 };
 const Schema = z
   .object({
-    mainText: z.string().nullable().optional(),
 
-    images: z
+  Text : z.string().nullable().optional(),
+    images: typeof window !== "undefined" ?  z
       .array(
         z
           .instanceof(File, {
             message: "Each image must be a valid file",
           })
-          .refine((file) => file.type.startsWith("image/"), {
+          .refine(      (file) => (typeof window !== "undefined" ? file.type.startsWith("image/") : true)
+          
+          , {
             message: "Each image must be an image file",
           })
       )
       .nullable()
-      .optional(),
-    video: z
+      .optional() : z.any() .nullable().optional(), 
+    video:  typeof window !== "undefined"? z
       .instanceof(File, {
         message: "Video must be a valid file",
       })
-      .refine((file) => file.type.startsWith("video/"), {
+      .refine((file) => (typeof window !== "undefined" ? file.type.startsWith("video/") : true), {
         message: "Video must be a video file",
       })
       .nullable()
-      .optional(),
+      .optional()
+      : z.any() .nullable().optional(),
   })
   .refine(
     (data) => {
-      return data.mainText || data.images?.length || data.video;
+      return data.Text || data.images?.length || data.video;
     },
     {
       message: "At least one of mainText, image, or video is required.",
@@ -74,11 +75,10 @@ const PostCreation = ({
   profile,
   user,
 }: PostContainerProps) => {
-
   const form = useForm<z.infer<typeof Schema>>({
     resolver: zodResolver(Schema),
     defaultValues: {
-      mainText: "",
+      Text: "",
       images: [],
       video: null,
     },
@@ -87,40 +87,21 @@ const PostCreation = ({
   const { toast } = useToast();
   const [images, setImages] = useState<ImageWithId[]>([]);
   const [video, setVideo] = useState<File | null>(null);
-  const [AddPost, { isError, error, isLoading, isSuccess }] = useAddPostMutation();
-  const [hasAnimated, setHasAnimated] = useState(false);
+  const [AddPost, { isError, error, isLoading, isSuccess }] =
+    useAddPostMutation();
   const [openDialog, setOpenDialog] = useState(false);
-  const [imageHolder ,setImageHolder]  = useState<ImageWithId[]>([])
+  const [imageHolder, setImageHolder] = useState<ImageWithId[]>([]);
+  const [parsedData, setParsedData] = useState<parserData>();
+  const [inputValue, setInputValue] = useState<string>("");
 
   useEffect(() => {
-    setImageHolder(images)
+    setImageHolder(images);
   }, [images]);
 
-  useGSAP(() => {
-    if ((images.length > 0 || video) && hasAnimated) return;
-    const tl = gsap.timeline({ paused: true });
-    tl.fromTo(
-      ".expanded-delay",
-      {
-        height: "8rem",
-        duration: 0.5,
-      },
-      {
-        height: "28rem",
-        duration: 1,
-        delay: 0.1,
-      }
-    );
 
-    // Run the animation only once when images are added for the first time
-    if ((images.length > 0 || video) && !hasAnimated) {
-      setHasAnimated(true);
-      tl.play();
-    } else {
-      tl.reverse(0.5);
-      setHasAnimated(false); // Reset if images are cleared
-    }
-  }, [images.length, video]);
+  useEffect(()=>{
+    form.setValue("Text" , inputValue)
+  } , [form, inputValue])
 
   const blobUrl = useMemo(() => {
     if (video) {
@@ -130,18 +111,18 @@ const PostCreation = ({
   }, [video]);
 
   const handleClick = async (
-    e?: React.MouseEvent<HTMLButtonElement, MouseEvent> , imageArry? : ImageWithId[]
+    e?: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    imageArry?: ImageWithId[]
   ) => {
     e?.preventDefault();
 
-    console.log(form.getValues("mainText"));
-    console.log(form.getValues());
-    console.log(await form.trigger());
     if (await form.trigger()) {
-      if(!user?.id) return ;
+      if (!user?.id) return;
       const formData = new FormData();
-      formData.append("mainText", form.getValues("mainText") || "");
-      formData.append("author_id", `${user?.id}` );
+      formData.append("mainText", form.getValues("Text")  || "" );
+      formData.append("parsedData", JSON.stringify(parsedData) );
+      formData.append("author_id", `${user?.id}`);
+
       if (imageArry?.length) {
         imageArry?.forEach((image) => {
           formData.append("images", image.file);
@@ -150,26 +131,34 @@ const PostCreation = ({
       if (video) {
         formData.append("video", video);
       }
-      AddPost(formData).then(()=>{
-
-        toast({
-          title: "Post Uploded succesfully ",
-          description: "check it now ",
-          variant: "success",
+      AddPost(formData)
+        .then(() => {
+          toast({
+            title: "Post Uploded succesfully ",
+            description: "check it now ",
+            variant: "success",
+          });
+        })
+        .catch((err) => {
+          toast({
+            title: "Error",
+            description:
+              "At least one of mainText, image, or video is required",
+            variant: "destructive",
+          });
         });
-
-      }).catch((err)=>{
-        toast({
-          title: "Error",
-          description: "At least one of mainText, image, or video is required",
-          variant: "destructive",
-        });
+      setImages([]);
+      setImageHolder([]);
+      setVideo(null);
+      setInputValue("")
+      form.setValue("Text", "" ); 
+      form.setValue("images", null ); 
+      form.setValue("video", null ); 
+       
+      console.log({
+        vals :  form.getValues(),
+        parsedData :parsedData
       })
-      setImages([])
-      setImageHolder([])
-      setVideo(null)
-      form.setValue("mainText" , "")
-
     } else {
       toast({
         title: "Error",
@@ -179,71 +168,71 @@ const PostCreation = ({
     }
   };
 
+
+
+
   if (isLoadingProfile || !profile) {
     return <PostCreationLoader />;
   }
 
   return (
-    <div className="expanded-delay bg-white rounded-xl p-4 relative gap-4 flex flex-col justify-start items-start top-0 w-full shadow-md">
-      <div className="flex justify-between items-start gap-3 w-full">
-        <Image
-          priority={true}
-          height={50}
-          width={50}
-          src={profile?.profile_picture || ""}
-          alt="cover picture"
-          className="w-10 h-10 object-cover bg-gray-300 rounded-full sm:w-14 sm:h-14"
-        />
+    <div
+      className="expanded-delay h-auto bg-white rounded-xl p-4 relative gap-4 flex flex-col justify-start items-start top-0 w-full shadow-md"
+      style={{
+        height: "auto",
+        transition: ".3s",
+      }}
+    >
+      <div className="flex justify-between  items-start gap-3 w-full">
+        {profile?.profile_picture ? (
+          <Image
+            priority={true}
+            height={50}
+            width={50}
+            src={profile?.profile_picture || ""}
+            alt="cover picture"
+            className="w-10 h-10 object-cover bg-gray-300 rounded-full sm:w-14 sm:h-14"
+          />
+        ) : (
+          <div className="w-12 h-12 object-cover bg-gray-300 rounded-full sm:w-14 sm:h-14 flex justify-center items-center p-1">
+            <User2 />
+          </div>
+        )}
+
         <FormProvider {...form}>
           <form className="w-[88%] sm:w-[91%] flex-col h-auto justify-center items-center">
             <div className="flex justify-between w-full items-center">
-              <FormField
-                name="mainText"
-                control={form.control}
-                render={(field) => {
-                  return (
-                    <FormItem className="w-full justify-center items-center">
-                      <Input
-                        onChange={(e) =>
-                          form.setValue("mainText", e.target.value)
-                        }
-                        {...field}
-                        placeholder="What is happening?"
-                        type="text"
-                        className="mt-0 w-[97%]"
-                      />
-                      {/* <FormMessage /> */}
-                    </FormItem>
-                  );
-                }}
-              ></FormField>
-              {images.length? 
-              <MultiCropModel
-              handleFinish={handleClick}
-              images={images}
-              CropedImages={imageHolder}
-              openDialog={openDialog}
-              setImageHolder={setImageHolder}
-
-              setOpenDialog={setOpenDialog}
+              <MentionInput
+              inputValue={inputValue}
+              setInputValue={setInputValue}
+                parsedData={parsedData}
+                setParsedData={setParsedData}
               />
-           : 
-              <Button
-                disabled={isLoading}
-                onClick={(e) => handleClick(e )}
-                size={"icon"}
-                className="w-14 h-9 flex justify-center items-center bg-gray-900"
-              >
-                {
-                  isLoading ?
-                  <LoaderCircle className="text-white animate-spin" />
-                 : 
-                  <Rocket className="w-6 h-6 font-light text-white" />
-                }
-              </Button>
-            }
+              {images.length ? (
+                <MultiCropModel
+                  handleFinish={handleClick}
+                  images={images}
+                  CropedImages={imageHolder}
+                  openDialog={openDialog}
+                  setImageHolder={setImageHolder}
+                  setOpenDialog={setOpenDialog}
+                />
+              ) : (
+                <Button
+                  disabled={isLoading}
+                  onClick={(e) => handleClick(e)}
+                  size={"icon"}
+                  className="w-14 h-9 flex justify-center items-center bg-gray-900"
+                >
+                  {isLoading ? (
+                    <LoaderCircle className="text-white animate-spin" />
+                  ) : (
+                    <Rocket className="w-6 h-6 font-light text-white" />
+                  )}
+                </Button>
+              )}
             </div>
-              
+
             <PostCreationOptions
               disabled={isLoading}
               video={video}
@@ -256,12 +245,11 @@ const PostCreation = ({
       </div>
       <div className="flex justify-start gap-3 items-center w-full">
         <ImageGrid
-        // imageHolder={imageHolder}
-        // setImageHolder={setImageHolder}
-        
-        setImages={setImages}
-         images={imageHolder} 
-        
+          // imageHolder={imageHolder}
+          // setImageHolder={setImageHolder}
+
+          setImages={setImages}
+          images={imageHolder}
         />
         {video && (
           <>

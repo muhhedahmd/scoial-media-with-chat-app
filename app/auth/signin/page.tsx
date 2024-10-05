@@ -65,7 +65,7 @@ const Signin = () => {
             router.push("/profile"); // Redirect to profile
           }, 300);
         } else {
-          console.log("Error response", JSON.parse(res?.error));
+          // console.log("Error response", JSON.parse(res?.error  || undefined ));
         }
       } else {
         throw new Error("Form validation failed");

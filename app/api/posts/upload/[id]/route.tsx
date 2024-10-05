@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import  prisma  from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import cloudinary from "cloudinary";
 import streamifier from "streamifier"
@@ -54,17 +54,17 @@ export const POST = async (req: Request, { params }: { params: { id: string } })
             },
         });
 
-        if (post) {
-            const image = await prisma.post_image.create({
-                data: {
-                    img_path: result.s, // Use the URL returned by Cloudinary
-                    post_id: +params.id,
-                },
-            });
-            return NextResponse.json(image, { status: 200 });
-        } else {
-            return NextResponse.json({ message: "Post not found" }, { status: 404 });
-        }
+        // if (post) {
+        //     const image = await prisma.post_image.create({
+        //         data: {
+        //             img_path: result.s, // Use the URL returned by Cloudinary
+        //             post_id: +params.id,
+        //         },
+        //     });
+        //     return NextResponse.json(image, { status: 200 });
+        // } else {
+        //     return NextResponse.json({ message: "Post not found" }, { status: 404 });
+        // }
     } catch (error) {
         console.error(error);
         return NextResponse.json({ message: "Error uploading file" }, { status: 500 });

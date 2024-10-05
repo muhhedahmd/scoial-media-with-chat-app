@@ -27,7 +27,7 @@ interface UserInfoProps {
     location: string;
     website: string;
     birthdate: Date;
-}
+} | undefined | any
 
 }
 
@@ -38,7 +38,7 @@ const UserInfo = forwardRef<UserInfoProps, {}>((_, ref) => {
       bio : "",
       birthdate: new Date(), 
       location : "" , 
-      website: "",
+      website: {},
     },
   });
 

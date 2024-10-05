@@ -73,20 +73,7 @@ mainReps
 
             />
           ))}
-{/* 
-          {data && data.replay.length > 0 && (
-            <div
-              className="hidden md:block"
-              style={{
-                position: "absolute",
-                left: `-${(level + 2) * 10}px`,
-                width: "3px",
-                backgroundColor: getColor(level),
-                height: `${60 * data.replay.length + 20}px`,
-                transition: "opacity 0.3s",
-              }}
-            />
-          )} */}
+
         </div>
       )}
     </>

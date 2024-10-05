@@ -145,3 +145,26 @@
 .glow-purple {
   filter: drop-shadow( 0 0 10px rgba(128, 0, 128, 0.5));
 }
+textarea {
+  outline: none;
+  outline-color: transparent;
+  outline-width: 0;
+  outline-style: none; 
+
+}
+textarea:focus{
+  outline: none;
+  outline-color: transparent;
+  outline-width: 0;
+  outline-style: none; 
+}
+
+textarea:focus-visible{
+  outline: none;
+  outline-color: transparent;
+  outline-width: 0;
+  outline-style: none; 
+}
+.ct textarea {
+  padding: 10px;
+}

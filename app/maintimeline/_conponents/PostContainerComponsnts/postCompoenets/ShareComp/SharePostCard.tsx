@@ -45,10 +45,12 @@ const SharePostCard = ({
   return (
     <div
       id={`${main_postId}`}
-      className={`expanded-delay-comment-${main_postId} p-3 w-full pl-4 shadow-sm bg-white border-2 
+
+      className={` w-[99%] m-auto md:m-0  expanded-delay-comment-${main_postId} p-3 md:w-full pl-4 shadow-sm  border-2 
       border-[#f9f9f9] rounded-md flex flex-col justify-start items-start`}
     >
       <HeaderPost
+      MainUserProfileId={MainUserProfile?.id}
         share={true}
         postId={main_postId}
         author_id={shared_author_id}
@@ -68,13 +70,14 @@ const SharePostCard = ({
       </div>
 
       <div
-        className="w-[87%] m-auto p-4 flex justify-start items-start flex-col "
+        className="md:w-[87%] w-full m-auto p-4 flex justify-start items-start flex-col "
         style={{
           border: "1px solid rgb(204, 204, 204)",
           borderRadius: " 13px",
         }}
       >
         <HeaderPost
+        MainUserProfileId={MainUserProfile.id}
           postId={Post_parent_id}
           author_id={parent_author_id}
           user={user}
@@ -88,7 +91,7 @@ const SharePostCard = ({
           <ContentPost postId={Post_parent_id} content={parentTitle || ""} />
         </div>
       </div>
-      <div className="ml-[65px] w-[92%] ">
+      <div className=" ml-0 md:ml-[65px]  md:w-[92%]   w-full">
         <ReactionReactionOptions
           created_at={main_created_at}
           user={user}

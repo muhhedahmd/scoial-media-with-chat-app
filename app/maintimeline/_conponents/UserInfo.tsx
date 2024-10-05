@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import MinmalFollowerSection from "./userInfoComponents/MinmalFollowerSection";
 import { Button } from "@/components/ui/button";
 import { Gender, Profile, Role, User } from "@prisma/client";
+import Link from "next/link";
 interface UserInfoProps {
   user : User
 isLoading : boolean 
@@ -82,10 +83,19 @@ const UserInfo = ({
         <Button 
       variant={"ghost"}
 
+
         className="text-gray-500 flex-1 p-2  w-fit"
         >
+          <Link
+          
+          href={"/profilee"}
+          >
+
+
+
 
           My profile
+          </Link>
         </Button>
         
       </div>

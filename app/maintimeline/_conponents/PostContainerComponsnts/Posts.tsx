@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { post, Profile, User } from "@prisma/client";
+import {  Profile, User } from "@prisma/client";
 import { useGetPostsQuery } from "@/store/api/apiSlice";
 import {
   ContentPostLoader,
@@ -7,15 +7,11 @@ import {
   InteractionButtonsLoader,
   InteractionsLoader,
 } from "./postCompoenets/Loaderes";
-import HeaderPost from "./postCompoenets/HeaderPost";
-import ContentPost from "./postCompoenets/ContentPost";
-import ReactionReactionOptions from "./postCompoenets/Reaction&ReactionOptions";
-import { useMessageOpen } from "../../layout";
-import Comments from "./CommentComp/Comments";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/store/store";
 import { setPostsPagination } from "@/store/Reducers/pagganitionSlice";
-import SharePostCard from "./postCompoenets/ShareComp/SharePostCard";
+import { useMessageOpen } from "@/context/comment";
+import Renderposts from "./Renderposts";
 
 const Posts = ({
   user,
@@ -24,11 +20,10 @@ const Posts = ({
   user: User;
   MainUserProfile: Profile;
 }) => {
-  
   const postsContainerRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch<AppDispatch>();
-  
-  const { skip, take } = useSelector((state :any ) => state.pagination.posts);
+
+  const { skip, take } = useSelector((state: any) => state.pagination.posts);
   const {
     data: FetchPostData,
     isLoading: isLoadingFetch,
@@ -39,7 +34,6 @@ const Posts = ({
   });
   const { isMessageOpen } = useMessageOpen();
 
-
   const handleScroll = useCallback(() => {
     if (!postsContainerRef.current || isFetching || !FetchPostData?.hasMore)
       return;
@@ -47,8 +41,7 @@ const Posts = ({
     const { scrollTop, scrollHeight, clientHeight } = postsContainerRef.current;
 
     if (scrollTop + clientHeight + 5 >= scrollHeight) {
-      dispatch(setPostsPagination({ skip: skip + 1,  take }));
-
+      dispatch(setPostsPagination({ skip: skip + 1, take }));
     }
   }, [isFetching, FetchPostData?.hasMore, dispatch, skip, take]);
 
@@ -65,13 +58,9 @@ const Posts = ({
       }
     };
   }, [handleScroll]);
-  console.log({FetchPostData})
   if (isLoadingFetch) {
     return (
-      <div
-        ref={postsContainerRef}
-        className="h-4/5 w-full gap-3 flex flex-col justify-start items-start overflow-y-auto"
-      >
+      <div className="h-4/5 w-full gap-3 flex flex-col justify-start items-start overflow-y-auto">
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
@@ -86,13 +75,18 @@ const Posts = ({
       </div>
     );
   } else {
-
     return (
       <div
         ref={postsContainerRef}
         className=" h-4/5 w-full gap-3 flex flex-col justify-start items-start overflow-y-auto"
       >
-        {FetchPostData?.posts?.map(
+        <Renderposts
+          user={user}
+          isMessageOpen={isMessageOpen}
+          MainUserProfile={MainUserProfile}
+          posts={FetchPostData?.posts}
+        />
+        {/* {FetchPostData?.posts?.map(
           ({ author_id, created_at, updated_at, title, id  ,shared  , parentId , parent}, i) => {
             if (!id || !user?.id) return null;
             if(shared && parentId &&  parent) {
@@ -121,15 +115,17 @@ const Posts = ({
               <div
                 id={`${id}`}
                 key={i}
-                className={`expanded-delay-comment-${id} p-3 w-full shadow-sm bg-white flex flex-col justify-start items-end`}
-              >
+                className={` w-[99%] md:m-0  expanded-delay-comment-${id} p-3 md:w-full pl-4 shadow-sm bg-white border-2 
+                border-[#f9f9f9] rounded-md flex flex-col justify-start items-start`}       
+                       >
                 <HeaderPost
+                MainUserProfileId={MainUserProfile.id}
                   postId={id}
                   author_id={author_id}
                   user={user}
                   created_at={created_at}
                 />
-                <div className="w-[91.5%] pr-3 flex justify-start items-start flex-col">
+                <div className="w-full pr-3 flex justify-start items-start flex-col">
                   <ContentPost postId={id} content={title || ""} />
                   <ReactionReactionOptions
                   created_at={created_at}
@@ -147,7 +143,7 @@ const Posts = ({
               </div>
             );
           }
-        )}
+        )} */}
       </div>
     );
   }

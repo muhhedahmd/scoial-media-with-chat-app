@@ -12,10 +12,16 @@ export const followApi = createApi({
   tagTypes: ["Follow" , "get state"],
   endpoints: (builder) => ({
     getFollowing: builder.query({
-      query: ({ profile_id }) => `/follow/following/${profile_id}`,
+      query: ({ userId }) => `/follow/following/${userId}`,
     }),
     getFollower: builder.query({
-      query: ({ profile_id }) => `/follow/follower/${profile_id}`,
+      query: ({ userId }) => `/follow/follower/${userId}`,
+    }),
+    getFollowingCount: builder.query({
+      query: ({ userId }) => `/follow/following/${userId}/count`,
+    }),
+    getFollowercount: builder.query({
+      query: ({ userId }) => `/follow/follower/${userId}/count`,
     }),
     toggleFollower: builder.mutation({
       invalidatesTags: ["get state"],
@@ -24,31 +30,7 @@ export const followApi = createApi({
         method: "POST",
         body: body,
       }),
-    //   async onQueryStarted(arg, { dispatch, queryFulfilled }) {
-    //     try {
-    //       const { data } = await queryFulfilled;
-    //       const res = data as stateFollow;
-
-    //       // Update the followState cache
-    //       dispatch(
-    //         followApi.util.updateQueryData(
-    //           "followState",
-    //           {
-    //             main_user_id: arg.main_user_id,
-    //             author_user_id: arg.author_user_id,
-    //           },
-    //           (draft) => {
-    //             console.log(draft, res);
-    //             if (draft.id === res.id) {
-    //               draft.state = res.state; // Update the state based on the response
-    //             }
-    //           }
-    //         )
-    //       );
-    //     } catch (error) {
-    //       console.error("Error updating follow state:", error);
-    //     }
-    //   },
+ 
     }),
     followState: builder.query<
       { state: "follow" | "following" | "follow back"; id: number },
@@ -61,4 +43,7 @@ export const followApi = createApi({
   }),
 });
 
-export const { useToggleFollowerMutation, useFollowStateQuery } = followApi;
+export const { useToggleFollowerMutation, useFollowStateQuery  ,
+  useGetFollowingCountQuery,
+  useGetFollowercountQuery
+  ,useGetFollowerQuery , useGetFollowingQuery} = followApi;

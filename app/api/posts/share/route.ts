@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import prisma  from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export const POST = async (req: Request) => {
@@ -52,27 +52,10 @@ export const POST = async (req: Request) => {
     );
   }
 
-  if (!!findUser || !!findUser) {
-    try {
-      const Share = await prisma.share.create({
-        data: {
-          author_id: +auther_id,
-          post_id: +postId,
-          content: content,
-        },
-      });
-      return NextResponse.json(Share, {
-        status: 200,
-      });
-    } catch (error) {
-      return NextResponse.json(
-        {
-          message: "can't share this post ",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-  }
+
+  return NextResponse.json({
+
+  } ,{
+    status: 200,
+  })
 };

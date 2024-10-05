@@ -13,12 +13,14 @@ import { Emoji } from "./EmojiPicker";
 import CommentReactions from "./CommentReactions";
 import { FixedComment } from "@/app/api/comment/route";
 import { useGetRepliesLikesQuery } from "@/store/api/apicomment";
+import { Separator } from "@radix-ui/react-separator";
+import { UserIcon } from "lucide-react";
 
 interface CommentItemProps {
   comment: FixedComment ;
   userId: number;
   post_id: number;
-
+  hideAddition?:boolean
   author_id_comment: number
   post_id_from_comment: number
 
@@ -30,6 +32,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   userId,
 author_id_comment ,
 post_id_from_comment ,
+hideAddition
 
 }) => {
   
@@ -49,7 +52,7 @@ post_id_from_comment ,
     : null;
 
   return (
-    <div className="space-y-4  ">
+    <div className="space-y-4 ">
       <div className="flex w-full justify-start items-start space-x-4">
         {loaddingProfile ? (
           <div
@@ -61,9 +64,14 @@ post_id_from_comment ,
             <AvatarImage
               src={profileData?.profile_picture || ""}
               alt={commentedUSer?.user_name + "profile"}
-              className="w-10 h-10 rounded-full"
+              className="w-10 h-10 rounded-full object-cover"
             />
-            <AvatarFallback>
+            <AvatarFallback 
+            role="dialog"
+            className="w-16 h-10 flex bg-gray-100 justify-center items-center"
+            >
+            {/* <div className="min-w-12 rounded-full h-12 bg-gray-300  flex justify-center items-center cursor-pointer"> */}
+        {/* </div> */}
               {commentedUSer?.first_name.charAt(0)}
             </AvatarFallback>
           </Avatar>
@@ -75,12 +83,14 @@ post_id_from_comment ,
             </span>
             <span className="text-sm text-gray-500">{timeStamp}</span>
           </div>
-          <div className="flex justify-start flex-col items-start gap-2">
-            <div className="flex justify-start mb-2 items-center gap-3">
+          <div className="flex justify-start flex-col  items-start gap-2">
+            <div className="flex justify-start flex-col md:flex-row mb-2 items-center gap-3">
               <p className=" text-gray-700">{comment.content}</p>
+<div className="w-full flex-row flex  gap-3">
 
               <Emoji post_id={post_id} commentId={comment.id} userId={userId} />
               <CommentReactions comment_id={comment.id} />
+</div>
             </div>
             {isOpen ? <Replaies
             post_id={post_id}
@@ -98,13 +108,28 @@ post_id_from_comment ,
               />
             </div>
           ) : null}
+          <div 
+          className="flex justify-start w-max gap-1"
+          >
+
           <Button
             className="text-sm text-gray-500 hover:text-gray-700"
             onClick={() => setIsOpen(!isOpen)}
             variant={"link"}
-          >
+            >
             {!isOpen ? "show Replay" : "hide replay"}
           </Button>
+          <Separator
+          orientation="horizontal"
+          />
+          <Button
+            className="text-sm text-gray-500 hover:text-gray-700"
+            onClick={() => setIsOpen(!isOpen)}
+            variant={"link"}
+            >
+            load more
+          </Button>
+            </div>
         </div>
       </div>
     </div>

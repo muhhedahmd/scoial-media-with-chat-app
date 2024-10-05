@@ -8,27 +8,29 @@ import { Gallery } from "react-grid-gallery";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/effect-fade";
+import { cn } from "@/lib/utils";
 interface ContentPostProps {
-  isLoadingFetch?: boolean;
-  FetchPostData?: post[] | undefined;
-  isErrorFetchPost?: boolean;
+
   postId: number;
   content: string;
+  minimal?: boolean
 }
+
 
 const ContentPost = ({
   content,
   postId,
-  FetchPostData,
-  isErrorFetchPost,
-  isLoadingFetch,
+  minimal
+
 }: ContentPostProps) => {
   const {
     data: postImages,
     isLoading: isLoadingPostImages,
     isError: isErrorPostImages,
+
   } = useGetPostImagesQuery(postId);
   const [showMore, setShowMore] = useState(false);
+
   
   if(!postId) return;
 
@@ -41,11 +43,18 @@ const ContentPost = ({
   //   setShowMore(true);
 
     return (
-      <div className="w-full  mt-3 flex h-fit justify-start flex-col items-start gap-3">
+      <div className="w-full  mt-3 flex h-fit justify-start flex-col items-start gap-3  md:gap-10">
         <p className="text-start text-gray-900">{content}</p>
   
         {postImages?.length ? (
-          <Swiper className="h-[25rem] w-full bg-white">
+          <Swiper
+          
+          style={{
+            // height:minimal ? "auto" : "30rem "
+          }}
+          className={cn("h-[20rem]  w-full " )}
+          
+          >
             {postImages.map((image, index) => (
               <SwiperSlide
                 className="flex justify-center items-center h-full w-full"

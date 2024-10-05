@@ -1,31 +1,27 @@
 import { Separator } from "@/components/ui/separator";
 import React, { useEffect } from "react";
-import { fetchFollowers, fetchFollowersAndFollowingCount, fetchFollowing, selectFollowers, selectFollowersCount, selectFollowersError, selectFollowersStatus, selectFollowing, selectFollowingCount } from "@/store/Reducers/follwerSlice";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch } from "@/store/store";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useGetFollowercountQuery, useGetFollowingCountQuery, useGetFollowingQuery } from "@/store/api/apiFollows";
 interface  MinmalFollowerSectionProp {
     userId : number
 }
 
 const MinmalFollowerSection = ({userId} :MinmalFollowerSectionProp) => {
 
-const followingCount = useSelector(selectFollowingCount)
-const followerCount = useSelector(selectFollowersCount)
-const dispatch = useDispatch<AppDispatch>()
-const status = useSelector(selectFollowersStatus);
-const error = useSelector(selectFollowersError);
-const isLoading = status === "loading" || status === "idle" || status === null;
+  const { isLoading : LoadingFollower , isFetching  : fetchingFollower,  data : followerCount} = useGetFollowercountQuery({
+    userId: userId
+  })
 
-useEffect(() => {
+  const { 
+    isLoading : LoadingFollowing ,
+    isFetching : fetchingFollowing ,
+    data : followingCount
 
-  if ((!followerCount  || !followingCount ) && userId) {
-    dispatch(fetchFollowersAndFollowingCount({ userId }));
-  }
-} , [dispatch, userId, followerCount, followingCount])
-
-
+  } = useGetFollowingCountQuery({
+    userId: userId
+  })
 
   return (
     <div className="px-14 w-full">
@@ -35,19 +31,19 @@ useEffect(() => {
           <Button variant={"ghost"} className="h-auto flex justify-start items-center flex-col">
             <p>follwers</p>
 
-            {isLoading || !userId ? 
+            {LoadingFollower ||  fetchingFollower? 
              <Skeleton className="h-2 w-5"/>
              :   
-            <p>{followerCount}</p>
+            <p>{followerCount?.followerCount || 0 }</p>
         }
           </Button >
           <Separator className="  h-12" orientation="vertical" />
           <Button variant={"ghost"} className="h-auto flex justify-start items-center flex-col">
             <p>follwimg</p>
-            {isLoading || !userId? 
+            {LoadingFollowing || fetchingFollower? 
              <Skeleton className="h-2 w-5"/>
              :   
-             <p>{followingCount}</p>
+             <p>{followingCount?.followingCount || 0 }</p>
         }
           </Button>
         </div>

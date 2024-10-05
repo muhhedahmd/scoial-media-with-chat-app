@@ -38,20 +38,23 @@ export const commentApi = createApi({
 
     addComment: builder.mutation<
       Comment,
-      { content: string; post_id: number; author_id: number }
+      { content: string; post_id: number; author_id: number ; parsedData : string}
     >({
       query: ({
+        parsedData,
         content,
         post_id,
         author_id,
+        
       }: {
+        parsedData:string,
         post_id: number;
         author_id?: number;
         content?: string;
       }) => ({
         url: "/comment/add-comment",
         method: "POST",
-        body: { content, post_id, author_id },
+        body: {parsedData , content, post_id, author_id },
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
@@ -98,16 +101,17 @@ export const commentApi = createApi({
     addReplay: builder.mutation<
     shapeOfReplies,
       {
+        parsedData: string ;
         comment_id: number;
         author_id: number;
         content: string;
         post_id: number;
       }
     >({
-      query: ({ comment_id, author_id, content, post_id }) => ({
+      query: ({ comment_id, author_id, content, post_id  ,parsedData }) => ({
         url: "/comment/add-replay",
         method: "POST",
-        body: { comment_id, author_id, content, post_id },
+        body: { comment_id, author_id, content, post_id  , parsedData},
       }),
       async onQueryStarted(arg , { dispatch, queryFulfilled }) {
         try {
@@ -115,7 +119,10 @@ export const commentApi = createApi({
           dispatch(
             commentApi.util.updateQueryData(
               "getReplies",
-              { comment_id : arg.comment_id }, // Provide default values
+              { comment_id : arg.comment_id ,
+                replaySkip : 0 , 
+                replayTake : 0
+               }, // Provide default values
               (draft) => {
                 draft.replay.push(data); // Add the new reply to the existing list
               }
@@ -262,11 +269,11 @@ export const commentApi = createApi({
 
     }),
     addNestedReplay: builder.mutation<shapeOfReplies, shapeOfNestedReplayArg>({
-      query({ author_id, comment_id, post_id, content, replayid }) {
+      query({ author_id, comment_id, post_id, content, replayid  , parsedData}) {
         return {
           url: "/comment/nested-replay",
           method: "POST",
-          body: { author_id, comment_id, post_id, content, replayid },
+          body: { author_id, comment_id, post_id, content, replayid ,  parsedData },
         };
       },
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {

@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAddNestedReplayMutation, useAddReplayMutation } from "@/store/api/apicomment";
 import React, { useState } from "react";
+import InputWithAndHastags from "../../../InputWithAndHastags";
+import { parseDataType } from "../CommentAddation";
 interface ReplayAdditonProps {
   comment_id: number;
   post_id: number;
@@ -16,6 +18,14 @@ const NestedReplayAddation = ({
   replay_id,
   
 }: ReplayAdditonProps) => {
+  
+    const [parsedData, setParsedData] = useState<parseDataType>({
+      mentions: [] as Array<{ value: string; startIndex: number; endIndex: number; id :number }>,
+      hashtags: [] as Array<{ value: string; startIndex: number; endIndex: number;  id : number}>,
+      ignoredMentions: [] as Array<{ value: string; startIndex: number; endIndex: number; }>,
+      regularTexts: [] as Array<{ text: string; startIndex: number; endIndex: number; }>,
+      fullText: "",
+    });
   const [replay, setReplay] = useState("");
 
   const [addReplay, { data: data, isLoading }] = useAddNestedReplayMutation();
@@ -28,25 +38,28 @@ const NestedReplayAddation = ({
         content: replay.trim(),
       });
       addReplay({
+        parsedData :JSON.stringify(parsedData),
         replayid :replay_id,
         author_id: userId,
         comment_id: comment_id,
         content: replay.trim(),
         post_id: post_id,
       });
-      // console.log(isLoading , isError ,data ,
-      // )
+
     }
   };
   return (
-    <form className=" flex w-1/2 gap-3 justify-start items-center">
-      <input
-        disabled={isLoading}
-        placeholder="Enter your comment"
-        onChange={(e) => setReplay(e.target.value)}
-        value={replay}
-        className="w-3/4"
-      />
+    <form className=" ml-[-70px] md:ml-0 flex w-3/4 gap-3 justify-start items-center">
+      <InputWithAndHastags
+      parsedData={parsedData} 
+      setParsedData={setParsedData}
+      disabled={isLoading} 
+      placeholder="Replay...."
+      setVal={setReplay}
+      val={replay}
+      className="w-2/3"
+      /> 
+  
       <Button
         variant={"ghost"}
         disabled={isLoading}

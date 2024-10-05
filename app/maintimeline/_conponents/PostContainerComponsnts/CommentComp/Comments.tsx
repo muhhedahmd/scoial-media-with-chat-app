@@ -11,9 +11,10 @@ interface CommentsProps {
   post_id: number;
   userId: number;
   author_id :number
+  hideAddition? : boolean
 }
 
-const Comments = ({ post_id, userId ,author_id }: CommentsProps) => {
+const Comments = ({ post_id, userId ,author_id  , hideAddition}: CommentsProps) => {
   const { skip, take } = useSelector((state: any) => state.pagination.comments);
 
 console.log({post_id  , userId})
@@ -35,7 +36,7 @@ console.log({post_id  , userId})
   } else
     return (
       <section className="w-full">
-        <div className="w-full  p-4 space-y-6 mt-2 rounded-lg">
+        <div className="w-full  md:p-4 p-0 space-y-6 mt-2 rounded-lg">
           {CommentsData?.map((commentx  ) => {
             return (
               <div className="w-full" key={commentx.id}>
@@ -45,13 +46,18 @@ console.log({post_id  , userId})
                   post_id={post_id}
                    userId={userId} 
                     comment={commentx} 
+                    hideAddition={hideAddition}
                     />
 
               </div>
             );
           })}
+{
+  hideAddition ?
+  null  :
+  <CommentAddation userId={userId} postId={post_id} /> 
 
-          <CommentAddation userId={userId} postId={post_id} />
+}
         </div>
       </section>
     );

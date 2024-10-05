@@ -25,9 +25,14 @@ console.log(params)
                 user :{
                     select : {
                         first_name :true ,
-                        last_name: true 
+                        last_name: true ,
+                        user_name: true,
+                        email  :true ,
+                        isPrivate :true , 
+                        
                     }
-                }
+                },
+                profilePictures : true
             }
         })
         

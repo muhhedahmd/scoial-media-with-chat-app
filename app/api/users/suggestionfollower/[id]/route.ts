@@ -1,9 +1,8 @@
-import { NextApiRequest } from "next";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export const GET = async (
-  req: NextApiRequest,
+  req: Request,
   { params }: { params: { id: number } }
 ) => {
   //  return NextResponse.json({aaa: "aa "}, {status: 200})
@@ -33,22 +32,7 @@ export const GET = async (
       (follower) => follower.followerId
     );
 
-    // const selectMutualFollwer = await prisma.profile.findUnique({
-    //   where: {
-    //     id: +params.id,
-    //   },
-    //   include: {
-    //     followers: {
-    //       select: {
-    //         followingId: true,
-    //       },
-    //     },
-    //   },
-    // });
-
-    // const followerIds = selectMutualFollwer?.followers.map(
-    //   (follower) => follower.followingId
-    // );
+ 
 
     const followingUsers = await prisma.user.findMany({
       where: {
@@ -74,14 +58,7 @@ export const GET = async (
         last_name: true,
         user_name: true,
       },
-      // select: {
-      //   id: true,
-      //   profile: {
-      //     select: {
-      //       followers: true, // You can select more fields as needed
-      //     },
-      //   },
-      // },
+
     });
 
     const suggestedUsers = await prisma.user.findMany({
@@ -131,33 +108,7 @@ export const GET = async (
      
     });
 
-    const test = await prisma.user.findMany({
-      where: {
-        AND: [
-          {
-            id: {
-              not: +params.id,
-            },
-          },
-          {
-            profile: {
-              AND: [
-                {
-                  followers: {
-                    some: {
-                      followingId: {
-                        in: followingIds,
-                      },
-                    },
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    });
-    // followingUsers, followingIds }
+
     return NextResponse.json(
       {Suggestion:suggestedUsers} ,
       { status: 200 }

@@ -38,6 +38,37 @@ export const HeaderPostLoader = () => {
       </div>
     )
 }
+export const HeaderPostLoaderNotifaction = () => {
+    return (
+      <div className=' w-full flex justify-start items-start flex-col gap-3'>
+        <div
+        className="flex justify-start w-full items-center gap-3"
+        >
+
+        <Skeleton
+        className='min-w-12 rounded-full min-h-12 bg-gray-300 '
+        />
+        <div
+        className='flex w-full justify-between items-start  gap-2 flex-row'
+        >
+          <Skeleton className='w-2/3 h-2 bg-gray-300' />
+          <Skeleton className='w-1/5 h-2 bg-gray-300' />
+          
+  
+        </div>
+          </div>
+        <div
+        className="flex  justify-start gap-2 flex-col items-start
+        w-full
+        "
+        >
+          <Skeleton className='min-w-[90%] h-2 bg-gray-300' />
+          <Skeleton className='min-w-[70%] h-2 bg-gray-300' />
+
+        </div>
+      </div>
+    )
+}
 
 export const InteractionsLoader = () => {
     return (

@@ -76,6 +76,23 @@ export const POST = async (req: Request) => {
       },
     });
   }
+  const findReplay = await prisma.replay.findUnique({
+    where :{
+      id : +replay_id
+    },
+    include: {
+      Interaction: true
+    }
+  })
+  if(!findReplay){
+    return NextResponse.json(
+      {
+        message: "replay Not found",
+        },
+        {
+          status: 400,
+        }
+      )}
 
   try {
     const where: Prisma.replayLikesWhereUniqueInput = {
@@ -101,13 +118,51 @@ export const POST = async (req: Request) => {
         }
       );
     }
+    const findPost = await prisma.post.findUnique({
+      where: {
+        id: +post_Id,
+      },
+    });
+
+
+
+    if (!findPost)
+      return NextResponse.json(
+        { message: "Post not found " },
+        {
+          status: 404,
+        }
+      );
 
     const CreateReaction = await prisma.replayLikes.create({
       data: {
         replay_id: +replay_id,
         innteractId: findInterAction?.id,
+        Notification:{
+          create :{
+            notifierId: +author_id,
+            notifyingId: +findPost.author_id,
+            postId : post_Id ,
+            replayId:  replay_id,
+            type: "REPLY_REACT_AUTHOR",
+          }
+        }
       },
     });
+
+
+    await prisma.notification.create({
+      data : {
+        notifierId: +author_id,
+        notifyingId: +findReplay.Interaction?.author_id!,
+        postId : post_Id ,
+        replayId : +replay_id ,
+        replayLikesId:  CreateReaction.id ,
+        type: "REPLY_REACT_COMMENTER",
+      }
+    })
+
+
 
     const fixed = {
       replay: {

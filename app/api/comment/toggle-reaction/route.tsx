@@ -61,7 +61,11 @@ export const POST = async (req: Request) => {
   const findComment = await prisma.comment.findUnique({
     where: {
       id: +comment_id,
+      
     },
+    include :{
+      Interaction :true
+    }
   });
   let findInterAction = await prisma.interaction.findUnique({
     where: {
@@ -92,9 +96,12 @@ export const POST = async (req: Request) => {
     };
 
 
-    if (!!findComment) {
+    if (!!findComment && findComment.Interaction?.author_id) {
       const FindCommentEoji = await prisma.reactionsComment.findUnique({
         where,
+         include :{
+          Interaction  :true
+         }
       });
 
       if (FindCommentEoji) {
@@ -141,6 +148,18 @@ export const POST = async (req: Request) => {
         }
       }
     }
+    const findPost = await prisma.post.findUnique({
+      where: {
+        id: +post_Id,
+      },
+    });
+    if (!findPost)
+      return NextResponse.json(
+        { message: "Post not found " },
+        {
+          status: 404,
+        }
+      );
 
     const CreateReaction = await prisma.reactionsComment.create({
       data: {
@@ -149,8 +168,28 @@ export const POST = async (req: Request) => {
         comment_id: +comment_id,
         names,
         innteractId: findInterAction?.id,
+        Notification:{
+          create :{
+            notifierId: +author_id,
+            notifyingId: +findPost.author_id,
+            postId : post_Id ,
+            commentId:  comment_id ,
+            type: "COMMENT_REACT_AUTHOR",
+          }
+        }
       },
     });
+
+     await prisma.notification.create({
+      data : {
+        commentReactionId : CreateReaction.id ,
+        notifierId: +author_id,
+        notifyingId: +findComment?.Interaction?.author_id!,
+        postId : post_Id ,
+        commentId:  comment_id ,
+        type: "COMMENT_REACT_COMMENTER",
+      }
+    })
 
     const fixed = {
       emoji: {

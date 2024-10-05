@@ -4,19 +4,12 @@ import { Control } from "react-hook-form";
 
 interface AutocompleteSingleValueProps {
   value: string |undefined
-  control: Control<{
-    bio: string;
-    location: string;
-    birthdate: Date;
-    profile_picture?: File | null | undefined;
-    cover_picture?: File | null | undefined;
-    website?: Record<string, string> | undefined;
-}, any>
+
   onChange: (value: string) => void;
 }
 
 
-function AutocompleteSingleValue({control ,onChange ,  value}:AutocompleteSingleValueProps) {
+function AutocompleteSingleValue({ onChange ,  value}:AutocompleteSingleValueProps) {
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showOptions, setShowOptions] = useState(false);

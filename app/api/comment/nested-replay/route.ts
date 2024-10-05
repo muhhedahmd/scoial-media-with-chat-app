@@ -1,3 +1,4 @@
+import { parseDataType } from "@/app/maintimeline/_conponents/PostContainerComponsnts/CommentComp/CommentAddation";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { create } from "domain";
@@ -9,6 +10,7 @@ export type shapeOfNestedReplayArg = {
   author_id: number;
   post_id: number;
   replayid: number;
+  parsedData: string
 }
 
 export type shapeOfNestedReplayRes = {
@@ -27,6 +29,8 @@ export type shapeOfNestedReplayRes = {
 export const POST = async (req: Request) => {
   const body = await req.json();
   const res = body as shapeOfNestedReplayArg
+  const parsed = JSON.parse(res.parsedData) as parseDataType;
+  const mentions = parsed.mentions;
   if (!res.author_id || !res.content || !res.comment_id) {
     return NextResponse.json(
       {
@@ -64,6 +68,13 @@ export const POST = async (req: Request) => {
     where: {
       id: +res.replayid,
     },
+    include:{
+      Interaction:{
+        select:{
+          author_id :true
+        }
+      }
+    }
   });
   if (!findReplay) {
     return NextResponse.json(
@@ -107,6 +118,7 @@ export const POST = async (req: Request) => {
             type: "REPLAY",
             author_id: res.author_id,
             postId: res.post_id,
+            
           },
         });
       }
@@ -134,7 +146,57 @@ export const POST = async (req: Request) => {
           },
         },
       });
+      if (+res.author_id !== +findInteraction?.author_id!) {
+        await prisma.notification.create({
+          data: {
+            notifierId: +res.author_id,
+            notifyingId: +findInteraction?.author_id!,
+            type: "REPLAY_IN_REPLAY",
+            commentId: findComment.id,
+            replayId :c.id,
+            postId: findPost.id,
+          },
+        });
+      }
 
+
+      if (mentions) {
+        
+        mentions.forEach(async (m) => {
+          if(m.id !== findInteraction?.author_id)
+            {
+
+              const mention = await prisma.mention.create({
+                data: {
+                  
+                  mentionType: "REPLAY",
+                  replayId: c.id,
+                  endPos: m.endIndex,
+                  startPos: m.startIndex,
+                  userId: +m.id,
+                  interactioneId: findInteraction.id,
+                  postId: findPost.id,
+                  commentId: findComment.id,
+                  notifcation: {
+                    
+                    create: {
+                  notifierId: +res.author_id,
+                  notifyingId: +m.id,
+                  commentId : findComment.id ,
+                  postId : findPost.id ,
+                  replayId: c.id,
+                  type: "MENTION_REPLAY",
+                },
+              },
+            },
+          });
+        } 
+        });
+        
+      }
+
+
+      
       const fixed = {
         id: c.id,
         content: c.content,

@@ -5,16 +5,18 @@ import React from "react";
 import {  Profile, Reaction } from "@prisma/client";
 import { Angry, Frown, Heart, Laugh, PartyPopper, ThumbsUp } from "lucide-react";
 import ReactViewrDialog from "./ReactionDialog/ReactViewrDialog";
+import { reactionType } from "@/app/api/posts/reactions/route";
 
 interface InteractionsProps {
   postId: number;
   isLoading :boolean,
-  data  : Reaction[]
+  data  : reactionType[]
   author_id:number,
+  userId:number
   MainUserProfile:Profile
 }
 
-const Interactions = ({ author_id,  MainUserProfile, postId  ,data , isLoading}: InteractionsProps) => {
+const Interactions = ({  userId,author_id,  MainUserProfile, postId  ,data , isLoading}: InteractionsProps) => {
 const uniqe  = Array?.from(new Set(data?.map(item=>item.type)))
   if (isLoading) {
     return (
@@ -29,6 +31,7 @@ const uniqe  = Array?.from(new Set(data?.map(item=>item.type)))
    author_id={author_id}
    data={data}
    uniqe={uniqe}
+   userId={userId}
    />
     );
   }

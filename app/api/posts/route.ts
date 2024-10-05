@@ -29,7 +29,7 @@ export type shapeOfPostsRes = {
 
 export const GET = async (req: Request) => {
   const { searchParams } = new URL(req.url);
-  console.log(searchParams);
+
   const pgNum = +(searchParams.get("pgnum") ?? 0);
   const pgSize = +(searchParams.get("pgsize") ?? 500);
 

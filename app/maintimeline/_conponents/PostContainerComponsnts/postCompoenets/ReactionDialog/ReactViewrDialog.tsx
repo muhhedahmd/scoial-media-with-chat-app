@@ -16,12 +16,7 @@ import {
 import React from "react";
 import ReactViewrDialogSingle from "./ReactViewrDialogSingle";
 import { Separator } from "@/components/ui/separator";
-interface ReactViewrDialogProps {
-  uniqe: ReactionType[];
-  data: Reaction[];
-  author_id:number
-  MainUserProfile:Profile
-}
+import { reactionType } from "@/app/api/posts/reactions/route";
 
 export const getColor = (type: string) => {
   switch (type) {
@@ -60,7 +55,16 @@ export const getEmoji = (type: string) => {
       return <PartyPopper />;
   }
 };
-const ReactViewrDialog = ({ MainUserProfile, uniqe, data  , author_id}: ReactViewrDialogProps) => {
+interface ReactViewrDialogProps {
+  uniqe: ReactionType[];
+  data:  reactionType[];
+  author_id:number
+  MainUserProfile:Profile
+  userId:number
+}
+
+
+const ReactViewrDialog = ({  userId,MainUserProfile, uniqe, data  , author_id}: ReactViewrDialogProps) => {
 
   return (
     <Dialog>
@@ -89,11 +93,14 @@ const ReactViewrDialog = ({ MainUserProfile, uniqe, data  , author_id}: ReactVie
       />
       </div>
         <div  className="w-full h-full flex justify-start flex-col gap-4 items-start ">
-          {data.map((react) => {
-            if(react?.user_id)
+          {data?.map((react) => {
+
+            if( react && react.author_id)
             return <ReactViewrDialogSingle
+            userId={userId}
             MainUserProfile={MainUserProfile}
-            author_id={author_id} key={react.id} {...react} />;
+            key={react.id} 
+            {...react} />;
           })}
         </div>
       </DialogContent>

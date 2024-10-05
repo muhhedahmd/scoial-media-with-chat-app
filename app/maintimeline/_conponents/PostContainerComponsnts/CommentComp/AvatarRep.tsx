@@ -12,7 +12,7 @@ const AvatarRep = ({ author_id }: { author_id: number }) => {
       <AvatarImage
         src={profileData?.profile_picture || ""}
         alt={profileData?.user_id + "profile_picture"}
-        className="w-10 h-10 rounded-full"
+        className="w-10 h-10 rounded-full object-cover"
       />
       <AvatarFallback className="">
         <div

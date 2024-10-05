@@ -6,14 +6,7 @@ import { z } from "zod";
 
 interface AutocompleteMultiValueProps {
   value: Record<string, string> |undefined;
-  control: Control<{
-    bio: string;
-    location: string;
-    birthdate: Date;
-    profile_picture?: File | null | undefined;
-    cover_picture?: File | null | undefined;
-    website?: Record<string, string> | undefined;
-}, any>
+
   onChange: (value: Record<string, any>) => void;
 }
 

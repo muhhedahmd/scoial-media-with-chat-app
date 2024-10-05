@@ -22,7 +22,7 @@ export default withAuth(
 
     const ProtectedRoute = ["/product","/profile" ,
       // "/api" ,
-       "/maintimeline",  "/todo", "/upload", "/users"];
+       "/maintimeline",  "/todo", "/upload", "/users" , "/posts"];
     const AuthRoute = pathname.startsWith("/api/auth");
     const isProtectedRoute = ProtectedRoute.some((route) => {
       return pathname.startsWith(route);

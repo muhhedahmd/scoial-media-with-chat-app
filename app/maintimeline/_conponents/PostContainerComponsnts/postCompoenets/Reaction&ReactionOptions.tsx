@@ -34,18 +34,15 @@ const ReactionReactionOptions = ({
 }: ReactionReactionOptionsProps) => {
   const { data, isLoading } = useGetPostReactionsQuery({post_id :postId});
   const d = data as any
-  console.log({
-    data: d,
-    author_id,
-    postId
-  })      
+
 
   return (
     <>
       <Interactions
         MainUserProfile={MainUserProfile}
         author_id={author_id}
-        data={data }
+        userId={userId}
+        data={data|| [] }
         isLoading={isLoading}
         postId={postId}
       />
@@ -61,10 +58,11 @@ parent_author_id={parent_author_id}
 
         userId={userId}
         isLoading={isLoading}
-        data={data }
+        data={data || [] }
         author_id={author_id}
         postId={postId}
       />
+      
     </>
   );
 };

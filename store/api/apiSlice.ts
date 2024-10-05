@@ -12,6 +12,7 @@ interface profilePostData {
     id: number;
   };
   profile_picture: string | null;
+  id: number;
 }
 
 export const apiSlice = createApi({
@@ -21,7 +22,7 @@ export const apiSlice = createApi({
   endpoints: (builder) => ({
     getPosts: builder.query<
       {
-        posts:  shapeOfPostsRes[]
+        posts: shapeOfPostsRes[];
         hasMore: boolean;
       },
       any
@@ -36,11 +37,7 @@ export const apiSlice = createApi({
       forceRefetch({ currentArg, previousArg }) {
         return currentArg !== previousArg;
       },
-      transformResponse(
-        response :shapeOfPostsRes[],
-        meta,
-        arg
-      ) {
+      transformResponse(response: shapeOfPostsRes[], meta, arg) {
         const hasMore = response.length !== 0;
         return { posts: response, hasMore };
       },
@@ -93,6 +90,26 @@ export const apiSlice = createApi({
         console.log("Generated Cache Key:", key);
 
         return `${endpointName}-${queryArgs.post_id}`;
+      },
+    }),
+    getPostsOfUser: builder.query<
+     { hasMore : boolean , posts : shapeOfPostsRes[]},
+      {
+        userId: number;
+      }
+    >({
+      query: ({ userId }) => `/posts/single-user/?userId=${userId}`,
+            serializeQueryArgs: ({ endpointName }) => endpointName,
+      merge: (currentCache, newItems) => {
+        currentCache.posts.push(...newItems.posts);
+        currentCache.hasMore = newItems.hasMore;
+      },
+      forceRefetch({ currentArg, previousArg }) {
+        return currentArg !== previousArg;
+      },
+      transformResponse(response: shapeOfPostsRes[], meta, arg) {
+        const hasMore = response.length !== 0;
+        return { posts: response, hasMore };
       },
     }),
     toggleReact: builder.mutation({
@@ -163,51 +180,47 @@ export const apiSlice = createApi({
         }
       },
     }),
-    addShare : builder.mutation({
-      query: (body  :{
-        
+    addShare: builder.mutation({
+      query: (body: {
+        content: string;
+        post_id: number;
+        author_id: number;
+      }) => {
+        return {
+          url: "/share/add-share",
+          method: "POST",
+          body: body,
+        };
+      },
 
-          "content": string
-          , "post_id": number ,
-           "author_id": number
-      
-      }
-      )=>{
-        return        {
-          url  : "/share/add-share",
-          method :"POST",
-          body  :body
-
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        const res = (await queryFulfilled).data as shapeOfPostsRes;
+        try {
+          dispatch(
+            apiSlice.util.updateQueryData("getPosts", undefined, (draft) => {
+              if (draft) {
+                draft.posts.unshift(res);
+              }
+            })
+          );
+        } catch (error) {
+          throw error;
         }
       },
-       
-      async onQueryStarted(arg,{dispatch , queryFulfilled} ) {
-          
-          const res  = (await queryFulfilled).data as shapeOfPostsRes
-          try {
-            
-            dispatch(
-              apiSlice.util.updateQueryData("getPosts" , undefined  , (draft)=>{
-                if (draft) {
-                draft.posts.unshift(res)
-                }
-              })
-            )
-
-
-          } catch (error) {
-            throw error
-          }
-
-
-
-
-      },
-    })
+    }),
+    getSinglePost: builder.query<
+      shapeOfPostsRes,
+      {
+        post_id: number;
+      }
+    >({
+      query: ({ post_id }) => `/posts/single_post?post_id=${post_id}`,
+    }),
   }),
 });
 
 export const {
+  useGetSinglePostQuery,
   useAddShareMutation,
   useGetProfilePostQuery,
   useGetCommentsReplayQuery,
@@ -217,4 +230,5 @@ export const {
   useGetPostCommentsQuery,
   useGetPostImagesQuery,
   useToggleReactMutation,
+  useGetPostsOfUserQuery,
 } = apiSlice;

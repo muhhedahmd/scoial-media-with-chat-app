@@ -1,17 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper'; // Optional if using with Next.js
-
-// import { serializableCheck } from '@reduxjs';
-import {
-  persistStore,
-  persistReducer,
-  FLUSH,
-  REHYDRATE,
-  PAUSE,
-  PERSIST,
-  PURGE,
-  REGISTER,
-} from 'redux-persist'
 import follwerSlice from './Reducers/follwerSlice';
 import { apiSlice } from './api/apiSlice';
 import { apiProfile } from './api/apiProfile';
@@ -19,6 +7,9 @@ import { apiUser } from './api/apiUser';
 import { followApi } from './api/apiFollows';
 import pagganitionSlice from './Reducers/pagganitionSlice';
 import { commentApi } from './api/apicomment';
+import { NotifcationApi } from './api/apiNotifcation';
+import { apiSave } from './api/apiSave';
+import mainUserSlice  from './Reducers/mainUser';
 // Create the store instance
 export const makeStore = () => {
   return configureStore({
@@ -28,8 +19,12 @@ export const makeStore = () => {
       [apiUser.reducerPath] : apiUser.reducer,
       [followApi.reducerPath] :followApi.reducer,
       [commentApi.reducerPath] :commentApi.reducer,
+      [NotifcationApi.reducerPath] :NotifcationApi.reducer,
       pagination : pagganitionSlice,
-      followersReducer: follwerSlice , // Add your reducers here
+      followersReducer: follwerSlice ,
+      mainUserSlice :mainUserSlice,
+      [apiSave.reducerPath] :  apiSave.reducer
+      // Add your reducers here
       // Example: user: userReducer, products: productsReducer
     },
     middleware: (getDefaultMiddleware) =>
@@ -50,6 +45,8 @@ export const makeStore = () => {
     .concat(apiUser.middleware)
     .concat(followApi.middleware)
     .concat(commentApi.middleware)
+    .concat(NotifcationApi.middleware)
+    .concat(apiSave.middleware)
     // Optional middleware configuration
     // middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(serializableCheck({
     //   ignoredActions: ['persist/PERSIST'], // ignore the PERSIST action

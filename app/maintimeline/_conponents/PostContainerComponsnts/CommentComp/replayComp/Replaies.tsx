@@ -35,7 +35,7 @@ const Replaies = ({ comment_id, post_id, author_comment, MainUserId }: ReplaiesP
   }
 
   return (
-    <div className="ml-1 flex flex-col justify-start items-center gap-1">
+    <div className=" -ml-[80px] pl-5   sm:gap-4 sm:ml-1 flex flex-col justify-start items-center gap-1">
       {data?.replay &&
         data.replay.map((rep ) => {
           return (

@@ -1,38 +1,98 @@
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useAddCommentMutation } from '@/store/api/apicomment'
-import React, { useState } from 'react'
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAddCommentMutation } from "@/store/api/apicomment";
+import React, { useState } from "react";
+import InputWithAndHastags from "../../InputWithAndHastags";
+import { SendHorizontalIcon } from "lucide-react";
 
-interface CommentAddationProps{
-    postId: number
-    userId: number
+
+export type parseDataType = {
+  mentions: Array<{
+      value: string;
+      startIndex: number;
+      endIndex: number;
+      id :number 
+  }>;
+  hashtags: Array<{
+      value: string;
+      startIndex: number;
+      endIndex: number;
+      id :number 
+  }| undefined>;
+  ignoredMentions: Array<{
+      value: string;
+      startIndex: number;
+      endIndex: number;
+  }>;
+  regularTexts: Array<{
+      text: string;
+      startIndex: number;
+      endIndex: number;
+  }>;
+  fullText: string;
+}
+interface CommentAddationProps {
+  postId: number;
+  userId: number;
 }
 
-const CommentAddation = ({
-    userId ,
-    postId
-} :CommentAddationProps) => {
-    const [ addComment , {
-        isLoading ,
- 
-    }] = useAddCommentMutation()
-    const [comment , setComment] = useState('')
-    const handleSubmit = ()=>{
-        if(comment){
-            addComment({author_id:userId , post_id: postId , content : comment.trim()})
-            setComment("")
+const CommentAddation = ({ userId, postId }: CommentAddationProps) => {
+  const [parsedData, setParsedData] = useState<parseDataType>({
+    mentions: [] as Array<{ value: string; startIndex: number; endIndex: number; id :number }>,
+    hashtags: [] as Array<{ value: string; startIndex: number; endIndex: number;  id : number}>,
+    ignoredMentions: [] as Array<{ value: string; startIndex: number; endIndex: number; }>,
+    regularTexts: [] as Array<{ text: string; startIndex: number; endIndex: number; }>,
+    fullText: "",
+  });
+  const [addComment, { isLoading }] = useAddCommentMutation();
+  const [comment, setComment] = useState("");
+  const handleSubmit = () => {
+    if (comment) {
 
-        }
+      console.log(parsedData ,
 
+      )
+      addComment({
+        parsedData : JSON.stringify(parsedData),
+        author_id: userId,
+        post_id: postId,
+        content: comment.trim(),
+      });
+      setComment("");
     }
+  };
   return (
-    <form
-    className="flex w-full gap-3 justify-start items-center"
-    >
-      <Input disabled={isLoading} placeholder='Enter your comment' onChange={e=>setComment(e.target.value)} value={comment} className='w-3/4'/>
-      <Button disabled={isLoading} type='button' className='w-1/3' variant={"ghost"} onClick={handleSubmit}>comment</Button>
-    </form>
-  )
-}
+    <form className="flex w-full gap-3 justify-start items-center">
+                <div className="add-comment relative w-full">
+       
+                    
+                   <button
+                className="absolute z-30 top-[10px] left-[90%] cursor-pointer " 
 
-export default CommentAddation
+                                disabled={isLoading}
+                                type="button"
+                                onClick={handleSubmit}
+                   >
+            <SendHorizontalIcon
+    className="stroke-gray-500"
+                />
+                </button> 
+
+            <InputWithAndHastags
+      parsedData={parsedData} 
+      setParsedData={setParsedData}
+      disabled={isLoading} 
+      placeholder="Enter your comment"
+      setVal={setComment}
+      val={comment}
+      className="w-full bg-"
+      />
+          </div>
+    
+    
+
+    </form>
+  );
+};
+
+export default CommentAddation;

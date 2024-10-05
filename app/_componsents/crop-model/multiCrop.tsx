@@ -231,7 +231,8 @@ const MultiCropModel: React.FC<MultiCropModelProps> = ({
 
             <div className="bg-white p-4 rounded-md w-fit flex justify-center items-center">
               <Cropper
-                stencilSize={getStencilSize()}
+              
+                // stencilSize={getStencilSize()}
                 stencilProps={{
                   movable: true,
                   resizable: true,

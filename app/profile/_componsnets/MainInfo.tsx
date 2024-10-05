@@ -19,9 +19,6 @@ import { z } from "zod";
 import AutocompleteSingleValue from "./AutocompleteSinglValus";
 import AutocompleteMultiValue from "./AutocompleteMultivalue";
 
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch } from "@/store/store";
-
 import { useToast } from "@/components/ui/use-toast";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -64,46 +61,46 @@ const MainInfo = () => {
       cover_picture: null,
       location: profile?.location || "",
       profile_picture: null,
-      website: profile?.website || {},
+      website: profile?.website as object || {} || undefined,
     },
   });
 
 
 
-  useEffect(() => {
-    let toastId;
-    if (status ) {
-      toastId = toast({
-        title: "Updating Profile",
-        description: "Please wait while we update your profile.",
-        variant: "default",
-      });
-    }
+  // useEffect(() => {
+  //   let toastId;
+  //   if (status ) {
+  //     toastId = toast({
+  //       title: "Updating Profile",
+  //       description: "Please wait while we update your profile.",
+  //       variant: "default",
+  //     });
+  //   }
 
-    if (isSuccess) {
-      form.setValue("title", profile?.title || "");
-      form.setValue("PhoneNumber", profile?.PhoneNumber || "0");
-      form.setValue("bio", profile?.bio || "");
-      form.setValue("birthdate", profile?.birthdate || new Date());
-      form.setValue("location", profile?.location || "");
-      form.setValue("website", profile?.website || {});
+  //   if (isSuccess) {
+  //     form.setValue("title", profile?.title || "");
+  //     form.setValue("PhoneNumber", profile?.PhoneNumber || "0");
+  //     form.setValue("bio", profile?.bio || "");
+  //     form.setValue("birthdate", profile?.birthdate || new Date());
+  //     form.setValue("location", profile?.location || "");
+  //     form.setValue("website", profile?.website || {});
 
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
-        variant: "default",
-      });
-    }
+  //     toast({
+  //       title: "Profile Updated",
+  //       description: "Your profile has been updated successfully.",
+  //       variant: "default",
+  //     });
+  //   }
 
-    if (isError) {
-      toast({
-        title: "Error",
-        description:  "There was an error updating your profile.",
-        variant: "destructive",
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, toast]);
+  //   if (isError) {
+  //     toast({
+  //       title: "Error",
+  //       description:  "There was an error updating your profile.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [status, toast]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -114,18 +111,15 @@ const MainInfo = () => {
 
       Object.keys(updatedProfile).forEach((k) => {
         let key = k as keyof typeof updatedProfile;
-
-        if (
-          typeof updatedProfile[key] === "object" &&
-          k !== "cover_picture" &&
-          k !== "birthdate" &&
-          k !== "profile_picture"
-        ) {
+      
+        if (typeof updatedProfile[key] === "object" && k !== "cover_picture" && k !== "birthdate" && k !== "profile_picture") {
           formData.append(k, JSON.stringify(updatedProfile[key]));
-        } else {
+        } else if (updatedProfile[key] instanceof File) {
           formData.append(k, updatedProfile[key]);
+        } else if (updatedProfile[key] !== null && updatedProfile[key] !== undefined) {
+          formData.append(k, String(updatedProfile[key]));
         }
-      });
+      })
 
 
         EditProfile({ userId: user.id, profileData: formData }).then(()=>{
@@ -299,7 +293,6 @@ const MainInfo = () => {
                           control={form.control}
                           render={({ field }) => (
                             <AutocompleteMultiValue
-                              control={form.control}
                               value={field.value}
                               onChange={field.onChange}
                             />
@@ -322,7 +315,6 @@ const MainInfo = () => {
                           control={form.control}
                           render={({ field }) => (
                             <AutocompleteSingleValue
-                              control={form.control}
                               value={field.value}
                               onChange={field.onChange}
                             />

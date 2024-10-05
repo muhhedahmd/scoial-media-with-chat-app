@@ -49,28 +49,24 @@ export const POST = async (req: Request) => {
     },
   });
 
-  let interaction  = await prisma.interaction.findUnique({
-      where :{
-          author_id_postId_type:{
-              author_id: res.author_id,
-              postId: res.post_id,
-            type: "SHARE",
-        }
-    }
-})
-if (!interaction) {
-    interaction  = await prisma.interaction.create({
-        data :{
-              author_id: res.author_id,
-              postId: res.post_id,
-              type: "SHARE",
-          
-      }
-    })
-
-
-}
-// return NextResponse.json( interaction  , {status :200})
+  let interaction = await prisma.interaction.findUnique({
+    where: {
+      author_id_postId_type: {
+        author_id: res.author_id,
+        postId: res.post_id,
+        type: "SHARE",
+      },
+    },
+  });
+  if (!interaction) {
+    interaction = await prisma.interaction.create({
+      data: {
+        author_id: res.author_id,
+        postId: res.post_id,
+        type: "SHARE",
+      },
+    });
+  }
   if (!findPost)
     return NextResponse.json(
       { message: "Post not found " },
@@ -78,156 +74,93 @@ if (!interaction) {
         status: 404,
       }
     );
-
-
-
-
   else {
     try {
-      const result = await prisma.$transaction(async (tx) => {
-        if (findPost.author_id !== res.author_id) {
-          const x = await tx.share.create({
-            data: {
-              content: res.content,
-              Notification: {
-                create: {
-                  notifyingId: findPost.author_id, // The user receiving the notification
-                  notifierId: res.author_id, // The user who performed the action (e.g., commented)
-                  type: "SHARE",
-                },
-              },
-              post: {
-               create: {
-                  // where: {
-                  //   id: findPost.id,
-                  // },
-                  // create: {
-                    author_id: res.author_id,
-                    parentId: findPost.id,
-                    title :"",
-                    Interactions: {
-                      connect: {
-                        id :interaction.id
-                      },
-                    },
-                  // },
-
-                },
-              },
-            },
-            include:{
-              post:{
-                include:{
-                  parent :true ,
-
-                }
-              }
-            }
-
-          });
 
 
-          const fixed = x &&  x?.post ? {
-            id: x.post?.id,
-            title: x.post?.title,
-            author_id: x.post?.author_id,
-            created_at: x.post?.created_at,
-            updated_at: x.post?.updated_at,
-            parentId: x.post?.parent?.id,
-            published: x.post?.published ,
-            shared: x  
-              ? {
-                  id: x?.id,
-                  content: x.content,
-                  post_id: x.post_id,
-                  createdAt: x.createdAt,
-                  updatedAt: x.updatedAt,
-                  sharedBy_author_id: x.post.author_id,
-                }
-              : null,
-            parent:  x.post && x?.post.parent && {
-              mainParentId: x.post.parent.id,
-              parent_author_id: x.post.parent.author_id,
-              created_at: x.post.parent.created_at,
-              updated_at: x.post.parent.updated_at,
-              parentTitle :x.post.parent.title
-            },
-         
-          }  : {} as shapeOfPostsRes
 
-          return fixed;
-        
+      const x = await prisma.share.create({
+        data: {
+          content: res.content,
 
-        } else {
-          const x = await tx.share.create({
-            data: {
-              content: res.content,
-          
-              post: {
-                connectOrCreate: {
-                  where: {
-                    id: findPost.id,
+          post: {
+            // connectOrCreate: {
+            //   where: {
+            //     id: findPost.id,
+            //   },
+              create: {
+                author_id: res.author_id,
+                parentId: findPost.id,
+                title: "",
+                Interactions: {
+                  connect: {
+                    id: interaction.id,
                   },
-                  create: {
-                    author_id: res.author_id,
-                    parentId: findPost.id,
-                    title :"",
-                    Interactions: {
-                      connect: {
-                        id :interaction.id
-                      },
-                    },
-                  },
-
-                },
+                // },
               },
             },
-            include:{
-              post:{
-                include:{
-                  parent :true ,
+          },
+        },
 
-                }
-              }
-            }
-          });
-
-          const fixed = x &&  x?.post ? {
-            id: x.post?.id,
-            title: x.post?.title,
-            author_id: x.post?.author_id,
-            created_at: x.post?.created_at,
-            updated_at: x.post?.updated_at,
-            parentId: x.post?.parent?.id,
-            published: x.post?.published ,
-            shared: x  
-              ? {
-                  id: x?.id,
-                  content: x.content,
-                  post_id: x.post_id,
-                  createdAt: x.createdAt,
-                  updatedAt: x.updatedAt,
-                  sharedBy_author_id: x.post.author_id,
-                }
-              : null,
-            parent:  x.post && x?.post.parent && {
-              mainParentId: x.post.parent.id,
-              parent_author_id: x.post.parent.author_id,
-              created_at: x.post.parent.created_at,
-              updated_at: x.post.parent.updated_at,
-              parentTitle :x.post.parent.title
+        include: {
+          post: {
+            include: {
+              parent: true,
             },
-         
-          }  : {} as shapeOfPostsRes
-
-          return fixed;
-        }
+          },
+        },
       });
 
-      // Return the created comment and notification
-      return NextResponse.json(result, {
+      const fixed =
+        x && x?.post
+          ? {
+              id: x.post?.id,
+              title: x.post?.title,
+              author_id: x.post?.author_id,
+              created_at: x.post?.created_at,
+              updated_at: x.post?.updated_at,
+              parentId: x.post?.parent?.id,
+              published: x.post?.published,
+              shared: x
+                ? {
+                    id: x?.id,
+                    content: x.content,
+                    post_id: x.post_id,
+                    createdAt: x.createdAt,
+                    updatedAt: x.updatedAt,
+                    sharedBy_author_id: x.post.author_id,
+                  }
+                : null,
+              parent: x.post &&
+                x?.post.parent && {
+                  mainParentId: x.post.parent.id,
+                  parent_author_id: x.post.parent.author_id,
+                  created_at: x.post.parent.created_at,
+                  updated_at: x.post.parent.updated_at,
+                  parentTitle: x.post.parent.title,
+                },
+            }
+          : ({} as shapeOfPostsRes);
+
+
+          
+      // if (findPost.author_id !== res.author_id) {
+      //   await prisma.notification.create({
+      //     data: {
+      //       notifyingId: findPost.author_id, // The user receiving the notification
+      //       notifierId: res.author_id, // The user who performed the action (e.g., commented)
+      //       type: "SHARE",
+      //       postId: x?.post?.id! ,
+      //       shareId :x.id ,
+
+
+      //     },
+      //   });
+      // }
+      return NextResponse.json(fixed, {
         status: 201,
       });
+      // Return the created comment and notification
     } catch (error) {
       console.error(error);
       return NextResponse.json(

@@ -1,21 +1,16 @@
-/** @type {import('next').NextConfig} */
+// import withPlaiceholder from "@plaiceholder/next";
+
+/**
+ * @type {import('next').NextConfig}
+ */
 const nextConfig = {
-    experimental : {
-        serverComponentsExternalPackages : [  "bcrypt"]
-    
-    },
-    images: {
-        domains: ['res.cloudinary.com'],
-      },
-    // webpack: (config, options) => {
-    //     config.externals.push({
-    //       'react-hook-form': 'react-hook-form',
-    //     });
-    
-    //     return config;
-    //   },
+  experimental: {
+    serverComponentsExternalPackages: ["bcrypt"],
+  },
+  images: {
+  domains    : ['res.cloudinary.com'],
 
-
+  },
 };
 
-export default nextConfig;
+export default nextConfig

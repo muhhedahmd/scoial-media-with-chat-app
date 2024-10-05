@@ -32,6 +32,8 @@ export const GET = async (req: Request) => {
                 
             },
             select :{
+              id:true,
+              
                 profile_picture :true ,
                 user :{
                     select :{

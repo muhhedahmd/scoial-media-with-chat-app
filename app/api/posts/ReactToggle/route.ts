@@ -38,7 +38,8 @@ export const POST = async (req: Request) => {
       data: {
         postId: postId,
         author_id: userId,
-        type: "REACTION", // assuming "POST_REACTION" as a type; adjust according to your enum
+        type: "REACTION",
+        
       },
     });
   }
@@ -87,7 +88,6 @@ export const POST = async (req: Request) => {
         created_at: updatedReaction.created_at ,
         updated_at: updatedReaction.updated_at ,
         innteractId: updatedReaction.innteractId,
-        interactionShareId: updatedReaction.interactionShareId ,
         author_id :updatedReaction.Interaction.author_id ,
         postId : updatedReaction.Interaction.postId
       }
@@ -109,7 +109,16 @@ export const POST = async (req: Request) => {
       data: {
         innteractId: interaction.id,
         type: reactionType,
+        Notification:{
+          create :{
+            notifierId: +userId,
+            notifyingId: +post.author_id,
+            postId : post.id ,
+            type: "POST_REACT",
+          }
+        }
       },
+
     });
     return NextResponse.json(
       {

@@ -17,6 +17,7 @@ import SharePostCard from "./SharePostCard";
 import { Input } from "@/components/ui/input";
 import MinmalCard from "./MinmalCard";
 import { useAddShareMutation } from "@/store/api/apiSlice";
+import { useGetProfileQuery } from "@/store/api/apiProfile";
 
 const ShareDialog = ({
   postId,
@@ -31,6 +32,12 @@ const ShareDialog = ({
   created_at: Date;
   title: string;
 }) => {
+
+  const   {
+    data : MainUserProfileId  , 
+    isLoading :status,
+
+  } = useGetProfileQuery({userId : user?.id})
 
     const [ShareContent ,setShareContent] =useState("")
     const  [ share , {isLoading , isSuccess , isError }] = useAddShareMutation()
@@ -49,7 +56,7 @@ const [openDialog , setOpenDialog]= useState<boolean>(false)
           author_id : user.id ,
           post_id  : postId  ,
           content : ShareContent
-        }).then(()=>{})
+        })
 
       }
     }
@@ -77,6 +84,7 @@ const [openDialog , setOpenDialog]= useState<boolean>(false)
         <DialogHeader>Hello again, complete your share</DialogHeader>
         <div className="flex flex-col justify-start items-start ">
       <HeaderPost
+        MainUserProfileId={MainUserProfileId?.id! }
         share={true}
         postId={postId}
         author_id={user.id}

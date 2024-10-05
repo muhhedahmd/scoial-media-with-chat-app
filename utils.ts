@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import cloudinary from "cloudinary";
-import streamifier from "streamifier"
+import streamifier from "streamifier";
+import sharp from "sharp";
+import { encode } from "blurhash";
+import fetch from "node-fetch";
+import { arrayBuffer } from "stream/consumers";
 cloudinary.v2.config({
-    api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!,
-    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
-    api_secret: process.env.CLOUDINARY_API_SECRET!,
+  api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!,
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 interface paramsInterface {
-        id :number
+  id: number;
 }
 
 export interface CloudinaryUploadResponse {
@@ -21,95 +25,114 @@ export interface CloudinaryUploadResponse {
   display_name: string;
   tags: string[];
   type: string;
+  eager: [
+    {
+      transformation: string;
+      width: number;
+      height: number;
+      bytes: number;
+      format: string;
+      url: string;
+      secure_url: string;
+    }
+  ];
 }
 
-export const Upload_coludnairy = async (file : File, userFolder? :  string ,  params? : paramsInterface ) => {
-  console.log(file)  
-  
+export const Upload_coludnairy = async (
+  file: File,
+  userFolder?: string,
+  params?: paramsInterface
+) => {
+  console.log(file);
 
+  if (!file)
+    return NextResponse.json({ message: "No file provided" }, { status: 400 });
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
+    const uploadFromBuffer = async (file: Buffer) => {
+      return new Promise((resolve, reject) => {
+        let cld_upload_stream = cloudinary.v2.uploader.upload_stream(
+          {
+            folder: userFolder || "defualt_Folder",
+            sign_url: true,
+            type: "authenticated",
+            eager: [
+              {
+                effect: "blur",
+                crop: "scale",
+                width: 400,
+                height: 400,
+                blur_radius: 500, // adjust the blur radius to your liking
+              },
+            ],
+          },
+          (error: any, result: any) => {
+            if (result) {
+              resolve(result);
+            } else {
+              reject(error);
+            }
+          }
+        );
 
-  if (!file) return NextResponse.json({ message: "No file provided" }, { status: 400 });
-    try {
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer)
+        streamifier.createReadStream(file).pipe(cld_upload_stream);
+      });
+    };
 
-        const  uploadFromBuffer = async (file  :Buffer) => {
+    const result = (await uploadFromBuffer(buffer)) as CloudinaryUploadResponse;
 
-            return new Promise((resolve, reject) => {
-         
-              let cld_upload_stream = cloudinary.v2.uploader.upload_stream(
-               {
-                 folder: userFolder  || "defualt_Folder",
-                  sign_url: true,
-                   type: "authenticated"
-               },
-               (error: any, result: any) => {
-         
-                 if (result) {
-                   resolve(result);
-                 } else {
-                   reject(error);
-                  }
-                }
-              );
-         
-              streamifier.createReadStream(file).pipe(cld_upload_stream);
-            });
-         
-         };
-         
-         const  result  = await uploadFromBuffer(buffer) as CloudinaryUploadResponse
-              
-
-
-
-         return { status: 200,
-        data : { secure_url: result.secure_url  ,
-           public_id : result.public_id,
-           asset_id : result.asset_id,
-           width : result.width, 
-           height : result.height, 
-           asset_folder :result.asset_folder,
-           display_name :result.display_name,
-           tags: result.tags,
-           type:result.type}
-
-         }
-
-     
-        
-
-    } catch (error) {
-        console.error(error);
-        return { status: 500, data: 'Error uploading file' };
-    }
+    return result
+    
+  } catch (error) {
+    console.error(error);
+    return { status: 500, data: "Error uploading file" };
+  }
 };
 
 export const updateCloudinaryAsset = async (publicId: string, updates: any) => {
   try {
-    const result = await cloudinary.v2.uploader.update_metadata(publicId, updates , {
-      type: 'authenticated',
-    });
-    return { status: 200, res : {message: `Asset updated successfully` , result }};
+    const result = await cloudinary.v2.uploader.update_metadata(
+      publicId,
+      updates,
+      {
+        type: "authenticated",
+        sign_url: true,
+        eager: [
+          {
+            effect: "blur",
+            crop: "scale",
+            width: 400,
+            height: 400,
+            blur_radius: 500, // adjust the blur radius to your liking
+          },
+        ],
+      }
+    );
+    console.log({result})
+    return result as  cloudinary.MetadataFieldApiResponse;
+
   } catch (error) {
     console.error(error);
     return { status: 500, message: `Error updating asset` };
   }
-};;
+};
 
 export const deleteCloudinaryAsset = async (publicId: string) => {
   try {
-    const result = await cloudinary.v2.uploader.destroy(publicId ,{
-  
-      type: "authenticated"
+    const result = await cloudinary.v2.uploader.destroy(publicId, {
+      type: "authenticated",
     });
-    return { status: 200, res  : {message: `Asset deleted successfully` , result} };
+    return {
+      status: 200,
+      res: { message: `Asset deleted successfully`, result },
+    };
   } catch (error) {
     console.error(error);
     return { status: 500, message: `Error deleting asset` };
   }
-}
+};
 
 // {
 //   "asset_id": "03a5b92135161439031d3834c04bc31b",
@@ -151,3 +174,49 @@ export const deleteCloudinaryAsset = async (publicId: string) => {
 //     }
 //   ]
 // }
+
+export const generateBlurhash = async (
+  imageUrl: string,
+
+  width: number,
+
+  height: number
+): Promise<string> => {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error("Failed to fetch the image");
+    }
+    const imageBuffer = await response.arrayBuffer();
+    const { data, info } = await sharp(imageBuffer)
+      .raw()
+
+      .ensureAlpha()
+
+      .resize(32, 32) // Resize for faster processing
+
+      .toBuffer({ resolveWithObject: true });
+      const resizedWidth = info.width;  // 32 in this case
+      const resizedHeight = info.height; // 32 in this case
+    const blurhash = encode(
+      new Uint8ClampedArray(data),
+
+      resizedWidth,
+
+      resizedHeight,
+
+      4, // X components
+
+      4 // Y components
+    );
+
+    console.log("Image Width:", width);
+    console.log("Image Height:", height);
+    console.log("Pixel Array Length:", imageBuffer);
+    return blurhash;
+  } catch (error) {
+    console.error("Error generating blurhash:", error);
+
+    throw error;
+  }
+};

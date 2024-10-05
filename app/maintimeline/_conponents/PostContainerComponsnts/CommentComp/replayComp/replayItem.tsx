@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import AvatarRep from "../AvatarRep";
 import UserInfoHeader from "../UserInfoHeader";
 import TimeStamp from "../TimeStamp";
@@ -48,10 +48,10 @@ const ReplayItem: React.FC<ReplayItemProps> = React.memo(
       <>
         <div
           className={cn(
-            "relative w-full flex flex-col gap-2 ",
+            "relative w-full flex flex-col sm:gap-2 gap-5 ",
             "transition-all duration-300",
-            `ml-${level * 4}px`, // Adjust margin based on the level
-            `md:ml-[${level * 6}px]` // Adjust margin on larger screens
+            `ml-${level * 4}`, // Adjust margin based on the level
+            `md:ml-${level * 6}` // Adjust margin on larger screens
           )}
           style={{
             opacity:
@@ -65,9 +65,8 @@ const ReplayItem: React.FC<ReplayItemProps> = React.memo(
             marginLeft:
               (focused === rep.id || focused === rep.parentId) &&
               focused !== null
-                ? `calc(${level * 4}px + 1rem)`
-                : `calc(${level * 4}px + 0.5rem)`,
-
+                ? `calc(${level *8}px + 1rem)`
+                : `calc(${level * 8}px + 0.5rem)`,
             transition: ".3s",
           }}
           tabIndex={0}
@@ -75,32 +74,30 @@ const ReplayItem: React.FC<ReplayItemProps> = React.memo(
           onMouseLeave={handleMouseLeave} // On leave, reset opacity
           onBlur={handleMouseLeave} // Handle blur as well
         >
-          <div className="flex items-start gap-3 w-full">
+          <div className="flex items-start gap-3 w-full flex-wrap">
             <div className="relative z-10">
               <AvatarRep author_id={rep.author_id as number} />
             </div>
 
-            <div className="flex flex-col justify-start gap-1 w-full">
-              <div className="flex justify-between items-center">
-                <div
-                  className="flex justify-start gap-3 w-3/4 items-center"
-                >
-                <UserInfoHeader author_id={rep.author_id as number} />
-
-                {
-                  rep.parentId  ? 
-                  <RepliedTo mainReps={mainReps} parentId={rep.parentId} />
-                  : 
-                  <div className="text-sm text-muted-foreground " >
-                  replied to comment
+            <div className="flex flex-col justify-start gap-1 w-full md:w-auto">
+              <div className="flex justify-between items-center w-full">
+                <div className="flex flex-wrap justify-start gap-3 w-full items-center">
+                  <UserInfoHeader author_id={rep.author_id as number} />
+                  {rep.parentId ? (
+                    <RepliedTo mainReps={mainReps} parentId={rep.parentId} />
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      replied to comment
                     </div>
-                }
+                  )}
                 </div>
                 <TimeStamp key={rep.id} created_at={rep.created_at} />
               </div>
 
-              <div className="flex justify-start items-center gap-3">
-                <ContentDialog content={rep.content} />
+              <div className="flex flex-wrap justify-start items-center gap-3 w-full">
+                <div className="max-w-full break-words">
+                  <ContentDialog content={rep.content} />
+                </div>
                 <Separator orientation="vertical" className="h-[1rem]" />
 
                 <ToggleLikeReplay
@@ -124,8 +121,9 @@ const ReplayItem: React.FC<ReplayItemProps> = React.memo(
             </div>
           </div>
         </div>
+
         <NestedReplies
-        mainReps={mainReps}
+          mainReps={mainReps}
           replayId={rep.id}
           MainUserId={MainUserId}
           comment_id={comment_id}
@@ -140,7 +138,7 @@ const ReplayItem: React.FC<ReplayItemProps> = React.memo(
         />
 
         {openReplay === rep.id && (
-          <div className="ml-6">
+          <div className="ml-6 md:ml-8">
             <NestedReplayAddation
               comment_id={comment_id}
               replay_id={rep.id}

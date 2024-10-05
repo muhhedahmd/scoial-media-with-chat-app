@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useFollowStateQuery, useToggleFollowerMutation } from "@/store/api/apiFollows";
 import { getColor, getEmoji } from "./ReactViewrDialog";
 import { useToast } from "@/components/ui/use-toast";
+import ToggleFollow from "../../../ToggleFollow";
 
 
 interface ReactViewrDialogSingleProps {
@@ -18,7 +19,7 @@ interface ReactViewrDialogSingleProps {
   id: number;
   post_id: number;
 
-  user_id: number;
+  userId: number;
   type: ReactionType;
   created_at: Date;
   updated_at: Date;
@@ -28,57 +29,19 @@ interface ReactViewrDialogSingleProps {
 const ReactViewrDialogSingle = ({
   MainUserProfile,
   author_id,
-  id,
-  post_id,
-  user_id,
+  userId ,
   type,
-  created_at,
-  updated_at,
+
 }: ReactViewrDialogSingleProps) => {
-  const {
-    toast
-  } =useToast()
+
   const { data: profileData, isLoading: profileLoading } = useGetProfileQuery({
-    userId: user_id,
+    userId: author_id,
   });
 
   const { data: userData, isLoading: userloading } = useGetUserQuery({
-    userId: user_id,
+    userId: author_id,
   });
 
-  const { data: followState , isLoading : stateLoading } = useFollowStateQuery({
-    main_user_id: MainUserProfile.id,
-    author_user_id: profileData?.id!,
-  });
-
-  const [ toggle ,{isLoading : 
-    LoadingToggle 
-    , isError 
-    : ErrorToggle
-
-  }] =
-  useToggleFollowerMutation()
-
-
-  const handleFollow = ()=>{
-    if(
-      MainUserProfile?.id && profileData?.id && followState?.state
-    ){
-      toggle(
-        {
-          author_user_id :profileData?.id ,
-          main_user_id:MainUserProfile?.id ,
-          state :followState?.state
-        }
-      ).then(()=>{
-        toast({
-          title:"",
-          variant :"success"
-        })
-      })
-    }
-
-  }
 
   if (userloading || profileLoading) {
     return <HeaderPostLoader />;
@@ -134,26 +97,11 @@ const ReactViewrDialogSingle = ({
       <div className="flex justify-start gap-3 items-center">
         <p className={getColor(type)}>{getEmoji(type)}</p>
 
-        {MainUserProfile.id !== profileData?.id ? (
-          <Button
-          disabled={LoadingToggle || stateLoading}
-          onClick={()=>handleFollow()}
-            variant={
-              followState?.state === "follow"
-                ? "default"
-                : followState?.state === "following"
-                ? "ghost"
-                : "share"
-            }
-          >
-       {LoadingToggle || stateLoading  ? 
-      <Loader2
-        className="w-4 h-4 animate-spin"
-      /> : 
-            followState?.state
-      }
-          </Button>
-        ) : null}
+      <ToggleFollow
+      MainUserProfileId={MainUserProfile.id}
+      profileDataId={profileData?.id}
+      />
+
       </div>
     </div>
   );

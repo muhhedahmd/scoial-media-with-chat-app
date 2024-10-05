@@ -22,7 +22,7 @@ interface ProfileInfoProps {
     email: string;
     password: string;
     user_name: string;
-  };
+  }  | any  |undefined
 }
 
 const getUserSchema = (logWithEmail: boolean) =>
@@ -54,7 +54,7 @@ const UserInfoLogin = forwardRef<ProfileInfoProps, {}>((_, ref) => {
 
   useImperativeHandle(ref, () => ({
     trigger: () => formUser.trigger(),
-    UserValues: () => formUser.getValues(),
+    UserValues: () => formUser?.getValues(),
   }));
   return (
     <Form {...formUser}>

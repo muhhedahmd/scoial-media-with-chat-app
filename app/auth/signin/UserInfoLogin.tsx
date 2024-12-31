@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Image from "next/image";
 
 interface ProfileInfoProps {
   trigger: () => Promise<boolean>;
@@ -22,26 +25,26 @@ interface ProfileInfoProps {
     email: string;
     password: string;
     user_name: string;
-  }  | any  |undefined
+  } | any | undefined;
 }
 
 const getUserSchema = (logWithEmail: boolean) =>
   z.object({
-    password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+    password: z.string().min(6, { message: "Password must be at least 6 characters" }),
     user_name: logWithEmail
       ? z.string().optional()
-      : z.string().min(1, { message: 'Username is required' }),
+      : z.string().min(1, { message: "Username is required" }),
     email: logWithEmail
-      ? z.string().email('Invalid email address').min(1, { message: 'Email is required' })
+      ? z.string().email("Invalid email address").min(1, { message: "Email is required" })
       : z.string().optional(),
   }).refine((data) => data.user_name || data.email, {
-    message: 'At least one of username or email is required',
+    message: "At least one of username or email is required",
   });
 
 const UserInfoLogin = forwardRef<ProfileInfoProps, {}>((_, ref) => {
-  const [LogWith, setLogWith] = useState(true);
+  const [logWith, setLogWith] = useState<"email" | "username">("email");
 
-  const userSchema = getUserSchema(LogWith);
+  const userSchema = getUserSchema(logWith === "email");
 
   const formUser = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
@@ -56,60 +59,67 @@ const UserInfoLogin = forwardRef<ProfileInfoProps, {}>((_, ref) => {
     trigger: () => formUser.trigger(),
     UserValues: () => formUser?.getValues(),
   }));
+
+  const handleTabChange = (value: string) => {
+    setLogWith(value as "email" | "username");
+    formUser.reset();
+  };
+
   return (
-    <Form {...formUser}>
-      <form
-        className="flex flex-col md:w-[58%] w-[100%] justify-center gap-[5rem] items-start"
-        onSubmit={formUser.handleSubmit(() => {})}
-      >
-        <div className="flex justify-start w-full flex-col md:flex-row gap-[3rem] items-start">
-          <div className="flex justify-start md:w-1/2 w-full flex-col">
-            {LogWith ? (
-              <FormField
-                name="email"
-                control={formUser.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <div className=" gap-3 flex items-start w-full justify-start">
-                        <Input placeholder="Jsck@example.com" {...field} />
-                        <Button type="button"  onClick={()=>{
-                          formUser.setValue("user_name" , "")
-                                   formUser.setValue("email" , "")
-                          formUser.clearErrors()
+    <Card className="w-full bg-white  border-none max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle>
+          <div className="bg-white">
 
+              <div className="flex justify-start items-center gap-3 ">
+                <Image src="/logo.svg" width={20} height={20} alt="logo" className="h-5 w-auto" />
+                <h2 className="text-3xl font-extrabold text-[#554A4B]">Sign in</h2>
+              </div>
+          </div>
 
-                          setLogWith(!LogWith)}}>with user name</Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              ></FormField>
-            ) : (
-              <FormField
-                name="user_name"
-                control={formUser.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>User Name</FormLabel>
-                    <FormControl>
-                      <div className=" gap-3 flex items-start w-full justify-start">
-                        <Input placeholder="Jack_1a" {...field} />
-                        <Button type="button"  onClick={()=>{
-                          formUser.setValue("email" , "")
-                          formUser.setValue("user_name" , "")
-                          formUser.clearErrors()
-                          setLogWith(!LogWith)
-                          }}>with Email</Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              ></FormField>
-            )}
+              
+              </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...formUser}>
+          <form onSubmit={formUser.handleSubmit(() => {})} className="space-y-6">
+            <Tabs value={logWith} onValueChange={handleTabChange}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="email">Email</TabsTrigger>
+                <TabsTrigger value="username">Username</TabsTrigger>
+              </TabsList>
+              <TabsContent value="email">
+                <FormField
+                  name="email"
+                  control={formUser.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="john@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+              <TabsContent value="username">
+                <FormField
+                  name="user_name"
+                  control={formUser.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="johndoe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+            </Tabs>
+
             <FormField
               name="password"
               control={formUser.control}
@@ -117,24 +127,21 @@ const UserInfoLogin = forwardRef<ProfileInfoProps, {}>((_, ref) => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="*********" type="password" {...field} />
+                    <Input type="password" placeholder="********" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-            ></FormField>
-          </div>
+            />
 
-        </div>
-        <Button
-        type="submit"
-        >
-          Test
-        </Button>
-      </form>
-    </Form>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 });
 
-export default UserInfoLogin;
 UserInfoLogin.displayName = "UserInfoLogin";
+
+export default UserInfoLogin;
+

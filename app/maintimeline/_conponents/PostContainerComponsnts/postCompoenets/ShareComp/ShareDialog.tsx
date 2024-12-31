@@ -41,12 +41,9 @@ const ShareDialog = ({
 
     const [ShareContent ,setShareContent] =useState("")
     const  [ share , {isLoading , isSuccess , isError }] = useAddShareMutation()
-  console.log({
-    author_id ,
-    postId
-  }
+
   
-)
+
 const [openDialog , setOpenDialog]= useState<boolean>(false)
 
     const handleShare =()=>{
@@ -73,17 +70,20 @@ const [openDialog , setOpenDialog]= useState<boolean>(false)
       <DialogTrigger asChild>
         <Button
           // disabled={true}
-          variant={"reaction"}
-          className="w-1/3 h-9 text-muted-foreground  flex justify-center items-center gap-3 "
+          variant={"outline"}
+          className="w-fit h-9 text-muted-foreground  flex justify-center items-center gap-3 "
         >
-          Share
+          
           <Send className="w-4 h-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-[25rem] rounded-md sm:max-w-[40rem]">
-        <DialogHeader>Hello again, complete your share</DialogHeader>
         <div className="flex flex-col justify-start items-start ">
       <HeaderPost
+      address={null}
+      content={''}
+      created_at={undefined}
+      minmal={true}
         MainUserProfileId={MainUserProfileId?.id! }
         share={true}
         postId={postId}
@@ -98,6 +98,7 @@ const [openDialog , setOpenDialog]= useState<boolean>(false)
       onChange={(e)=>setShareContent(e.target.value)}
       />
         <MinmalCard
+        
           author_id={author_id}
           postId={postId}
           user={user}

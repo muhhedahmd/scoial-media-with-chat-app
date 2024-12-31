@@ -58,14 +58,7 @@ export const POST = async (req: Request) => {
       { status: 200 }
     );
   } else if (isAlreadyFollower && state === "follow back") {
-    console.log({
-      data: {
-        followingId: main_user_id,
-        followerId: author_user_id,
-      },
-      state,
-      isAlreadyFollowing,
-    });
+ 
 
     const follow = await prisma.follows.create({
       data: {

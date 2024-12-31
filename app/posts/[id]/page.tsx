@@ -45,7 +45,7 @@ const Page = ({
     isLoading: statusProfile,
     isSuccess,
     isError,
-  } = useGetProfileQuery({ userId: user?.id });
+  } = useGetProfileQuery({ userId: user?.id! });
 
   if (!user || !profile || !user?.id 
     ||statusProfile
@@ -56,7 +56,7 @@ const Page = ({
   
   </>;
   return (
-    <div className="w-full  h-screen">
+    <div className="w-full  h-screen overflow-hidden">
       {/* Header Component */}
       <div className="md:block  hidden shadow-xl">
         <Header user={user} />
@@ -96,6 +96,10 @@ const Page = ({
           <div className="w-full relative flex justify-between flex-col">
             <div className="py-4 px-2 flex justify-between w-full bg-white z-[100]  sticky top-[-1.6rem] items-center">
               <HeaderPost
+              address={post.address}
+              content={post.title}
+              MainUserProfileId={user.id}
+              minmal={false}
               author_id={post.author_id}
               postId={post.id}
               user={user! || undefined}

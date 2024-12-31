@@ -35,7 +35,7 @@ console.log({post_id  , userId})
     </div>;
   } else
     return (
-      <section className="w-full">
+      <section className="w-full mt-3">
         <div className="w-full  md:p-4 p-0 space-y-6 mt-2 rounded-lg">
           {CommentsData?.map((commentx  ) => {
             return (

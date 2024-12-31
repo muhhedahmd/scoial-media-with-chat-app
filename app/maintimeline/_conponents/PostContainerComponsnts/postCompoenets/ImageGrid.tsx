@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useRef } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -7,125 +7,192 @@ import {
   useSensors,
   PointerSensor,
   TouchSensor,
+  KeyboardSensor,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
   horizontalListSortingStrategy,
+  sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import SingleImageGrid from "../SingleImageGrid";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ImageWithId } from "../PostCreation";
+import { ImageWithId } from "../../../../_components/PostCreation";
+import { initialPostData } from "./MenuPostOption/MenuPostOption";
+import { post_image } from "@prisma/client";
+import { cn } from "@/lib/utils";
 
 interface ImageGridProps {
-  images: ImageWithId[];
-  setImages: React.Dispatch<React.SetStateAction<ImageWithId[]>>;
-  // imageHolder: ImageWithId[];
-  // setImageHolder:    React.Dispatch<React.SetStateAction<ImageWithId[] | []>>;
-
+  images: ImageWithId[] | post_image[] | initialPostData;
+  setImages:
+    | React.Dispatch<React.SetStateAction<ImageWithId[]>>
+    | React.Dispatch<React.SetStateAction<initialPostData>>
+    | React.Dispatch<
+        React.SetStateAction<{ images: ImageWithId[] | post_image[] }>
+      >
+    | undefined;
+  isEditMode: boolean;
+  editableDialog?: boolean;
 }
 
-const ImageGrid = ({ images, setImages  ,}: ImageGridProps) => {
-
-
-
-  const [toggle, setToggle] = useState<string>("");
+const ImageGrid = ({ images, setImages, isEditMode }: ImageGridProps) => {
+  const [toggle, setToggle] = useState<string | number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleDragEnd = useCallback(
     (event: any) => {
-      // setActiveId(null);
       const { active, over } = event;
-
       if (!active || !over || active.id === over.id) return;
 
-      const sourceIndex = images.findIndex((image) => image.id === active.id);
-      const targetIndex = images.findIndex((image) => image.id === over.id);
+      const getImageArray = () => {
+        if (Array.isArray(images)) {
+          return images;
+        } else if (typeof images === "object" && images.images) {
+          return images.images;
+        }
+        return [];
+      };
+
+      const currentImages = getImageArray();
+
+      const sourceIndex = currentImages.findIndex(
+        (image) => image.id === active.id
+      );
+      const targetIndex = currentImages.findIndex(
+        (image) => image.id === over.id
+      );
 
       if (sourceIndex !== targetIndex) {
-        setImages((prevImages) =>
-          arrayMove(prevImages, sourceIndex, targetIndex)
-        );
+        if (Array.isArray(images)) {
+          if(setImages){
 
-        // Add GSAP animation delay here
+            const a =  arrayMove(images as ImageWithId[], sourceIndex, targetIndex) as unknown[] as any
+            setImages?.(a);
+        }
+        } else if (typeof images === "object" && images.images) {
+
+          
+          setImages?.((prevImages: any) => ({
+            ...prevImages,
+            images: 
+              arrayMove(prevImages.images  , sourceIndex, targetIndex).map((img : any  , i)=>{
+                return {
+                  ...img,
+                  
+                  order : i+1
+                }
+              })
+          }));
+        }
       }
     },
     [images, setImages]
   );
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor)
+    useSensor(TouchSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 2,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
   );
 
-  const imageWrapperRef = useRef(null);
-  const [hasAnimated , setHasAnimated] = useState(false);
-
-  useGSAP(() => {
-    if (images.length >0 && hasAnimated) return ;
-
-    const tlImageWrapper = gsap.timeline({ paused: true });
-    tlImageWrapper.fromTo(
-      imageWrapperRef.current,
-      {
-        autoAlpha: 0,
-      },
-      {
-        autoAlpha: 1,
-        duration: 0.5,
-        delay:.8,
-        ease: "power1.inOut",
-      }
+  function isImageWithId(image: any): image is ImageWithId {
+    return (
+      (image as ImageWithId).id !== undefined &&
+      (image as ImageWithId).file !== undefined
     );
+  }
 
-    if (images.length > 0) {
-      tlImageWrapper.play();
-      setHasAnimated(true);
-
-    } else {
-      tlImageWrapper.reverse();
-            setHasAnimated(false); // Reset if images are cleared
-
+  const getImageArray = () => {
+    if (Array.isArray(images)) {
+      return images;
+    } else if (typeof images === "object" && images.images) {
+      return images.images;
     }
-  }, [images]);
+    return [];
+  };
+
+  const currentImages = getImageArray();
 
   return (
     <div
-      ref={imageWrapperRef}
-      className="image-wrapper flex justify-start w-full md:w-2/3 overflow-auto items-start "
+      ref={containerRef}
+      className="image-wrapper flex justify-start w-full overflow-x-auto items-start"
+      style={{ overscrollBehavior: "contain" }}
     >
-      {images.length > 0 && (
-        <div className="flex justify-start items-start  gap-2 w-max h-48">
+      {currentImages.length > 0 && (
+        <div
+          className={cn(
+            "flex justify-start w-max items-start gap-2",
+            !isEditMode && "h-48"
+          )}
+        >
           <DndContext
             sensors={sensors}
-            // onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             collisionDetection={closestCorners}
           >
             <SortableContext
-              items={images}
+              items={currentImages}
               strategy={horizontalListSortingStrategy}
             >
-              {images.map((image, index) => (
-                <SingleImageGrid
-                // imageHolder={imageHolder} 
-                // setImageHolder={setImageHolder}
-                  settoggele={setToggle}
-                  key={image.id} // Use unique id as key
-                  file={image.file}
-                  id={image.id}
-                  handleDelete={(id) =>
-                    setImages((prev) => prev.filter((img) => img.id !== id))
-                  }
-                  // setToggle={setToggle}
-                  toggele={toggle}
-                />
-              ))}
+              {currentImages.map((image, index) => {
+                if (isEditMode && !isImageWithId(image)) {
+                  return (
+                    <div className="w-full" key={image.id}>
+                      <SingleImageGrid
+                        newImg={image.new}
+                        isEditMode={true}
+                        settoggele={setToggle}
+                        image={image}
+                        id={image.id}
+                        handleDelete={(id) =>
+                          setImages?.((prev: any) =>
+                            Array.isArray(prev)
+                              ? prev.filter((img: any) => img.id !== id)
+                              : {
+                                  ...prev,
+                                  images: prev.images.filter(
+                                    (img: any) => img.id !== id
+                                  ),
+                                }
+                          )
+                        }
+                        toggele={toggle}
+                      />
+                    </div>
+                  );
+                } else if (!isEditMode && isImageWithId(image)) {
+                  return (
+                    <SingleImageGrid
+                      settoggele={setToggle}
+                      key={image.id}
+                      file={image.file}
+                      id={image.id}
+                      handleDelete={(id) =>
+                        setImages?.((prev: any) =>
+                          Array.isArray(prev)
+                            ? prev.filter((img: any) => img.id !== id)
+                            : {
+                                ...prev,
+                                images: prev.images.filter(
+                                  (img: any) => img.id !== id
+                                ),
+                              }
+                        )
+                      }
+                      toggele={toggle}
+                    />
+                  );
+                }
+                return null;
+              })}
             </SortableContext>
-
-            <DragOverlay>
-              {toggle ? <div /> : null}
-            </DragOverlay>
+            <DragOverlay>{toggle ? <div /> : null}</DragOverlay>
           </DndContext>
         </div>
       )}

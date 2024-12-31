@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "VideoChat" ALTER COLUMN "id" DROP DEFAULT,
+ALTER COLUMN "receiverId" DROP NOT NULL;
+DROP SEQUENCE "VideoChat_id_seq";

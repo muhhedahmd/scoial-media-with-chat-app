@@ -1,4 +1,4 @@
-import Tip from "@/app/_componsents/Tip";
+import Tip from "@/app/_components/Tip";
 import { Button } from "@/components/ui/button";
 import { PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -10,12 +10,12 @@ import {
 } from "@/store/api/apiSave";
 import { Popover } from "@radix-ui/react-popover";
 import { BookmarkIcon, Plus, Save, X } from "lucide-react";
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import SaveCategory from "./saveCategory";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@nextui-org/react";
 
-const SavePopup = ({ userId, postId }: { userId: number; postId: number }) => {
+const SavePopup = memo(({ userId, postId }: { userId: number; postId: number }) => {
   const [addSaveState, setAddSaveState] = useState(false);
   const [name, setName] = useState("");
 
@@ -39,9 +39,7 @@ const SavePopup = ({ userId, postId }: { userId: number; postId: number }) => {
     take: 4,
   });
 
-  console.log({
-    save,
-  });
+
   const [addCategory, { isLoading: loadingAddCategory }] =
     useAddSaveCategoryMutation();
 
@@ -75,8 +73,9 @@ const SavePopup = ({ userId, postId }: { userId: number; postId: number }) => {
           <Skeleton className="w-10 h-8 rounded-md bg-emerald-500 stroke-emerald-500" />
         ) : (
           <Button
+
             disabled={isFetchingGetSave || isLoadingGetSave}
-            className="bg-emerald-100 hover:bg-emerald-200"
+            className="bg-emerald-100 p-2 md:p-3 h-auto lg:p-2 min-h-max hover:bg-emerald-200"
           >
             {save ? (
               <Tip
@@ -182,6 +181,6 @@ const SavePopup = ({ userId, postId }: { userId: number; postId: number }) => {
       </PopoverContent>
     </Popover>
   );
-};
-
+})
+SavePopup.displayName ="SavePopup"
 export default SavePopup;

@@ -12,9 +12,7 @@ const useSocket = ({serverUrl}:{
       transports: ['websocket'], // Optional: specify transports
     });
 
-    // setSocket(socketIo);
 
-    // Cleanup on unmount
     return () => {
       socketIo.disconnect();
     };

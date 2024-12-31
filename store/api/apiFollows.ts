@@ -1,3 +1,5 @@
+
+import { followerType } from "@/app/api/follow/follower/[id]/route";
 import { togglefollowInfer } from "@/app/api/follow/togglefollow/route";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
@@ -14,7 +16,10 @@ export const followApi = createApi({
     getFollowing: builder.query({
       query: ({ userId }) => `/follow/following/${userId}`,
     }),
-    getFollower: builder.query({
+
+    getFollowerNotchat: builder.query<followerType[]  , {
+      userId : number
+    } >({
       query: ({ userId }) => `/follow/follower/${userId}`,
     }),
     getFollowingCount: builder.query({
@@ -43,7 +48,10 @@ export const followApi = createApi({
   }),
 });
 
-export const { useToggleFollowerMutation, useFollowStateQuery  ,
+export const { 
+  useToggleFollowerMutation
+  , useFollowStateQuery  ,
   useGetFollowingCountQuery,
   useGetFollowercountQuery
-  ,useGetFollowerQuery , useGetFollowingQuery} = followApi;
+  ,useGetFollowerNotchatQuery 
+  , useGetFollowingQuery} = followApi;

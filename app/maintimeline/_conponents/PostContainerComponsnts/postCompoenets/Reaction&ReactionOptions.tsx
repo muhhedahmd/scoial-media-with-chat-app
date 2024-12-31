@@ -9,14 +9,12 @@ interface ReactionReactionOptionsProps {
   author_id: number;
   userId: number;
   MainUserProfile: Profile;
-  created_at :Date
-  title:string
-  user:User
-  parentTitle? :string 
-Post_parent_id? :number 
-parent_author_id? : number 
-
-
+  created_at: Date;
+  title: string;
+  user: User;
+  parentTitle?: string;
+  Post_parent_id?: number;
+  parent_author_id?: number;
 }
 
 const ReactionReactionOptions = ({
@@ -24,17 +22,15 @@ const ReactionReactionOptions = ({
   MainUserProfile,
   userId,
   postId,
-  created_at ,
+  created_at,
   title,
   user,
-  Post_parent_id ,
-  parentTitle ,
+  Post_parent_id,
+  parentTitle,
   parent_author_id,
-
 }: ReactionReactionOptionsProps) => {
-  const { data, isLoading } = useGetPostReactionsQuery({post_id :postId});
-  const d = data as any
-
+  const { data, isLoading } = useGetPostReactionsQuery({ post_id: postId });
+  const d = data as any;
 
   return (
     <>
@@ -42,27 +38,23 @@ const ReactionReactionOptions = ({
         MainUserProfile={MainUserProfile}
         author_id={author_id}
         userId={userId}
-        data={data|| [] }
+        data={data || []}
         isLoading={isLoading}
         postId={postId}
       />
       <InteractionButtons
-    Post_parent_id={Post_parent_id}
-parentTitle={parentTitle}
-parent_author_id={parent_author_id}
-
-
-      created_at={created_at}
-      title={title}
-      user={user}
-
+        Post_parent_id={Post_parent_id}
+        parentTitle={parentTitle}
+        parent_author_id={parent_author_id}
+        created_at={created_at}
+        title={title}
+        user={user}
         userId={userId}
         isLoading={isLoading}
-        data={data || [] }
+        data={data || []}
         author_id={author_id}
         postId={postId}
       />
-      
     </>
   );
 };

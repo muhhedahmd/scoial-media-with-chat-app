@@ -48,7 +48,7 @@ const ToggleFollow = ({
               ? "default"
               : followState?.state === "following"
               ? "ghost"
-              : "share"
+              : "secondary"
           }
         >
           {LoadingToggle || stateLoading ? (

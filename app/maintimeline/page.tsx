@@ -25,7 +25,7 @@ const Page = () => {
     <>
       <Header user={user} />
       <div
-        className=" relative gap-3 pt-4 bg-gray-100 px-4 flex h-full justify-start items-start"
+        className=" relative gap-3  bg-gray-50 px-4 flex h-full justify-start items-start"
         style={{
           height: "calc(100vh  - 3rem)",
         }}

@@ -1,21 +1,21 @@
-import type { Config } from "tailwindcss"
+import type { Config } from "tailwindcss";
 import fs from "node:fs";
-import path from "node:path"
+import path from "node:path";
 import plaiceholder from "@plaiceholder/tailwindcss";
 const { nextui } = require("@nextui-org/react");
 const config = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
- "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}"
-	],
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
-      center: true,
+      // center: 'true',
       padding: "2rem",
       screens: {
         "2xl": "1400px",
@@ -56,6 +56,16 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -64,12 +74,20 @@ const config = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
+          from: {
+            height: "0",
+          },
+          to: {
+            height: "var(--radix-accordion-content-height)",
+          },
         },
         "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+          from: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          to: {
+            height: "0",
+          },
         },
       },
       animation: {
@@ -78,11 +96,13 @@ const config = {
       },
     },
   },
-  plugins: [ plaiceholder({
-    resolver: (src) =>
-      fs.readFileSync(path.join("./public", `${src}.jpg`)),
-  }), require("tailwindcss-animate") , nextui() ],
+  plugins: [
+    plaiceholder({
+      resolver: (src) => fs.readFileSync(path.join("./public", `${src}.jpg`)),
+    }),
+    require("tailwindcss-animate"),
+    nextui(),
+  ],
+} satisfies Config;
 
-} satisfies Config
-
-export default config
+export default config;

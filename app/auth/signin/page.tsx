@@ -1,18 +1,13 @@
 "use client";
 
-import {  useRef, useState } from "react";
-
-import { LoaderCircle, LucideStepBack } from "lucide-react";
+import { Suspense, useRef, useState } from "react";
+import { LoaderCircle, LucideStepBack } from 'lucide-react';
 import Link from "next/link";
-
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-
 import { signIn } from "next-auth/react";
 import { cn } from "@/lib/utils";
-
 import { useRouter } from "next/navigation";
-import UserInfoLogin from "./UserInfoLogin";
+import UserInfoLogin from "./UserInfoLogin"
 
 interface ResponseState {
   status?: number;
@@ -20,34 +15,25 @@ interface ResponseState {
   errors?: string;
 }
 
+
 const Signin = () => {
 
-  const router = useRouter()
-
+  
+  const router = useRouter();
   const [response, setResponse] = useState<ResponseState>({});
   const [loading, setLoading] = useState<boolean>(false);
-
 
   const userInfoRef = useRef<{
     trigger: () => Promise<boolean>;
     UserValues: () => Promise<any>;
   } | null>(null);
 
-
-
-
   const SubmitCreationUser = async () => {
     setLoading(true);
-    const userValues = await userInfoRef.current?.UserValues();
-    console.log(userValues)
-
     try {
       const userInfoResult = await userInfoRef.current?.trigger();
-      console.log(userInfoResult)
-      
       if (userInfoResult) {
         const userValues = await userInfoRef.current?.UserValues();
-        console.log(userValues)
         const res = await signIn("sigin", {
           redirect: false,
           ...userValues,
@@ -60,13 +46,11 @@ const Signin = () => {
         });
 
         if (res?.ok && res?.status === 200) {
-          // Handle successful sign-up
           setTimeout(() => {
-            router.push("/profile"); // Redirect to profile
+            router.push("/profile");
           }, 300);
-        } else {
-          // console.log("Error response", JSON.parse(res?.error  || undefined ));
         }
+        
       } else {
         throw new Error("Form validation failed");
       }
@@ -77,71 +61,86 @@ const Signin = () => {
     }
   };
 
-
   return (
-    <>
-      <div className="w-screen h-screen">
-        <div className="h-10">
+    <div className="flex w-screen min-h-screen main-gradient">
+      <Suspense fallback={<>loading....</>}>
+
+      <div className="flex-1 flex flex-col">
+   
+        <div className="p-4">
           <Link
-            className="flex justify-start items-center text-gray-700"
-            href={"/"}
+            className="flex items-center text-[#554A4B] hover:text-[#FFD0A3] transition-colors"
+            href="/"
           >
-            <LucideStepBack className="h-4 w-4" />
-            <p>Go Back</p>
+            <LucideStepBack className="h-4 w-4 mr-2" />
+            <span>Go Back</span>
           </Link>
         </div>
 
-        <div
-          className="flex w-full flex-col justify-start md:pl-5 lg:pl-16 md:pt-20 py-10 px-10 gap-3 items-start"
-          style={{
-            height: "calc(-2.5rem + 100vh)",
-          }}
-        >
-          <div className="flex justify-start items-center gap-3">
-            <Image src={"/vercel.svg"} width={50} height={50} alt="logo" />
-            <p className="text-2xl">Register</p>
-          </div>
-          {response.ok !== undefined && (
-            <div
-              className={cn(
-                "h-10 md:w-[58%] w-[100%] rounded-md flex justify-start items-center p-3",
-                response.ok ? "bg-emerald-300" : "bg-destructive/15"
+        <div className="flex-1  flex items-center justify-center px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8 bg-white p-4 rounded-lg shadow-lg">
+            <div className="bg-white">
+             
+              {response.ok !== undefined && (
+                <div
+                  className={cn(
+                    "mb-4 p-3 rounded-md text-center",
+                    response.ok ? "bg-[#F9D6D3] text-[#554A4B]" : "bg-red-100 text-red-800"
+                  )}
+                >
+                  {response.errors ? response.errors : "Signed in successfully"}
+                </div>
               )}
-            >
-              {response.errors ? response.errors : "Register successfully"}
             </div>
-          )}
-          <div className="w-full h-full">
-            <UserInfoLogin ref={userInfoRef} />
-            <div className="flex flex-row md:w-[50%] flex-wrap pt-4 w-[100%] justify-start gap-3 items-start">
-              <Button
 
-                onClick={() => SubmitCreationUser()}
-                className="md:w-fit  w-full "
+            <UserInfoLogin ref={userInfoRef} />
+
+            <div className="flex flex-col space-y-3">
+              <Button
+                onClick={SubmitCreationUser}
+              
+                className="w-full
+                bg-[#558b73] text-white"
                 type="submit"
                 disabled={loading}
               >
-                {loading ? <LoaderCircle 
-                className="animate-spin w-4 h-4  "
-                /> : "Log in"}
+                {loading ? <LoaderCircle className="animate-spin w-5 h-5" /> : "Sign in"}
               </Button>
 
-              <Button onClick={()=>router.push("/auth/signup")} variant={"outline"} className="md:w-fit w-full " type="button">
+              <Button 
+                onClick={() => router.push("/auth/signup")} 
+                variant="outline" 
+                className="w-full
+                border-[##558b73] text-[#554A4B] hover:bg-[##558b73aa] hover:text-gray-700"
+              >
                 Register
               </Button>
-              <Button variant={"outline"} className="md:w-fit w-full " type="button">
-                Go to Login
+
+              <Button 
+                variant="link" 
+                className="w-full text-[#554A4B] hover:text-[#35472e]"
+              >
+                Forgot password?
               </Button>
             </div>
           </div>
         </div>
-
-        <div className="fixed hidden md:block w-1/3 h-full right-0 top-0">
-          <div className="h-full w-full bg-teal-500" />
-        </div>
       </div>
-    </>
+      </Suspense>
+
+
+    </div>
   );
 };
 
 export default Signin;
+
+
+
+// #F9D6D3
+
+// #FFEAE4
+
+// #FFD0A3
+
+// #554A4B

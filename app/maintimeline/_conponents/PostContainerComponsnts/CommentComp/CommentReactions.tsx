@@ -1,4 +1,4 @@
-import Tip from "@/app/_componsents/Tip";
+import Tip from "@/app/_components/Tip";
 import { useGetReactionCommentsQuery } from "@/store/api/apicomment";
 import React, { useMemo } from "react";
 

@@ -51,7 +51,7 @@ export const GET = async (req: Request) => {
         { status: 404 }
       );
 
-    return NextResponse.json(find_Interaction_save.save[0], {
+    return NextResponse.json(find_Interaction_save && find_Interaction_save.save, {
       status: 200,
     });
   } catch (error) {

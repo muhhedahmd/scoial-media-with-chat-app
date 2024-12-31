@@ -6,7 +6,6 @@ export const NotifcationApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API! }),
   endpoints(build) {
     return {
-
       getNotifcation: build.query<
         Notification[],
         {
@@ -17,10 +16,21 @@ export const NotifcationApi = createApi({
       >({
         query: ({ userId, skip, take }) =>
           `/notifications/?user_id=${userId}&skip=${skip}&take=${take}`,
+        keepUnusedDataFor : 60,
+      forceRefetch({currentArg ,previousArg}) {
+        if(JSON.stringify(currentArg ) !== JSON.stringify(previousArg)){
+
+          return true 
+        } 
+        return false
+      },  
       }),
+
     };
   },
 });
 
-export const {useGetNotifcationQuery  } =
+export const {useGetNotifcationQuery  ,
+  useLazyGetNotifcationQuery
+ } =
   NotifcationApi;

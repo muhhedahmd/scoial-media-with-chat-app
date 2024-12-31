@@ -1,47 +1,61 @@
 import prisma from "@/lib/prisma";
-import { Upload_coludnairy } from "@/utils";
 import { Gender, Role } from "@prisma/client";
 import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
-import { any } from "zod";
+
+
 
 export async function POST(req: Request) {
-  try {
-    const formData = await req.formData();
 
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const firstName = formData.get("first_name") as string;
-    const lastName = formData.get("last_name") as string;
+  const response  = await req.json();
+ 
+  const {email,
+    password,
+    first_name  :firstName,
+    last_name :  lastName,
+    gender,
+    user_name :userName,
+    role } =  response  as {
+      email: string;
+      password: string;
+      first_name: string;
+      last_name : string;
+      gender: Gender;
+      user_name: string;
+      role: Role;
 
-    const gender = formData.get("gender") as Gender;
-    const userName = formData.get("user_name") as string;
-    const role = formData.get("role") as Role;
-
-    if (
-      !email ||
-      !password ||
-      !firstName ||
-      !gender ||
-      !role ||
-      !userName ||
-      !lastName ||
-      false
-    ) {
-      return NextResponse.json(
-        {
-          message: "Missing required fields",
-          email,
-          password,
-          firstName,
-          lastName,
-          gender,
-          userName,
-          role,
-        },
-        { status: 400 }
-      );
     }
+
+
+  if (
+    !email ||
+    !password ||
+    !firstName ||
+    !gender ||
+    !role ||
+    !userName ||
+    !lastName ||
+    false
+  ) {
+    return NextResponse.json(
+      {
+        message: "Missing required fields",
+        email,
+        password,
+        firstName,
+        lastName,
+        gender,
+        userName,
+        role,
+      },
+      { status: 400 }
+    );
+  }
+  try {
+
+
+    
+
 
     const existingUser = await prisma.user.findMany({
       where: {
@@ -93,32 +107,3 @@ export async function POST(req: Request) {
   }
 }
 
-// const [coverPictureRes , profilePictureRes]   = await Promise.all([
-//   Upload_coludnairy(coverPicture, userName),
-//   Upload_coludnairy(profilePicture, userName),
-// ]);
-
-// // console.log(coverPictureRes, profilePictureRes);
-
-// if (coverPictureRes.status !== 200 || profilePictureRes.status !== 200) {
-//   return NextResponse.json(
-//     {
-//       message: 'Failed to upload pictures',
-//        formData, // Convert to plain object
-//       type: typeof coverPicture,
-//       coverPicture: formData.getAll("cover_picture"),
-//       profilePicture: Object.assign({}, profilePicture),
-//       coverPictured: coverPicture ? {
-//         name: coverPicture.name,
-//         size: coverPicture.size,
-//         type: coverPicture.type,
-//       } : {},
-//       profilePictured: profilePicture ? {
-//         name: profilePicture.name,
-//         size: profilePicture.size,
-//         type: profilePicture.type,
-//       } : {},
-//     },
-//     { status: 400 }
-//   );
-// }

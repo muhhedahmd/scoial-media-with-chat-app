@@ -76,10 +76,7 @@ export const commentApi = createApi({
       },
     }),
 
-    getReplies: builder.query<
-      { hasMore: boolean; replay: shapeOfReplies[] },
-      { comment_id: number; replaySkip: number; replayTake: number  }
-    >({
+    getReplies: builder.query< { hasMore: boolean; replay: shapeOfReplies[] },{ comment_id: number; replaySkip: number; replayTake: number  }>({
       query: ({ comment_id, replaySkip, replayTake }) =>
         `/comment/replay?comment_id=${comment_id}&replaySkip=${replaySkip}&replayTake=${replayTake}`,
       providesTags: (result, error, { comment_id }) => [

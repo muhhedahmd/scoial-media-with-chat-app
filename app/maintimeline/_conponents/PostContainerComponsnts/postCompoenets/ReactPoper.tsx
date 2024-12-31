@@ -108,8 +108,9 @@ const [ ToggleReact, { isLoading , isSuccess ,data  }] = useToggleReactMutation(
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button className=" w-1/3  flex justify-center items-center gap-2 h-9 text-muted-foreground">
-          React
+        <Button 
+        className=" w-fit flex justify-center items-center gap-2 h-9 text-muted-foreground">
+          
           <Heart className="w-4 h-4" />
         </Button>
       </PopoverTrigger>

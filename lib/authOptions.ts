@@ -60,7 +60,7 @@ export const authOptions: AuthOptions = {
       async authorize(credentials: Record<string, any> | undefined) {
         console.log("credentials next auth", credentials);
         if(!credentials) return
-                const formData = new FormData();
+       const formData = new FormData();
 
         Object.keys(credentials).map((k) => {
           formData.append(k, credentials[k]);
@@ -69,11 +69,10 @@ export const authOptions: AuthOptions = {
         try {
           const response = await axios.post(
             "http://localhost:3000/api/users/create",
-            formData,
-
+            credentials,
             {
               headers: {
-                "Content-Type": "multipart/form-data", // Ensure proper headers for file upload
+                // "Content-Type": "application/x-www-form-urlencoded", 
               },
             }
           );
@@ -83,6 +82,7 @@ export const authOptions: AuthOptions = {
             return response.data;
           }
         } catch (error: any) {
+          console.log(error.response.data)
           throw new Error(
             JSON.stringify({
               errors: error.response.data,
@@ -92,7 +92,6 @@ export const authOptions: AuthOptions = {
           )
         }
 
-        console.log("skipped");
         return null;
       },
     }),

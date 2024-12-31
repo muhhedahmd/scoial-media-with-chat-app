@@ -51,15 +51,16 @@ const InteractionButtons = ({
 
   const findReactions = findReactionsCallback();
 
-  console.log({
-    findReactions,
-    data
-  });
+
 
   if (!postId || isLoading) return <InteractionButtonsLoader />;
   else {
     return (
-      <div className="flex justify-start items-center gap-3 mt-3 w-full">
+      <div className="flex justify-between items-center gap-3 mt-3 w-full">
+        <div 
+        className="flex justify-start items-center gap-2"
+        >
+
         <ReactPoper
           findReactions={findReactions || []}
           author_id={author_id}
@@ -78,11 +79,12 @@ const InteractionButtons = ({
             toggleMessageOpen(postId, true);
           }}
           variant={"ghost"}
-          className="w-1/3 hover:bg-yellow-300/15 flex justify-center items-center gap-3  bg-yellow-300/10 h-9 text-muted-foreground"
+          className="w-fit hover:bg-yellow-300/15 flex justify-center items-center gap-3  bg-yellow-300/10 h-9 text-muted-foreground"
         >
-          <p>Comment</p>
           <MessageCircle className="w-4 h-4" />
         </Button>
+        </div>
+
           <SavePopup
                userId={userId}
                postId={postId}

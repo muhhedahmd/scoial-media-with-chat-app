@@ -61,7 +61,7 @@ export const GET = async (
 
     });
 
-    const suggestedUsers = await prisma.user.findMany({
+    const suggestedUsers =await prisma.user.findMany({
       where: {
         AND: [
           // The user must be followed by someone the current user follows

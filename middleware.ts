@@ -10,7 +10,6 @@ const jwtConfig = {
 
 export default withAuth(
   async function middleware(Request: NextRequest) {
-    console.log("test 1 ")
     const secret = process.env.NEXTAUTH_SECRET!;
 
     const pathname = Request.nextUrl.pathname;
@@ -22,7 +21,7 @@ export default withAuth(
 
     const ProtectedRoute = ["/product","/profile" ,
       // "/api" ,
-       "/maintimeline",  "/todo", "/upload", "/users" , "/posts"];
+       "/maintimeline",  "/todo" , "/chat" , "/profilee", "/upload", "/users" , "/posts"];
     const AuthRoute = pathname.startsWith("/api/auth");
     const isProtectedRoute = ProtectedRoute.some((route) => {
       return pathname.startsWith(route);
@@ -36,11 +35,7 @@ export default withAuth(
       return NextResponse.redirect(new URL("auth/signin", Request.url));
     }
 
-    console.log({
-      isAuth ,
-      pathname ,
-      isProtectedRoute
-    })
+    
     if (isAuth  && pathname.startsWith("/auth")) {
             return NextResponse.redirect(new URL("/", Request.url));
 
@@ -62,8 +57,8 @@ export default withAuth(
   {
     callbacks: {
       authorized({ token, req }) {
-        console.log("Authorizedmethotoken"  ,token)
-        console.log("req"  ,JSON.stringify(req))
+        // console.log("Authorizedmethotoken"  ,token)
+        // console.log("req"  ,JSON.stringify(req))
         return true;
       },
     },
@@ -73,13 +68,3 @@ export default withAuth(
 export const config = {
   matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)", "/api/auth(.*)"],
 };
-
-//   console.log(tokenData)
-//  if (
-//   isAuth && isProtectedRoute
-// )
-// {
-//   console.log("edkwdf")
-//   return NextResponse.redirect(new URL("/", Request.url));
-
-// }

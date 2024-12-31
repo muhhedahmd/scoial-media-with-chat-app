@@ -6,18 +6,24 @@ import { Label } from "@/components/ui/label";
 import { Icon, Image, LocateFixedIcon, Video, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { ImageWithId } from "../PostCreation";
+import { ImageWithId } from "../../../../_components/PostCreation";
 import { cn } from "@/lib/utils";
+import imageCompression from 'browser-image-compression';
+import LocationSearch from "@/app/_components/locationComp/locationComp";
 
 interface PostCreationOptionsProps {
   setImages: React.Dispatch<React.SetStateAction<ImageWithId[] >>;
   setVideo: React.Dispatch<React.SetStateAction<File | null>>;
   images: ImageWithId[];
   video: File | null;
-  disabled: boolean
+  disabled: boolean;
+  activeLocation: number |null
+  setActiveLocation :React.Dispatch<React.SetStateAction<number  | null>>
 }
 
 const PostCreationOptions = ({
+  activeLocation,
+setActiveLocation,
   disabled,
   images,
   setImages,
@@ -50,25 +56,52 @@ const PostCreationOptions = ({
       }
     );
   };
-
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
-      const selectedFiles = Array.from(event.target.files).map((file) => ({
-        id: crypto.randomUUID(), // Generate a unique ID for each image
-        file,
-        isCroped : false
-      }));
-
-      setImages((prev) => [...prev, ...selectedFiles]);
-
-      // Update form value with the newly added files
-      setValue("images", [
-        ...getValues("images"),
-        ...selectedFiles.map((item) => item.file),
-      ]);
+      const compressionOptions = {
+        maxSizeMB: 0.5, // Compress to smaller size (~200KB)
+        initialQuality: 0.6, // Further reduce the quality for smaller uploads
+        maxWidthOrHeight: 1080, // Adjust dimensions to a maximum of 1080px (like Instagram)
+        useWebWorker: true,
+        alwaysKeepResolution: true, // Ensure aspect ratio is maintained
+      };
+  
+      try {
+        // Show loading indicator (optional)
+        const selectedFiles = await Promise.all(
+          Array.from(event.target.files).map(async (file) => {
+            // Compress the file (regardless of size)
+            const compressedFile = await imageCompression(file, compressionOptions);
+            const realFile = new File([compressedFile], file.name, { type: file.type });
+            console.log({
+              realFile ,
+              file
+            })
+            return {
+              id: crypto.randomUUID(), // Unique ID for each image
+              file: realFile,
+              isCroped: false, // Keep as false (set to true if you implement cropping)
+            };
+          })
+        );
+  
+        // Append compressed files to the existing images
+        setImages((prev) => [...prev, ...selectedFiles]);
+  
+        // Update form value with the newly added files
+        const currentImages = getValues("images");
+        setValue("images", [
+          ...currentImages,
+          ...selectedFiles.map((item) => item.file),
+        ]);
+  
+        // Hide loading indicator (optional)
+      } catch (error) {
+        console.error("Error compressing images: ", error);
+      }
     }
   };
-
+  
   const handleVideoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log({ getValues: getValues() });
     if (event.target.files && event.target.files[0]) {
@@ -95,7 +128,7 @@ const PostCreationOptions = ({
     <div 
     className={cn("flex  justify-start items-center gap-3 mt-3 w-full" , disabled && "opacity-55 text-muted-foreground cursor-pointer pointer-events-none")}>
       {/* Image Upload */}
-      <div className="w-1/6 flex justify-center items-center relative">
+      <div className=" flex justify-center items-center relative">
         {images.length > 0 && (
           <div
             onClick={() => clearImages()}
@@ -127,7 +160,7 @@ const PostCreationOptions = ({
       </div>
 
       {/* Video Upload */}
-      <div className="w-1/6 flex justify-center items-center relative">
+      <div className=" flex justify-center items-center relative">
       {video  && (
           <div
             onClick={() => clearVideo()}
@@ -154,21 +187,12 @@ const PostCreationOptions = ({
       </div>
 
       {/* Location Sharing */}
-      <div className="w-1/6">
-        <Button
-          type="button"
-          className="w-full flex justify-center items-center"
-          variant={"ghost"}
-          onClick={handleGetLocation}
-        >
-          {loading ? (
-            <span>Loading...</span>
-          ) : (
-            <LocateFixedIcon className="h-6 w-6" />
-          )}
-        </Button>
-      </div>
-
+        <LocationSearch
+        activeLocation={activeLocation}
+        setActiveLocation={setActiveLocation}
+        
+        
+        />
       {/* Displaying the Location (Optional) */}
       {location && (
         <div className="mt-2">

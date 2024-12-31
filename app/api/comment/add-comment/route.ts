@@ -1,4 +1,4 @@
-import { parserData } from "@/app/_componsents/mentionComp/MentionDropDown";
+import { parserData } from "@/app/_components/mentionComp/MentionDropDown";
 import { parseDataType } from "@/app/maintimeline/_conponents/PostContainerComponsnts/CommentComp/CommentAddation";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";

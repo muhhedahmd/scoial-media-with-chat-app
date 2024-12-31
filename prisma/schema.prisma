@@ -1,10 +1,604 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["tracing"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                    Int                    @id @default(autoincrement())
+  email                 String                 @unique
+  first_name            String
+  role                  Role                   @default(user)
+  password              String
+  last_name             String
+  user_name             String                 @unique
+  gender                Gender                 @default(MALE)
+  expiresAt             DateTime               @default(dbgenerated("(now() + '6 mons'::interval)"))
+  isPrivate             Boolean                @default(false)
+  videoCallStatus       VideoCallStatus        @default(AVAILABLE)
+  ChatCreation          Chat[]                 @relation("createdChats")
+  ChatReciver           Chat[]                 @relation("receivedChats")
+  groupMemberships      GroupMember[]
+  HashtagFollow         HashtagFollow[]
+  Interaction           Interaction[]
+  Mention               Mention[]
+  MessageReciver        Message[]              @relation("messagesReceived")
+  MessageSender         Message[]              @relation("messagesSent")
+  notificationsSent     Notification[]         @relation("UserNotifier")
+  notificationsReceived Notification[]         @relation("UserNotifying")
+  profile               Profile?
+  roomParticipations    RoomParticipant[]
+  Save_catagory         Save_catagory[]
+  SignalingReceived     Signaling[]            @relation("signalingReceived")
+  SignalingSent         Signaling[]            @relation("signalingSent")
+  VideoChatReciver      VideoChat[]            @relation("VideoChatReciver")
+  VideoChatSender       VideoChat[]            @relation("VideoChatSender")
+  VideoChatParticipant  VideoChatParticipant[]
+  category_post_User    category_post_User[]
+  InvitationHistory     groupInvitation[]
+  post                  post[]
+
+  @@index([user_name], type: Hash)
+}
+
+model Hashtag {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @updatedAt
+  HashtagFollow HashtagFollow[]
+  posts         PostHashtag[]
+  share         ShareHashtag[]
+
+  @@index([name])
+}
+
+model HashtagFollow {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  hashtagId  Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  hashtag    Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hashtagId])
+}
+
+model PostHashtag {
+  id         Int      @id @default(autoincrement())
+  postId     Int
+  hashtagId  Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  hashtag    Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+  post       post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, hashtagId])
+  @@index([postId])
+  @@index([hashtagId])
+}
+
+model ShareHashtag {
+  id         Int      @id @default(autoincrement())
+  shareId    Int
+  hashtagId  Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  hashtag    Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+  share      Share    @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
+  @@unique([shareId, hashtagId])
+  @@index([shareId])
+  @@index([hashtagId])
+}
+
+model Notification {
+  id                        Int               @id @default(autoincrement())
+  notifierId                Int
+  notifyingId               Int
+  type                      NotificationType
+  postId                    Int?
+  commentId                 Int?
+  replayId                  Int?
+  shareId                   Int?
+  PostReactionId            Int?
+  commentReactionId         Int?
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
+  read                      Boolean           @default(false)
+  replayLikesId             Int?
+  mentionid                 Int?
+  postReactionNotication    Reaction?         @relation("postReactionNotication", fields: [PostReactionId], references: [id], onDelete: Cascade)
+  commentNotication         Comment?          @relation("commentNotication", fields: [commentId], references: [id], onDelete: Cascade)
+  commentReactionNotication reactionsComment? @relation("commentReactionNotication", fields: [commentReactionId], references: [id], onDelete: Cascade)
+  mentionNotication         Mention?          @relation("mentionNotication", fields: [mentionid], references: [id], onDelete: Cascade)
+  notifier                  User              @relation("UserNotifier", fields: [notifierId], references: [id], onDelete: Cascade)
+  notifying                 User              @relation("UserNotifying", fields: [notifyingId], references: [id], onDelete: Cascade)
+  post                      post?             @relation("postNotifcation", fields: [postId], references: [id], onDelete: Cascade)
+  replayNotication          replay?           @relation("replayNotication", fields: [replayId], references: [id], onDelete: Cascade)
+  replayLikes               replayLikes?      @relation("ReplayLikesNotication", fields: [replayLikesId], references: [id], onDelete: Cascade)
+  shareNotication           Share?            @relation("shareNotication", fields: [shareId], references: [id], onDelete: Cascade)
+
+  @@index([notifierId, notifyingId])
+}
+
+model Profile {
+  id                Int              @id @default(autoincrement())
+  user_id           Int              @unique
+  bio               String?
+  profile_picture   String?
+  cover_picture     String?
+  location          String?
+  PhoneNumber       Int?
+  isVerified        Boolean          @default(false)
+  website           Json?            @default("{}")
+  birthdate         DateTime?
+  isCompleteProfile Boolean          @default(false)
+  title             String?
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  followers         Follows[]        @relation("UserFollowers")
+  following         Follows[]        @relation("UserFollowing")
+  user              User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  profilePictures   ProfilePicture[]
+}
+
+model ProfilePicture {
+  id           Int                @id @default(autoincrement())
+  url          String
+  public_id    String
+  asset_id     String
+  width        Int
+  height       Int
+  format       String
+  created_at   DateTime           @default(now())
+  updated_at   DateTime           @updatedAt
+  secure_url   String
+  public_url   String
+  asset_folder String
+  display_name String
+  tags         String[]
+  type         ProfilePictureType
+  HashBlur     String
+  profileId    Int
+  profile      Profile            @relation(fields: [profileId], references: [id])
+
+  @@unique([type, profileId])
+}
+
+model Follows {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  follower    Profile  @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   Profile  @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model post {
+  id           Int             @id @default(autoincrement())
+  author_id    Int
+  title        String?
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+  published    Boolean         @default(false)
+  parentId     Int?
+  addressId    Int?            @unique
+  Interactions Interaction[]
+  Notification Notification[]  @relation("postNotifcation")
+  PostHashtag  PostHashtag[]
+  Share        Share?
+  categories   category_post[]
+  addrees      Address?        @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  author       User            @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  parent       post?           @relation("nestedPostForShare", fields: [parentId], references: [id])
+  post         post[]          @relation("nestedPostForShare")
+  post_image   post_image[]
+  Mention      Mention[]       @relation("MentionTopost")
+}
+
+model reactionsComment {
+  id           Int            @id @default(autoincrement())
+  comment_id   Int
+  emoji        String
+  imageUrl     String
+  names        Json           @default("[]")
+  innteractId  Int
+  Notification Notification[] @relation("commentReactionNotication")
+  comment      Comment        @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+  Interaction  Interaction    @relation(fields: [innteractId], references: [id], onDelete: Cascade)
+
+  @@unique([comment_id, innteractId])
+}
+
+model Share {
+  id           Int            @id @default(autoincrement())
+  content      String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  post_id      Int?           @unique
+  Notification Notification[] @relation("shareNotication")
+  post         post?          @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  ShareHashtag ShareHashtag[]
+}
+
+model Save {
+  id              Int            @id @default(autoincrement())
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  save_catagoryId Int?
+  InteractionId   Int            @unique
+  Interaction     Interaction    @relation(fields: [InteractionId], references: [id], onDelete: Cascade)
+  Save_catagory   Save_catagory? @relation(fields: [save_catagoryId], references: [id], onDelete: Cascade)
+}
+
+model Save_catagory {
+  id        Int    @id @default(autoincrement())
+  name      String
+  author_id Int
+  save      Save[]
+  user      User   @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@unique([author_id, name])
+}
+
+model pin {
+  id            Int         @id @default(autoincrement())
+  type          typePin     @default(PUBLIC_PROFILE)
+  tag           Json        @default("[]")
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+  InteractionId Int
+  Interaction   Interaction @relation(fields: [InteractionId], references: [id])
+
+  @@index([InteractionId])
+}
+
+model Interaction {
+  id              Int                @id @default(autoincrement())
+  type            InteractionType
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  postId          Int?
+  author_id       Int
+  comment         Comment[]
+  author          User               @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  post            post?              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  Mention         Mention[]
+  reaction        Reaction[]
+  save            Save?
+  pin             pin[]
+  commentReaction reactionsComment[]
+  replay          replay[]
+  replayLikes     replayLikes[]
+
+  @@unique([author_id, postId, type])
+}
+
+model Comment {
+  id               Int                @id @default(autoincrement())
+  content          String
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+  innteractId      Int?
+  Interaction      Interaction?       @relation(fields: [innteractId], references: [id], onDelete: Cascade)
+  Notification     Notification[]     @relation("commentNotication")
+  reactionsComment reactionsComment[]
+  replay           replay[]
+  Mention          Mention[]          @relation("CommentToMention")
+}
+
+model replay {
+  id           Int            @id @default(autoincrement())
+  comment_id   Int
+  content      String
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  innteractId  Int?
+  parentId     Int?
+  Notification Notification[] @relation("replayNotication")
+  comment      Comment        @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+  Interaction  Interaction?   @relation(fields: [innteractId], references: [id], onDelete: Cascade)
+  parent       replay?        @relation("ReplayReplies", fields: [parentId], references: [id])
+  replies      replay[]       @relation("ReplayReplies")
+  replayLikes  replayLikes[]
+  Mention      Mention[]      @relation("MentionToreplay")
+
+  @@index([comment_id])
+}
+
+model Mention {
+  userId         Int
+  postId         Int?
+  shareId        Int?
+  commentId      Int?
+  replayId       Int?
+  startPos       Int?           @default(0)
+  endPos         Int?           @default(0)
+  mentionType    mentionType
+  id             Int            @id @default(autoincrement())
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  interactioneId Int?
+  Interaction    Interaction?   @relation(fields: [interactioneId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notifcation    Notification[] @relation("mentionNotication")
+  comment        Comment[]      @relation("CommentToMention")
+  post           post[]         @relation("MentionTopost")
+  replay         replay[]       @relation("MentionToreplay")
+}
+
+model replayLikes {
+  id           Int            @id @default(autoincrement())
+  replay_id    Int
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  innteractId  Int
+  Notification Notification[] @relation("ReplayLikesNotication")
+  Interaction  Interaction    @relation(fields: [innteractId], references: [id], onDelete: Cascade)
+  replay       replay         @relation(fields: [replay_id], references: [id], onDelete: Cascade)
+
+  @@unique([replay_id, innteractId])
+}
+
+model Reaction {
+  type         ReactionType
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  id           Int            @id @default(autoincrement())
+  innteractId  Int
+  Notification Notification[] @relation("postReactionNotication")
+  Interaction  Interaction    @relation(fields: [innteractId], references: [id], onDelete: Cascade)
+}
+
+model category {
+  id    Int             @id @default(autoincrement())
+  name  String
+  posts category_post[]
+}
+
+model category_post {
+  post_id            Int
+  category_id        Int
+  assigned_at        DateTime            @default(now())
+  id                 Int                 @id @unique @default(autoincrement())
+  category           category            @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  post               post                @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  category_post_User category_post_User?
+
+  @@unique([post_id, category_id])
+}
+
+model category_post_User {
+  id               Int           @id @default(autoincrement())
+  user_id          Int
+  category_post_id Int           @unique
+  category_post    category_post @relation(fields: [category_post_id], references: [id], onDelete: Cascade)
+  User             User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model Address {
+  id          Int      @id @default(autoincrement())
+  street      String
+  city        String
+  state       String
+  zip         String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  flag        String
+  countryEnum Country
+  country     String
+  post        post?
+}
+
+model post_image {
+  id           Int    @id @default(autoincrement())
+  img_path     String
+  post_id      Int
+  asset_folder String
+  asset_id     String
+  display_name String
+  public_id    String
+  type         String
+  height       Int
+  tags         Json   @default("[]")
+  width        Int
+  HashBlur     String
+  order        Int    @default(0)
+  post         post   @relation(fields: [post_id], references: [id], onDelete: Cascade)
+}
+
+model Chat {
+  id              Int               @id @default(autoincrement())
+  type            ChatType
+  creatorId       Int
+  createdAt       DateTime          @default(now())
+  description     String?
+  name            String?
+  reciverId       Int?
+  roomId          Int?
+  updatedAt       DateTime          @updatedAt
+  creator         User              @relation("createdChats", fields: [creatorId], references: [id])
+  reciver         User?             @relation("receivedChats", fields: [reciverId], references: [id])
+  room            Room?             @relation(fields: [roomId], references: [id])
+  members         GroupMember[]
+  messages        Message[]
+  VideoChat       VideoChat[]
+  groupInvitation groupInvitation[]
+
+  @@unique([creatorId, id])
+  @@unique([creatorId, reciverId])
+  @@index([roomId])
+}
+
+model Room {
+  id              Int               @id @default(autoincrement())
+  name            String
+  type            RoomType
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  chats           Chat[]
+  participants    RoomParticipant[]
+  signaling       Signaling[]
+  groupInvitation groupInvitation[]
+}
+
+model GroupMember {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  chatId            Int
+  role              GroupRole
+  joinedAt          DateTime  @default(now())
+  leftAt            DateTime?
+  lastReadMessageId Int?
+  chat              Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  lastReadMessage   Message?  @relation(fields: [lastReadMessageId], references: [id])
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id               Int            @id @default(autoincrement())
+  chatId           Int
+  senderId         Int
+  content          String
+  encryptedContent String
+  iv               String
+  status           MessageStatus
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+  likes            Int            @default(0)
+  receiverId       Int?
+  GroupMember      GroupMember[]
+  chat             Chat           @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  receiver         User?          @relation("messagesReceived", fields: [receiverId], references: [id])
+  sender           User           @relation("messagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  links            MessageLinks[]
+  messageMedia     MessageMedia[]
+}
+
+model MessageLinks {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messageId Int
+  link      String
+  domain    String
+  Message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+model VideoChat {
+  id                   Int                    @id @default(autoincrement())
+  startTime            DateTime               @default(now())
+  endTime              DateTime?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  receiverId           Int?
+  senderId             Int
+  chatId               Int
+  status               VideoChatStatus
+  chat                 Chat                   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  receiver             User?                  @relation("VideoChatReciver", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender               User                   @relation("VideoChatSender", fields: [senderId], references: [id], onDelete: Cascade)
+  VideoChatParticipant VideoChatParticipant[]
+}
+
+model VideoChatParticipant {
+  
+  id          Int         @id @default(autoincrement())
+  userId      Int? @unique
+  videoChatId Int
+  joinedAt    DateTime    @default(now())
+  leftAt      DateTime?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoChat   VideoChat   @relation(fields: [videoChatId], references: [id], onDelete: Cascade)
+  
+  Signaling   Signaling[]
+
+
+  @@unique([userId, videoChatId])
+}
+
+model MessageMedia {
+  id           Int      @id @default(autoincrement())
+  messageId    Int
+  key          String
+  fileHash     String
+  customId     String?
+  name         String
+  size         Int
+  type         String
+  mediaUrl     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  HashBlur     String?
+  height       Int?
+  width        Int?
+  thumbnailUrl String?
+  message      Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+model groupInvitation {
+  id                Int                 @id @default(autoincrement())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  groupId           Int
+  userId            Int
+  expiredAt         DateTime
+  roomId            Int?
+  InvitationHistory InvitationHistory[]
+  group             Chat                @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  Room              Room?               @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user              User                @relation(fields: [userId], references: [id])
+
+  @@unique([groupId, userId])
+}
+
+model InvitationHistory {
+  id                Int             @id @default(autoincrement())
+  groupInvitationId Int
+  previousKey       String
+  updatedKey        String
+  changedAt         DateTime        @default(now())
+  groupInvitation   groupInvitation @relation(fields: [groupInvitationId], references: [id], onDelete: Cascade)
+}
+
+model RoomParticipant {
+  id       Int       @id @default(autoincrement())
+  userId   Int
+  roomId   Int
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+  room     Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roomId])
+}
+
+model Signaling {
+
+  id                     String                @id @default(cuid())
+  roomId                 Int
+  data                   String
+  createdAt              DateTime              @default(now())
+  receiverId             Int?
+  senderId               Int
+  receiverParticipantId  Int?  
+  VideoChatParticipant   VideoChatParticipant? @relation(fields: [receiverParticipantId], references: [userId] ,onDelete:  Cascade)
+  type                   SignalingType
+  receiver               User?                 @relation("signalingReceived", fields: [receiverId], references: [id])
+  room                   Room                  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender                 User                  @relation("signalingSent", fields: [senderId], references: [id])
+  @@index([roomId])
 }
 
 enum Role {
@@ -47,154 +641,16 @@ enum NotificationType {
   MENTION_COMMENT
   MENTION_REPLAY
   REPLAY_IN_REPLAY
-
-  REPLY_REACT_AUTHOR // Notify the original post author when a reply to their post is reacted to
-  REPLY_REACT_COMMENTER // Notify the user who commented when their reply is reacted to  
-
-  COMMENT_REACT_AUTHOR // Notify the original post author when a reply to their post is reacted to
-  COMMENT_REACT_COMMENTER // Notify the user who commented when their reply is reacted to  
+  REPLY_REACT_AUTHOR
+  REPLY_REACT_COMMENTER
+  COMMENT_REACT_AUTHOR
+  COMMENT_REACT_COMMENTER
 }
 
-model User {
-  id                    Int                  @id @default(autoincrement())
-  email                 String               @unique
-  first_name            String
-  user_name             String               @unique
-  last_name             String
-  password              String
-  role                  Role                 @default(user)
-  profile               Profile?
-  post                  post[]
-  // comments              Comment[]
-  gender                Gender               @default(MALE)
-  expiresAt             DateTime             @default(dbgenerated("NOW() + INTERVAL '6 months'")) // Automatically set expiration date
-  isPrivate             Boolean              @default(false)
-  category_post_User    category_post_User[]
-  notificationsSent     Notification[]       @relation("UserNotifier")
-  notificationsReceived Notification[]       @relation("UserNotifying")
-  Mention               Mention[]
-  HashtagFollow         HashtagFollow[]
-  Interaction           Interaction[]
-  Save_catagory         Save_catagory[]
-  // InteractionShare      InteractionShare[]
-
-  //   created_at DateTime @default(now())
-  // updated_at DateTime @updatedAt
-  @@index([user_name], type: Hash)
-}
-
-model Hashtag {
-  id            Int             @id @default(autoincrement())
-  name          String          @unique
-  posts         PostHashtag[]
-  share         ShareHashtag[]
-  HashtagFollow HashtagFollow[]
-  created_at    DateTime        @default(now())
-  updated_at    DateTime        @updatedAt
-
-  @@index([name])
-}
-
-model HashtagFollow {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  hashtagId  Int
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  hashtag    Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@unique([userId, hashtagId])
-}
-
-model PostHashtag {
-  id         Int      @id @default(autoincrement())
-  postId     Int
-  hashtagId  Int
-  post       post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  hashtag    Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@unique([postId, hashtagId])
-  @@index([postId])
-  @@index([hashtagId])
-}
-
-model ShareHashtag {
-  id         Int      @id @default(autoincrement())
-  shareId    Int
-  hashtagId  Int
-  share      Share    @relation(fields: [shareId], references: [id], onDelete: Cascade)
-  hashtag    Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@unique([shareId, hashtagId])
-  @@index([shareId])
-  @@index([hashtagId])
-}
-
-model Notification {
-  id          Int              @id @default(autoincrement())
-  notifierId  Int
-  notifyingId Int
-  type        NotificationType
-  postId      Int?
-  post        post?            @relation("postNotifcation", fields: [postId], references: [id], onDelete: Cascade)
-
-  commentId         Int?
-  commentNotication Comment? @relation("commentNotication", fields: [commentId], references: [id], onDelete: Cascade)
-
-  replayId         Int?
-  replayNotication replay? @relation("replayNotication", fields: [replayId], references: [id], onDelete: Cascade)
-
-  shareId         Int?
-  shareNotication Share? @relation("shareNotication", fields: [shareId], references: [id], onDelete: Cascade)
-
-  replayLikesId Int?
-  replayLikes   replayLikes? @relation("ReplayLikesNotication", fields: [replayLikesId], references: [id], onDelete: Cascade)
-
-  PostReactionId         Int?
-  postReactionNotication Reaction? @relation("postReactionNotication", fields: [PostReactionId], references: [id], onDelete: Cascade)
-
-  commentReactionId         Int?
-  commentReactionNotication reactionsComment? @relation("commentReactionNotication", fields: [commentReactionId], references: [id], onDelete: Cascade)
-
-  mentionid         Int?
-  mentionNotication Mention? @relation("mentionNotication", fields: [mentionid], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  read      Boolean  @default(false) // Mark notification as read or unread
-
-  notifier  User @relation("UserNotifier", fields: [notifierId], references: [id], onDelete: Cascade)
-  notifying User @relation("UserNotifying", fields: [notifyingId], references: [id], onDelete: Cascade)
-
-  // Notifier: The user who triggers the notification (e.g., the one who comments, likes, or performs some action that results in a notification being sent).
-  // Notifying: The user who receives the notification (e.g., the one who is being notified about the action).
-  @@index([notifierId, notifyingId])
-}
-
-model Profile {
-  id                Int              @id @default(autoincrement())
-  user_id           Int              @unique
-  user              User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  bio               String?
-  profile_picture   String?
-  cover_picture     String?
-  location          String?
-  website           Json?            @default("{}")
-  birthdate         DateTime?
-  PhoneNumber       Int?
-  title             String?
-  isVerified        Boolean          @default(false)
-  isCompleteProfile Boolean          @default(false)
-  followers         Follows[]        @relation("UserFollowers")
-  following         Follows[]        @relation("UserFollowing")
-  created_at        DateTime         @default(now())
-  updated_at        DateTime         @updatedAt
-  profilePictures   ProfilePicture[]
+enum VideoCallStatus {
+  AVAILABLE
+  IN_CALL
+  DO_NOT_DISTURB
 }
 
 enum ProfilePictureType {
@@ -202,133 +658,10 @@ enum ProfilePictureType {
   cover
 }
 
-model ProfilePicture {
-  id         Int      @id @default(autoincrement())
-  url        String
-  public_id  String
-  asset_id   String
-  width      Int
-  height     Int
-  public_url String
-  format     String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  secure_url String
-
-  asset_folder String
-  display_name String
-  tags         String[]
-  type         ProfilePictureType // 'profile' or 'cover'
-  HashBlur     String
-  profileId    Int                
-  profile      Profile            @relation(fields: [profileId], references: [id])
-  @@unique([type , profileId])
-}
-
-model Follows {
-  id          Int      @id @default(autoincrement())
-  followerId  Int
-  followingId Int
-  follower    Profile  @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
-  following   Profile  @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  @@unique([followerId, followingId])
-}
-
-model post {
-  id           Int             @id @default(autoincrement())
-  author_id    Int
-  author       User            @relation(fields: [author_id], references: [id], onDelete: Cascade)
-  title        String?
-  created_at   DateTime        @default(now())
-  updated_at   DateTime        @updatedAt
-  published    Boolean         @default(false)
-  categories   category_post[]
-  post_image   post_image[]
-  Notification Notification[]  @relation("postNotifcation")
-  Interactions Interaction[]
-  PostHashtag  PostHashtag[]
-  Mention      Mention[]
-  parentId     Int?
-  parent       post?           @relation("nestedPostForShare", fields: [parentId], references: [id])
-  post         post[]          @relation("nestedPostForShare")
-  Share        Share?
-}
-
-model reactionsComment {
-  id           Int            @id @default(autoincrement())
-  comment_id   Int
-  comment      Comment        @relation(fields: [comment_id], references: [id], onDelete: Cascade)
-  emoji        String
-  names        Json           @default("[]")
-  imageUrl     String
-  innteractId  Int
-  Interaction  Interaction    @relation(fields: [innteractId], references: [id], onDelete: Cascade)
-  Notification Notification[] @relation("commentReactionNotication")
-
-  // InteractionShare   InteractionShare? @relation(fields: [interactionShareId], references: [id], onDelete: Cascade)
-  // interactionShareId Int?
-  // @@unique([comment_id, interactionShareId])
-
-  @@unique([comment_id, innteractId])
-}
-
-model Share {
-  id           Int            @id @default(autoincrement())
-  content      String
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  post_id      Int?           @unique
-  post         post?          @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  Notification Notification[] @relation("shareNotication")
-
-  ShareHashtag ShareHashtag[]
-
-  // InteractionShare InteractionShare[]
-  // Interaction  Interaction[]
-}
-
-model Save {
-  id              Int            @id @default(autoincrement())
-  created_at      DateTime       @default(now())
-  updated_at      DateTime       @updatedAt
-  InteractionId   Int
-  Interaction     Interaction    @relation(fields: [InteractionId], references: [id], onDelete: Cascade)
-  Save_catagory   Save_catagory? @relation(fields: [save_catagoryId], references: [id], onDelete: Cascade)
-  save_catagoryId Int?
-
-  @@unique([InteractionId])
-}
-
-model Save_catagory {
-  id        Int    @id @default(autoincrement())
-  author_id Int
-  user      User   @relation(fields: [author_id], references: [id], onDelete: Cascade)
-  name      String
-  save      Save[]
-
-  @@unique([author_id, name])
-}
-
 enum typePin {
   TIME_LINE
-
   PRIVATE_PROFILE
   PUBLIC_PROFILE
-}
-
-model pin {
-  id            Int         @id @default(autoincrement())
-  type          typePin     @default(PUBLIC_PROFILE)
-  tag           Json        @default("[]")
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
-  InteractionId Int
-  Interaction   Interaction @relation(fields: [InteractionId], references: [id])
-
-  @@index([InteractionId])
 }
 
 enum InteractionType {
@@ -345,67 +678,6 @@ enum InteractionType {
   PIN
 }
 
-model Interaction {
-  id        Int             @id @default(autoincrement())
-  type      InteractionType
-  author_id Int
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-
-  // Relations
-  author User @relation(fields: [author_id], references: [id], onDelete: Cascade)
-
-  // Optional relations
-  postId Int?
-  post   post? @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  commentReaction reactionsComment[]
-  replay          replay[]
-  comment         Comment[]
-  reaction        Reaction[]
-  replayLikes     replayLikes[]
-  Mention         Mention[]
-  pin             pin[]
-
-  save Save[]
-
-  @@unique([author_id, postId, type])
-}
-
-model Comment {
-  id               Int                @id @default(autoincrement())
-  content          String
-  reactionsComment reactionsComment[]
-  created_at       DateTime           @default(now())
-  updated_at       DateTime           @updatedAt
-  replay           replay[]
-  Notification     Notification[]     @relation("commentNotication")
-  innteractId      Int?
-  Interaction      Interaction?       @relation(fields: [innteractId], references: [id], onDelete: Cascade)
-
-  Mention Mention[]
-}
-
-model replay {
-  id           Int            @id @default(autoincrement())
-  comment_id   Int
-  comment      Comment        @relation(fields: [comment_id], references: [id], onDelete: Cascade)
-  content      String
-  created_at   DateTime       @default(now())
-  updated_at   DateTime       @updatedAt
-  Notification Notification[] @relation("replayNotication")
-  replayLikes  replayLikes[]
-  innteractId  Int?
-  Interaction  Interaction?   @relation(fields: [innteractId], references: [id], onDelete: Cascade)
-  Mention      Mention[]
-
-  parentId Int?
-  parent   replay?  @relation("ReplayReplies", fields: [parentId], references: [id])
-  replies  replay[] @relation("ReplayReplies")
-
-  @@index([comment_id])
-}
-
 enum mentionType {
   POST
   COMMENT
@@ -413,90 +685,239 @@ enum mentionType {
   SHARE
 }
 
-model Mention {
-  id          Int         @id @default(autoincrement())
-  userId      Int
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  postId      Int?
-  shareId     Int?
-  commentId   Int?
-  replayId    Int?
-  startPos    Int?        @default(0)
-  endPos      Int?        @default(0)
-  mentionType mentionType
-  post        post[]
-
-  interactioneId Int?
-  Interaction    Interaction?   @relation(fields: [interactioneId], references: [id], onDelete: Cascade)
-  notifcation    Notification[] @relation("mentionNotication")
-  comment        Comment[]
-  replay         replay[]
-  created_at     DateTime       @default(now())
-  updated_at     DateTime       @updatedAt
+enum Country {
+  Afghanistan
+  Albania
+  Algeria
+  Andorra
+  Angola
+  Antigua_And_Barbuda
+  Argentina
+  Armenia
+  Australia
+  Austria
+  Azerbaijan
+  Bahamas
+  Bahrain
+  Bangladesh
+  Barbados
+  Belarus
+  Belgium
+  Belize
+  Benin
+  Bhutan
+  Bolivia
+  Bosnia_And_Herzegovina
+  Botswana
+  Brazil
+  Brunei
+  Bulgaria
+  Burkina_Faso
+  Burundi
+  Cabo_Verde
+  Cambodia
+  Cameroon
+  Canada
+  Central_African_Republic
+  Chad
+  Chile
+  China
+  Colombia
+  Comoros
+  Congo
+  Costa_Rica
+  Croatia
+  Cuba
+  Cyprus
+  Czech_Republic
+  Democratic_Republic_Of_The_Congo
+  Denmark
+  Djibouti
+  Dominica
+  Dominican_Republic
+  Ecuador
+  Egypt
+  El_Salvador
+  Equatorial_Guinea
+  Eritrea
+  Estonia
+  Eswatini
+  Ethiopia
+  Fiji
+  Finland
+  France
+  Gabon
+  Gambia
+  Georgia
+  Germany
+  Ghana
+  Greece
+  Grenada
+  Guatemala
+  Guinea
+  Guinea_Bissau
+  Guyana
+  Haiti
+  Honduras
+  Hungary
+  Iceland
+  India
+  Indonesia
+  Iran
+  Iraq
+  Ireland
+  Israel
+  Italy
+  Jamaica
+  Japan
+  Kazakhstan
+  Kenya
+  Kiribati
+  Korea_North
+  Korea_South
+  Kosovo
+  Kuwait
+  Kyrgyzstan
+  Laos
+  Latvia
+  Lebanon
+  Lesotho
+  Liberia
+  Libya
+  Liechtenstein
+  Lithuania
+  Luxembourg
+  Madagascar
+  Malawi
+  Malaysia
+  Maldives
+  Mali
+  Malta
+  Marshall_Islands
+  Mauritania
+  Mauritius
+  Mexico
+  Micronesia
+  Moldova
+  Monaco
+  Mongolia
+  Montenegro
+  Morocco
+  Mozambique
+  Myanmar
+  Namibia
+  Nauru
+  Nepal
+  Netherlands
+  New_Zealand
+  Nicaragua
+  Niger
+  Nigeria
+  North_Macedonia
+  Norway
+  Oman
+  Pakistan
+  Palau
+  Palestine
+  Panama
+  Papua_New_Guinea
+  Paraguay
+  Peru
+  Philippines
+  Poland
+  Portugal
+  Qatar
+  Romania
+  Russia
+  Rwanda
+  Saint_Kitts_And_Nevis
+  Saint_Lucia
+  Saint_Vincent_And_The_Grenadines
+  Samoa
+  San_Marino
+  Sao_Tome_And_Principe
+  Saudi_Arabia
+  Senegal
+  Serbia
+  Seychelles
+  Sierra_Leone
+  Singapore
+  Slovakia
+  Slovenia
+  Solomon_Islands
+  Somalia
+  South_Africa
+  Spain
+  Sri_Lanka
+  Sudan
+  Suriname
+  Sweden
+  Switzerland
+  Syria
+  Taiwan
+  Tajikistan
+  Tanzania
+  Thailand
+  Togo
+  Tonga
+  Trinidad_And_Tobago
+  Tunisia
+  Turkey
+  Turkmenistan
+  Tuvalu
+  Uganda
+  Ukraine
+  United_Arab_Emirates
+  United_Kingdom
+  United_States
+  Uruguay
+  Uzbekistan
+  Vanuatu
+  Vatican_City
+  Venezuela
+  Vietnam
+  Yemen
+  Zambia
+  Zimbabwe
 }
 
-model replayLikes {
-  id           Int            @id @default(autoincrement())
-  replay_id    Int
-  replay       replay         @relation(fields: [replay_id], references: [id], onDelete: Cascade)
-  created_at   DateTime       @default(now())
-  updated_at   DateTime       @updatedAt
-  Notification Notification[] @relation("ReplayLikesNotication")
-  innteractId  Int
-  Interaction  Interaction    @relation(fields: [innteractId], references: [id], onDelete: Cascade)
-
-  @@unique([replay_id, innteractId])
+enum ChatType {
+  PRIVATE
+  GROUP
+  FAST_GROUP
 }
 
-model Reaction {
-  id           Int            @id @default(autoincrement())
-  type         ReactionType
-  created_at   DateTime       @default(now())
-  updated_at   DateTime       @updatedAt
-  innteractId  Int
-  Interaction  Interaction    @relation(fields: [innteractId], references: [id], onDelete: Cascade)
-  Notification Notification[] @relation("postReactionNotication")
+enum GroupRole {
+  MEMBER
+  ADMIN
 }
 
-model category {
-  id    Int             @id @default(autoincrement())
-  name  String
-  posts category_post[]
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
 }
 
-model category_post {
-  id                 Int                 @id @unique @default(autoincrement())
-  post_id            Int
-  category_id        Int
-  assigned_at        DateTime            @default(now())
-  post               post                @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  category           category            @relation(fields: [category_id], references: [id], onDelete: Cascade)
-  category_post_User category_post_User?
-
-  @@unique([post_id, category_id])
+enum VideoChatStatus {
+  PENDING
+  ONGOING
+  ENDED
+  MISSED
 }
 
-model category_post_User {
-  id               Int           @id @default(autoincrement())
-  user_id          Int
-  category_post_id Int
-  User             User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  category_post    category_post @relation(fields: [category_post_id], references: [id], onDelete: Cascade)
-
-  @@unique([category_post_id])
+enum RoomType {
+  TEXT_GROUP
+  TEXT_DIRECT
+  VIDEO_GROUP
+  VIDEO_DIRECT
+  FAST_VIDEO
+  Audio_GROUP
+  Audio_DIRECT
+  FAST_Audio
 }
 
-model post_image {
-  id           Int    @id @default(autoincrement())
-  img_path     String
-  post_id      Int
-  public_id    String
-  asset_id     String
-  width        Int
-  height       Int
-  asset_folder String
-  display_name String
-  tags         Json   @default("[]")
-  type         String
-  post         post   @relation(fields: [post_id], references: [id], onDelete: Cascade)
+enum SignalingType {
+  OFFER
+  ANSWER
+  ICE_CANDIDATE
 }

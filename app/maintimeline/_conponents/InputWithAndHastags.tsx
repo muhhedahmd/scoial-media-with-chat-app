@@ -7,10 +7,11 @@ import { User2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseDataType } from "./PostContainerComponsnts/CommentComp/CommentAddation";
 import { useDebounce } from "@uidotdev/usehooks";
+import { ProfilePicture } from "@prisma/client";
 interface UserSuggestion {
-  id: string | number;
+  id: number | string;
   profile: {
-    profile_picture: string | null;
+    profilePicture: ProfilePicture[];
   } | null;
   first_name: string;
   last_name: string;
@@ -82,10 +83,11 @@ setParsedData
     handleProcessData()
   };
 
-  const suggestions: UserSuggestion[] = [
+  const suggestions = [
     ...((users?.data || []).map(e => ({
       id: e.id,
-      profile: e.profile,
+      // email : e.email,
+      profile : e.profile,
       first_name: e.first_name,
       last_name: e.last_name,
       display: e.user_name
@@ -133,9 +135,9 @@ setParsedData
         )}
       >
         <div className="flex-shrink-0">
-          {suggestion.profile?.profile_picture ? (
+          {suggestion.profile?.profilePicture && suggestion.profile?.profilePicture.find((img)=>img.type === "profile") ? (
             <Image
-              src={suggestion.profile.profile_picture || ""}
+              src={suggestion.profile?.profilePicture.find((img)=>img.type === "profile")?.secure_url || ""}
               alt={`${suggestion.first_name} profile picture`}
               height={40}
               width={40}
@@ -241,7 +243,7 @@ setParsedData
       regularTexts: processedData.regularTexts,
       fullText: val,
     });
-    console.log('Processed Data:', processedData); // Optional: log or handle data here
+    // console.log('Processed Data:', processedData); // Optional: log or handle data here
   };
 
   return (

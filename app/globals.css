@@ -1,3 +1,9 @@
+
+.before\:\!duration-300::before{
+  transition: 5s !important;
+  animation-duration: 1.2s !important;
+
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,6 +35,14 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -56,6 +70,14 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -167,4 +189,59 @@ textarea:focus-visible{
 }
 .ct textarea {
   padding: 10px;
+}
+
+
+.textBox {
+  height: 30px;
+  overflow: hidden;
+  line-height: 30px;
+  padding: 5px;
+  position: relative;
+}
+.textBox span {
+  position: absolute;
+  white-space: nowrap;
+  transform: translateX(0);
+  transition: 2s;
+}
+.textBox:hover span {
+  transform: translateX(calc(300px - 100%));
+}
+/* Add this to your CSS file */
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: #fff; /* Change to your desired color */
+  width: 40px; /* Size of the buttons */
+  height: 40px; /* Size of the buttons */
+}
+
+.swiper-pagination-bullet {
+  background: #fff; /* Change to your desired color */
+  opacity: 0.7; /* Make it slightly transparent */
+}
+
+.swiper-pagination-bullet-active {
+  background: #fff; /* Change to your desired active color */
+}
+
+.audio-recorder {
+  background: white !important;
+  box-shadow: none !important;
+  width: 10rem !important;
+}
+
+.main-gradient{
+  background-color: #254336;
+background-image: radial-gradient(at 73% 42%, #254336 0%, transparent 60%), radial-gradient(at 21% 91%, #6b8a7a 0%, transparent 50%), radial-gradient(at 39% 88%, #b7b597 0%, transparent 40%), radial-gradient(at 72% 78%, #dad3be 0%, transparent 30%);
+}
+.Skeleton-time-up::before{
+  transition: 5s !important;
+  animation-duration: 1.2s !important;
+}
+.before\:\!duration-300::before{
+  transition: 5s !important;
+  animation-duration: 1.2s !important;
+
 }

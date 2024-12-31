@@ -11,7 +11,7 @@ import Link from "next/link";
 interface UserInfoProps {
   user : User
 isLoading : boolean 
-profile :Profile
+profile :Profile | any
 
 }
 const UserInfo = ({

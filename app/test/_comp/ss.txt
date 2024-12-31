@@ -1,0 +1,1709 @@
+import {
+
+  LucideMessagesSquare,
+
+  Search,
+
+  X,
+} from "lucide-react";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+} from "@/components/ui/sidebar";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { AnimatePresence, motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
+import { followerType } from "@/app/api/follow/follower/[id]/route";
+import { Button } from "@/components/ui/button";
+import SuggestionContacts from "../chat/_componets/SuggestionContacts";
+import ContactsList from "../chat/_componets/Contacts";
+import MainUserSide from "../chat/_componets/MainUserSide";
+import { Contact } from "../chat/page";
+
+import { cn } from "@/lib/utils";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import {  UserWithPic } from "../api/chat/contacts-users/route";
+import BluredImage from "../_components/ImageWithPlaceholder";
+import { ChatType } from "@prisma/client";
+import {
+  useChoseMemberGroup,
+} from "@/context/ChoseMemberGroupContext";
+import { useDebounce } from "@uidotdev/usehooks";
+import SearchcontactListUsers from "../chat/_componets/SearchcontactListUsers";
+
+import CereateDialogGroup from "../chat/_componets/CereateDialogGroup";
+
+// Menu items.
+
+gsap.registerPlugin(ScrollTrigger);
+
+export default function AppSidebar({
+  setSelectedContact,
+  setStartChatWith,
+  setChat,
+}: {
+  setStartChatWith: React.Dispatch<React.SetStateAction<followerType | null>>;
+  setSelectedContact: React.Dispatch<React.SetStateAction<Contact | null>>;
+  setChat: React.Dispatch<React.SetStateAction<number | null>>;
+}) {
+  const CachedUser = useSelector(userResponse)!;
+  
+  const [isGroupMode, setIsGroupMode] = useState(false);
+  const { ChoseMemberGroup, setChoseMemberGroup } = useChoseMemberGroup();
+  const [IsCreateGroup, setIsCreateGroup] = useState(false);
+  const mainSectionRef = useRef<HTMLDivElement>(null);
+  const groupSectionRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mainSection = mainSectionRef.current;
+    const groupSection = groupSectionRef.current;
+    const sidebar = sidebarRef.current;
+
+    if (!mainSection || !groupSection || !sidebar) return;
+
+    const tl = gsap.timeline({ paused: true });
+
+    tl.to(mainSection, {
+      display: "block",
+      autoAlpha: 0,
+      x: "-100%",
+      opacity: 0,
+      duration: 0.5,
+      ease: "power2.inOut",
+    })
+      .to(
+        groupSection,
+        {
+          display: "block",
+          x: "0%",
+          opacity: 1,
+          duration: 0.5,
+          ease: "power2.inOut",
+          autoAlpha: 1,
+        },
+        "-=0.3"
+      )
+      .to(
+        sidebar,
+        {
+          backgroundColor: "rgba(0, 0, 0, 0.05)",
+          duration: 0.3,
+          ease: "power2.inOut",
+        },
+        "-=0.5"
+      );
+
+    if (isGroupMode) {
+      tl.play();
+    } else {
+      gsap.to(mainSection, {
+        x: "0",
+        opacity: 1,
+        duration: 0.5,
+        autoAlpha: 1,
+        ease: "power2.inOut",
+      });
+      gsap.to(groupSection, {
+        x: "-100%",
+        opacity: 0,
+        autoAlpha: 0,
+        duration: 0.5,
+        ease: "power2.inOut",
+      });
+    }
+
+    // Set up ScrollTrigger for each contact item
+    const contactItems = mainSection.querySelectorAll(".contact-item");
+    contactItems.forEach((item, index) => {
+      gsap.from(item, {
+        opacity: 0,
+        y: 20,
+        duration: 0.5,
+        scrollTrigger: {
+          trigger: item,
+          start: "top bottom-=50",
+          toggleActions: "play none none reverse",
+        },
+        delay: index * 0.1,
+      });
+    });
+
+    return () => {
+      tl.kill();
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, [isGroupMode]);
+  const handleRemoveMember = (contractId: number) => {
+    const filtered = ChoseMemberGroup?.filter(
+      (user: UserWithPic) => user.id !== contractId
+    );
+    setChoseMemberGroup(filtered);
+  };
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
+  const [cerateDialog, setCerateDialog] = useState(false);
+  return (
+    <>
+      <Sidebar ref={sidebarRef} className="transition-colors duration-300">
+        <SidebarHeader className="">
+          <div className="flex flex-row justify-start gap-2">
+            <h2>Chat</h2>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Contacts</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <AnimatePresence>
+                  <motion.div className="w-full flex flex-col justify-between h-[90vh]">
+                    <motion.div
+                      className="flex-1 h-[70vh] relative overflow-hidden"
+                      initial={{ x: -300, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: -300, opacity: 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                    >
+                      <div className="p-3 flex justify-start items-center gap-2 md:p-4">
+                        <div className="relative mb-4 flex-grow">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            value={searchTerm}
+                            placeholder="Search..."
+                            className="pl-10 py-1 text-sm bg-gray-100 border-none focus:ring-2 focus:ring-purple-300 w-full"
+                          />
+                        </div>
+                        <Button
+                          className={cn(
+                            "w-fit px-2 mb-4",
+                            isGroupMode &&
+                              "bg-slate-800 text-white hover:bg-slate-600 hover:text-white"
+                          )}
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setIsGroupMode((prev) => !prev)}
+                        >
+                          <LucideMessagesSquare className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <ScrollArea
+                        ref={mainSectionRef}
+                        className="flex-1
+                      w-full px-2 main-section"
+                      >
+                        <ContactsList
+                          setStartChatWith={setStartChatWith}
+                          setSelectedContact={setSelectedContact}
+                          setChat={setChat}
+                        />
+
+                        <SuggestionContacts
+                          setStartChatWith={setStartChatWith}
+                          CachedUser={CachedUser}
+                          setSelectedContact={setSelectedContact}
+                        />
+                      </ScrollArea>
+
+                      <ScrollArea
+                        ref={groupSectionRef}
+                        className="flex-1 px-2 group-section absolute  w-full inset-0"
+                        style={{
+                          transform: "translateX(100%)",
+                          opacity: 0,
+                          position: "absolute",
+                          top: "10%",
+                        }}
+                      >
+                        <div className="mb-2 flex justify-start items-center gap-2 w-full create-group ">
+                          <Button
+                            onClick={() =>
+                              setIsCreateGroup((prev) => {
+                                if (prev) {
+                                  setChoseMemberGroup([]);
+                                  return false;
+                                } else {
+                                  return true;
+                                }
+                              })
+                            }
+                            className={cn(
+                              " bg-white hover:bg-white w-full h-fit py-1  border-2 border-slate-600 text-slate-600 ",
+                              IsCreateGroup &&
+                                "hover:text-red-400 hover:border-red-400 bg-white hover:bg-white border-2 border-destructive  text-destructive hover:text-destructive"
+                              // "rounded-md py-2 px-4 text-sm font-medium",
+                            )}
+                            variant={"ghost"}
+                          >
+                            {IsCreateGroup ? "Cancel" : "init Group"}
+                          </Button>
+
+                          {IsCreateGroup && (
+                            <Button
+                              disabled={
+                                !(
+                                  ChoseMemberGroup &&
+                                  ChoseMemberGroup?.length &&
+                                  ChoseMemberGroup.length >= 2
+                                )
+                              }
+                              variant={"ghost"}
+                              className="
+                        bg-white hover:bg-white
+                        hover:text-emerald-600
+                        hover:border-emerald-600
+                        
+
+                        text-emerald-500 border-2 border-emerald-500 py-1 min-h-fit max-h-fit h-fit"
+                              onClick={() => {
+                                setCerateDialog(true);
+                              }}
+                            >
+                              Cerate
+                            </Button>
+                          )}
+                        </div>
+
+                        <div
+                          className={cn(
+                            "w-full  h-0 transition-all duration-400 overflow-auto  flex flex-row justify-start items-start gap-2 flex-wrap ",
+                            IsCreateGroup &&
+                              " border-2 p-2 border-stone-950 rounded-md  text-slate-900 h-[10rem] max-h-auto   "
+                            // "bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-"
+                          )}
+                        >
+                          {ChoseMemberGroup &&
+                            [...ChoseMemberGroup].map((contract) => {
+                              const profile =
+                                contract.profile?.profilePictures?.find(
+                                  (ty) => ty.type === "profile"
+                                );
+                              return (
+                                <div
+                                  key={contract.id}
+                                  className=" w-fit flex relative  h-max  justify-center items-center flex-col gap-1"
+                                >
+                                  {profile ? (
+                                    <div className="flex shadow-md rounded-full justify-center items-center relative ">
+                                      <BluredImage
+                                        width={profile?.width! || 0}
+                                        height={profile?.height! || 0}
+                                        blurhash={profile?.HashBlur || ""}
+                                        imageUrl={profile?.secure_url || ""}
+                                        alt="profile_pictre"
+                                        quality={100}
+                                        className="w-10 h-10 rounded-full"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="w-10 h-10  bg-slate-100 shadow-md rounded-full flex justify-center items-center text-lg">
+                                      {contract?.first_name[0].toUpperCase()}
+                                    </div>
+                                  )}
+                                  <div
+                                    onClick={() => {
+                                      handleRemoveMember(contract.id);
+                                    }}
+                                    className="p-1 bg-destructive rounded-full transition-all cursor-pointer  hover:bg-red-400  absolute bottom-[-.1rem] right-[.2rem] flex justify-center items-center"
+                                  >
+                                    <X className="w-3 h-3  text-white" />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+
+                        {IsCreateGroup && CachedUser ? (
+                          <>
+                            {!searchTerm ? (
+                              <>
+                                <div className="w-full">
+                                  <h3> last chat with </h3>
+                                  <ContactsList
+                                    groupMinaml={true}
+                                    setStartChatWith={setStartChatWith}
+                                    setSelectedContact={setSelectedContact}
+                                    setChat={setChat}
+                                  />
+                                </div>
+                                <SuggestionContacts
+                                  groupMinaml={true}
+                                  setStartChatWith={setStartChatWith}
+                                  CachedUser={CachedUser}
+                                  setSelectedContact={setSelectedContact}
+                                />
+                              </>
+                            ) : (
+                              <>
+                                <SearchcontactListUsers
+                                  debouncedSearchTerm={debouncedSearchTerm}
+                                  userId={CachedUser.id}
+                                />
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <ContactsList
+                              type={"GROUP" as ChatType}
+                              setStartChatWith={setStartChatWith}
+                              setSelectedContact={setSelectedContact}
+                              setChat={setChat}
+                            />
+                          </>
+                        )}
+                      </ScrollArea>
+                    </motion.div>
+
+                    {CachedUser ? (
+                      <motion.div className="flex w-full">
+                        <MainUserSide CachedUser={CachedUser} />
+                      </motion.div>
+                    ) : (
+                      <motion.div className="flex w-full p-2 justify-center items-center gap-2">
+                        <div>
+                          <Skeleton className="flex-1 w-10 h-10 rounded-xl bg-gray-300" />
+                        </div>
+                        <div className="flex h-[10] gap-2 justify-between flex-col">
+                          <Skeleton className="w-28 h-2 bg-gray-300" />
+                          <Skeleton className="w-24 h-2 bg-gray-300" />
+                        </div>
+                        <Skeleton className="w-5 h-5 rounded-xl bg-gray-300" />
+                        <Skeleton className="flex-1" />
+                      </motion.div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+      <CereateDialogGroup
+      setSelectedContact={setSelectedContact}
+      setChat={setChat}
+      setChoseMemberGroup={setChoseMemberGroup}
+      setIsCreateGroup={setIsCreateGroup}
+        ChoseMemberGroup={ChoseMemberGroup}
+        IsCreateGroup={IsCreateGroup}
+        cerateDialog={cerateDialog}
+        handleRemoveMember={handleRemoveMember}
+        setCerateDialog={setCerateDialog}
+      />
+    </>
+  );
+}
+
+// "use client";
+// import { ChangeEvent, useRef, useState } from "react";
+// import * as pdfjsLib from "pdfjs-dist";
+// pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
+
+// const PdfThumbnail = () => {
+//     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+//     const [url, setUrl] = useState("");
+
+//     const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+//         const files = e.target.files;
+//         if (files && files.length > 0) {
+//             const firstFile = files[0];
+//             const fileBuffer = await firstFile.arrayBuffer();
+
+//             // Create a PDF document from the buffer
+//             try {
+//                 const loadingTask = pdfjsLib.getDocument({ data: fileBuffer });
+//                 const pdfDocument = await loadingTask.promise;
+
+//                 // Get the first Page of the PDF
+//                 const Page = await pdfDocument.getPage(1);
+
+//                 // Set up the canvas context for rendering
+//                 const canvas = canvasRef.current;
+//                 if (canvas) {
+//                     const context = canvas.getContext("2d");
+//                     const viewport = Page.getViewport({ scale: 1.5 }); // Set the scale for rendering
+
+//                     // Set the canvas dimensions
+//                     canvas.width = viewport.width;
+//                     canvas.height = viewport.height;
+
+//                     // Render the Page into the canvas context
+//                     const renderContext = {
+//                         canvasContext: context!,
+//                         viewport: viewport,
+//                     };
+//                     await Page.render(renderContext).promise;
+
+//                     // Generate the data URL from the canvas
+//                     const dataURL = canvas.toDataURL("image/png"); // PNG is more reliable for canvas exports
+//                     const pdfThumbnailBlob = dataURLToBlob(dataURL);
+
+//                     // Create a blob URL
+//                     const blobUrl = URL.createObjectURL(pdfThumbnailBlob);
+//                     setUrl(blobUrl); // Set the blob URL to state
+//                     console.log("Page rendered successfully.");
+//                 }
+//             } catch (error) {
+//                 console.error("Error rendering PDF:", error);
+//             }
+//         }
+//     };
+
+//     const dataURLToBlob = (dataURL: string): Blob => {
+//         // Convert base64/URLEncoded data component to raw binary data
+//         const byteString = atob(dataURL.split(",")[1]);
+//         const mimeString = dataURL.split(",")[0].split(":")[1].split(";")[0];
+
+//         const ab = new ArrayBuffer(byteString.length);
+//         const ia = new Uint8Array(ab);
+//         for (let i = 0; i < byteString.length; i++) {
+//             ia[i] = byteString.charCodeAt(i);
+//         }
+//         return new Blob([ab], { type: mimeString });
+//     };
+
+//     return (
+//         <div>
+//             <input type="file" accept="application/pdf" onChange={handleFileChange} />
+//             {url && (
+//                 <div>
+//                     <img src={url} alt="PDF Thumbnail" />
+//                 </div>
+//             )}
+//             <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
+//         </div>
+//     );
+// };
+
+// export default PdfThumbnail;
+
+// 'use client'
+
+// import { useState, useRef, useMemo } from 'react'
+// import { Button } from "@/components/ui/button"
+// import { Input } from "@/components/ui/input"
+// import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+
+// export default function VideoThumbnailUploader() {
+//   const [video, setVideo] = useState<File | null>(null)
+//   const [thumbnail, setThumbnail] = useState<string | null>(null)
+//   const videoRef = useRef<HTMLVideoElement>(null)
+//   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+//   const urlMemo  = useMemo(()=>
+//     video && URL.createObjectURL(video )
+//    , [video])
+
+//   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+//     const file = event.target.files?.[0]
+//     if (file) {
+//       setVideo(file)
+//       setThumbnail(null)
+//     }
+//   }
+
+//   const generateThumbnail = () => {
+//     if (videoRef.current && canvasRef.current) {
+//       const video = videoRef.current;
+//       const canvas = canvasRef.current;
+//       // Seek to 1 second (or 2 seconds) before capturing the thumbnail
+//       video.currentTime = 1; // Change to 2 if you want to capture at 2 seconds
+//       // Use the 'seeked' event to ensure the video has seeked to the specified time
+//       video.onseeked = () => {
+//         canvas.width = video.videoWidth;
+//         canvas.height = video.videoHeight;
+//         canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+//         canvas.toBlob((blob) => {
+//           if (blob) {
+//             const thumbnailUrl = URL.createObjectURL(blob);
+//             setThumbnail(thumbnailUrl);
+//           }
+//         }, 'image/jpeg', 0.7);
+//       };
+//     }
+//   };
+
+//   const sendToBackend = async () => {
+//     if (!thumbnail) {
+//       console.error('No thumbnail generated')
+//       return
+//     }
+
+//     try {
+//       const response = await fetch(thumbnail)
+//       const blob = await response.blob()
+
+//       const formData = new FormData()
+//       formData.append('thumbnail', blob, 'thumbnail.jpg')
+
+//       const backendResponse = await fetch('/api/upload-thumbnail', {
+//         method: 'POST',
+//         body: formData,
+//       })
+
+//       if (backendResponse.ok) {
+//         console.log('Thumbnail sent successfully')
+//         // Handle success (e.g., show a success message)
+//       } else {
+//         console.error('Failed to send thumbnail')
+//         // Handle error (e.g., show an error message)
+//       }
+//     } catch (error) {
+//       console.error('Error sending thumbnail:', error)
+//       // Handle error (e.g., show an error message)
+//     }
+//   }
+
+//   return (
+//     <Card className="w-full max-w-md mx-auto">
+//       <CardHeader>
+//         <CardTitle>Video Thumbnail Uploader</CardTitle>
+//       </CardHeader>
+//       <CardContent>
+//         <div className="space-y-4">
+//           <Input
+//             type="file"
+//             accept="video/*"
+//             onChange={handleVideoUpload}
+//             className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+//           />
+//           {video && (
+//             <video
+//               ref={videoRef}
+//               src={urlMemo || ""}
+//               controls
+//               onLoadedMetadata={generateThumbnail}
+//               className="w-full"
+//             />
+//           )}
+//           <canvas ref={canvasRef} style={{ display: 'none' }} />
+//           {thumbnail && (
+//             <div>
+//               <h3 className="text-lg font-semibold mb-2">Generated Thumbnail:</h3>
+//               <img src={thumbnail} alt="Video thumbnail" className="w-full" />
+//             </div>
+//           )}
+//         </div>
+//       </CardContent>
+//       <CardFooter>
+//         <Button onClick={sendToBackend} disabled={!thumbnail} className="w-full">
+//           Send Thumbnail to Backend
+//         </Button>
+//       </CardFooter>
+//     </Card>
+//   )
+// }
+
+// "use client"
+// import DownloadButton from '@/components/DownloadButton'
+// import React from 'react'
+
+// const Page = () => {
+//   return (
+//     <div>
+//         <DownloadButton
+//         item={{
+//             mediaUrl : "https://utfs.io/f/ufFzDIxg5NbsQs4sGvB5lB3n0p6MIYFovHyWrRs2aTGgzSiD" ,
+//             name : "test"
+//         }}
+//         className='w-full'
+//         >
+//             sw
+
+//         </DownloadButton>
+//     </div>
+//   )
+// }
+
+// export default Page
+
+// "use client"
+
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+// import { Button } from "@/components/ui/button"
+// import { ScrollArea } from "@/components/ui/scroll-area"
+// import { Switch } from "@/components/ui/switch"
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+// import gsap from "gsap"
+// import { ChevronDown, ChevronUp, FileText, Image, Link2, Phone, Search, Video } from 'lucide-react'
+// import React, { useEffect, useRef, useState } from "react"
+
+// // Static data
+// const selectedContact = {
+//   id: '1',
+//   first_name: 'John',
+//   last_name: 'Doe',
+//   avatar: '/placeholder.svg?height=100&width=100'
+// }
+
+// const mediaItems = {
+//   images: Array.from({ length: 15 }, (_, i) => ({ id: `img-${i}`, type: 'image' })),
+//   docs: Array.from({ length: 5 }, (_, i) => ({ id: `doc-${i}`, type: 'doc', name: `Document ${i + 1}.pdf` })),
+//   links: Array.from({ length: 3 }, (_, i) => ({ id: `link-${i}`, type: 'link', url: `https://example${i + 1}.com` }))
+// }
+
+// const EnhancedContactProfile = () => {
+//   const containerRef = useRef<HTMLDivElement>(null)
+//   const [isExpanded, setIsExpanded] = useState(false)
+//   const [activeTab, setActiveTab] = useState('images')
+
+//   const toggleExpand = () => {
+//     if (isExpanded) {
+//       collapse()
+//     } else {
+//       expand()
+//     }
+//   }
+
+//   const expand = () => {
+//     if (!containerRef.current) return
+//     setIsExpanded(true)
+
+//     gsap.to(containerRef.current, {
+//       height: 'calc(100vh - 5rem)',
+//       duration: 0.5,
+//       ease: "power2.inOut",
+//       onComplete: () => {
+//         gsap.from(".media-item", {
+//           opacity: 0,
+//           y: 20,
+//           duration: 0.5,
+//           stagger: 0.05,
+//           ease: "power2.out"
+//         })
+//       }
+//     })
+
+//     gsap.to(".avatar-container", {
+//       scale: 0.5,
+//       y: -15,
+//       x: "-15rem" ,
+//       duration: 0.5,
+//       // position :"absolute",
+//       ease: "power2.inOut"
+//     })
+
+//     gsap.to(".user-name", {
+//       fontSize: "1rem",
+//       y: "-5rem",
+//       x:"-10rem",
+//       duration: 0.5,
+//       ease: "power2.inOut",
+//       stagger:.01
+//     })
+
+//     gsap.to(".collapsible", {
+//       opacity: 0,
+//       height: 0,
+//       duration: 0.5,
+//       ease: "power2.inOut",
+//       autoAlpha :1
+//       // onComplete:()=>{
+//       //   gsap.to(".collapsible", {
+//       //     duration: 0.1,
+//       //     // display :"none",
+//       //     visibility:"hidden"
+//       //   })
+//       // }
+
+//     })
+//     gsap.to(".ToUp" , {
+//       y : -115    })
+//       gsap.to(".media-item-ontainer" , {
+//         autoAlpha :0
+//       })
+//   }
+
+//   const collapse = () => {
+//     if (!containerRef.current) return
+
+//     gsap.to(".media-item", {
+//       opacity: 0,
+//       y: 20,
+//       duration: 0.3,
+//       // stagger: 0.03,
+//       ease: "power2.in",
+//       onComplete: () => {
+//         gsap.to(containerRef.current!, {
+//           height: 'auto',
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//           onComplete: () => setIsExpanded(false)
+//         })
+//       }
+//     })
+
+//     gsap.to(".avatar-container", {
+//       scale: 1,
+//       y: 0,
+//       x :0,
+//       position:"static",
+//       duration: 0.5,
+//       ease: "power2.inOut"
+//     })
+
+//     gsap.to(".user-name", {
+//       fontSize: "1.5rem",
+//       y: 0,
+//       x:0 ,
+//       duration: 0.5,
+//       ease: "power2.inOut"
+//     })
+
+//     gsap.to(".collapsible", {
+//       opacity: 1,
+//       height: 'auto',
+//       duration: 0.5,
+//       ease: "power2.inOut",
+//       autoAlpha: 1
+//       // display:"none"
+//       // onComplete:()=>{
+//       //   gsap.to(".collapsible", {
+//       //     duration: 0.0,
+//       //     // display :"none",
+//       //     visibility:"visible"
+//       //   })
+//       // }
+//     })
+//     gsap.to(".ToUp" , {
+//       y : 0
+//     })
+//     gsap.to(".media-item-ontainer" , {
+//       autoAlpha :1
+//     })
+
+//   }
+
+//   useEffect(() => {
+//     if (isExpanded) {
+//       gsap.from(".media-item", {
+//         opacity: 0,
+//         y: 20,
+//         duration: 0.5,
+//         // stagger: 0.05,
+//         ease: "power2.out"
+//       })
+//     }
+//   }, [activeTab, isExpanded])
+
+//   const renderMediaItems = () => {
+//     switch (activeTab) {
+//       case 'images':
+//         return (
+//           <div className="grid  grid-cols-5 gap-5">
+//             {mediaItems.images.map((item) => (
+//               <div key={item.id} className="media-item aspect-square bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-md" />
+//             ))}
+//           </div>
+//         )
+//       case 'docs':
+//         return (
+//           <div className="space-y-3">
+//             {mediaItems.docs.map((item) => (
+//               <div key={item.id} className="media-item flex items-center p-3 bg-gray-200 dark:bg-gray-700/50 rounded-lg">
+//                 <FileText className="h-5 w-5 mr-3 text-blue-400" />
+//                 <span className="text-sm">{item.name}</span>
+//               </div>
+//             ))}
+//           </div>
+//         )
+//       case 'links':
+//         return (
+//           <div className="space-y-3">
+//             {mediaItems.links.map((item) => (
+//               <div key={item.id} className="media-item flex items-center p-3 bg-gray-200 dark:bg-gray-700/50 rounded-lg">
+//                 <Link2 className="h-5 w-5 mr-3 text-green-400" />
+//                 <span className="text-sm">{item.url}</span>
+//               </div>
+//             ))}
+//           </div>
+//         )
+//       default:
+//         return null
+//     }
+//   }
+
+//   return (
+//     <div
+//     className="w-screen overflow-hidden h-screen flex justify-center items-center bg-violet-950"
+//     >
+
+//     <div className="border-none h-full bg-background w-[30vw]">
+//       <div className="p-0">
+//         <ScrollArea className="h-[calc(100vh)] px-4" ref={containerRef}>
+//           <div className="flex flex-col items-center mb-6 pt-4">
+//             <div className="avatar-container">
+//               <Avatar className="w-24 h-24 ">
+//                 <AvatarImage src={selectedContact.avatar} alt={`${selectedContact.first_name} profile`} />
+//                 <AvatarFallback>{selectedContact.first_name[0]}</AvatarFallback>
+//               </Avatar>
+//             </div>
+//             <h2 className="user-name text-2xl font-bold">
+//               {selectedContact.first_name + " " + selectedContact.last_name}
+//             </h2>
+//           </div>
+
+//           <div className=" space-y-6">
+//             <div className="collapsible flex justify-around">
+//               <Button variant="ghost" className="flex flex-col items-center">
+//                 <Phone className="h-6 w-6 mb-1" />
+//                 <span className="text-xs">Call</span>
+//               </Button>
+//               <Button variant="ghost" className="flex flex-col items-center">
+//                 <Video className="h-6 w-6 mb-1" />
+//                 <span className="text-xs">Video</span>
+//               </Button>
+//               <Button variant="ghost" className="flex flex-col items-center">
+//                 <Search className="h-6 w-6 mb-1" />
+//                 <span className="text-xs">Search</span>
+//               </Button>
+//             </div>
+
+//             <div className="collapsible">
+//               <h3 className="font-semibold mb-2">Notifications</h3>
+//               <div className="flex items-center justify-between">
+//                 <span>Mute notifications</span>
+//                 <Switch />
+//               </div>
+//             </div>
+
+//             <div className="ToUp">
+//               <Button
+//                 variant="ghost"
+//                 className="w-full px-0 h-max flex items-center justify-between"
+//                 onClick={toggleExpand}
+//               >
+//                 <h3 className="font-semibold">Shared Media</h3>
+//                 {isExpanded ? (
+//                   <ChevronDown className="h-4 w-4" />
+//                 ) : (
+//                   <ChevronUp className="h-4 w-4" />
+//                 )}
+//               </Button>
+//               {isExpanded ? (
+//                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
+//                   <TabsList className="grid w-full grid-cols-3">
+//                     <TabsTrigger value="images">Images</TabsTrigger>
+//                     <TabsTrigger value="docs">Docs</TabsTrigger>
+//                     <TabsTrigger value="links">Links</TabsTrigger>
+//                   </TabsList>
+//                   <TabsContent value={activeTab} className="mt-4">
+//                     {renderMediaItems()}
+//                   </TabsContent>
+//                 </Tabs>
+//               ) : (
+//                 <div className="media-item-ontainer grid grid-cols-4 gap-2 mt-2">
+//                   {[1, 2, 3, 4, 5, 6].map((i) => (
+//                     <div key={i} className="media-item aspect-square bg-gray-200 dark:bg-gray-700 rounded-md" />
+//                   ))}
+//                 </div>
+//               )}
+//             </div>
+
+//             <div className="collapsible">
+//               <h3 className="font-semibold mb-2">Shared Files</h3>
+//               <div className="space-y-2">
+//                 {['Document.pdf', 'Presentation.pptx', 'Spreadsheet.xlsx'].map((file, index) => (
+//                   <div key={index} className="flex items-center p-2 bg-gray-100 dark:bg-gray-700 rounded-md">
+//                     <FileText className="h-5 w-5 mr-2" />
+//                     <span className="text-sm">{file}</span>
+//                   </div>
+//                 ))}
+//               </div>
+//             </div>
+
+//             <div className="collapsible">
+//               <h3 className="font-semibold mb-2">Shared Links</h3>
+//               <div className="space-y-2">
+//                 {['https://example.com', 'https://anotherlink.com'].map((url, index) => (
+//                   <div key={index} className="flex items-center p-2 bg-gray-100 dark:bg-gray-700 rounded-md">
+//                     <Link2 className="h-5 w-5 mr-2" />
+//                     <span className="text-sm">{url}</span>
+//                   </div>
+//                 ))}
+//               </div>
+//             </div>
+//           </div>
+//         </ScrollArea>
+//       </div>
+//     </div>
+//     </div>
+//   )
+// }
+
+// export default EnhancedContactProfile
+
+// "use client";
+
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { ScrollArea } from "@/components/ui/scroll-area";
+// import { Switch } from "@/components/ui/switch";
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import gsap from "gsap";
+// import {
+//   ChevronDown,
+//   ChevronUp,
+//   FileText,
+//   Image,
+//   Link2,
+//   Phone,
+//   Search,
+//   Video,
+// } from "lucide-react";
+// import React, { useEffect, useRef, useState } from "react";
+// import CoatumModel from "./_comp/CoatumModel";
+
+// const selectedContact = {
+//   id: "1",
+//   first_name: "John",
+//   last_name: "Doe",
+//   avatar: "/placeholder.svg?height=100&width=100",
+// };
+
+// const mediaItems = {
+//   images: Array.from({ length: 30 }, (_, i) => ({
+//     id: `img-${i}`,
+//     type: "image",
+//   })),
+//   docs: Array.from({ length: 5 }, (_, i) => ({
+//     id: `doc-${i}`,
+//     type: "doc",
+//     name: `Document ${i + 1}.pdf`,
+//   })),
+//   links: Array.from({ length: 3 }, (_, i) => ({
+//     id: `link-${i}`,
+//     type: "link",
+//     url: `https://example${i + 1}.com`,
+//   })),
+// };
+
+// const EnhancedContactProfile = () => {
+//   const containerRef = useRef<HTMLDivElement>(null);
+//   const [isExpanded, setIsExpanded] = useState(false);
+//   const [activeTab, setActiveTab] = useState("images");
+//   const [openCostumModel, setopenCostumModel] = useState<{
+//     x: number;
+//     y: number;
+//     amimate: boolean;
+//   } | null>(null);
+
+//   const toggleExpand = () => {
+//     if (isExpanded) {
+//       collapse();
+//     } else {
+//       expand();
+//     }
+//   };
+
+//   const expand = () => {
+//     if (!containerRef.current) return;
+//     setIsExpanded(true);
+
+//     const tl = gsap.timeline();
+
+//     tl.to(containerRef.current, {
+//       height: "calc(100vh - 5rem)",
+//       duration: 0.5,
+//       ease: "power2.inOut",
+//     })
+//       .to(
+//         ".avatar-container",
+//         {
+//           scale: 0.5,
+//           y: -15,
+//           x: "-11rem",
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//         },
+//         "<"
+//       )
+//       .to(
+//         ".user-name",
+//         {
+//           fontSize: "1rem",
+//           y: "-5rem",
+//           x: "-6.5rem",
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//           stagger: 0.01,
+//         },
+//         "<"
+//       )
+//       .to(
+//         ".collapsible",
+//         {
+//           opacity: 0,
+//           height: 0,
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//           autoAlpha: 0,
+//         },
+//         "<"
+//       )
+//       .to(".ToUp", { y: -115 }, "<")
+//       .to(".SearchInput", { autoAlpha: 1, height: "auto" }, "<")
+//       .to(".starter-container", { autoAlpha: 0, height: 0, duration: 0.3 }, "<")
+//       .to(".animted-container", { autoAlpha: 1, duration: 0.5 }, "<")
+//       .from(
+//         ".media-item",
+//         {
+//           opacity: 0,
+//           y: 20,
+//           duration: 0.5,
+//           stagger: 0.03,
+//           ease: "power2.out",
+//         },
+//         "-=0.3"
+//       );
+//   };
+
+//   const collapse = () => {
+//     if (!containerRef.current) return;
+
+//     const tl = gsap.timeline();
+
+//     tl.to(".media-item", {
+//       opacity: 0,
+//       y: 20,
+//       duration: 0.3,
+//       stagger: 0.02,
+//       ease: "power2.in",
+//     })
+//       .to(
+//         ".animted-container",
+//         { autoAlpha: 0, duration: 0.2, onComplete: () => setIsExpanded(false) },
+//         "<"
+//       )
+//       .to(
+//         ".avatar-container",
+//         {
+//           scale: 1,
+//           y: 0,
+//           x: 0,
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//         },
+//         "<"
+//       )
+//       .to(
+//         ".user-name",
+//         {
+//           fontSize: "1.5rem",
+//           y: 0,
+//           x: 0,
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//         },
+//         "<"
+//       )
+//       .to(
+//         ".collapsible",
+//         {
+//           opacity: 1,
+//           height: "auto",
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//           autoAlpha: 1,
+//         },
+//         "<"
+//       )
+//       .to(".ToUp", { y: 0 }, "<")
+//       .to(".SearchInput", { autoAlpha: 0, height: 0 }, "<")
+//       .to(
+//         ".starter-container",
+//         { autoAlpha: 1, height: "auto", duration: 0.2 },
+//         "<"
+//       );
+//   };
+
+//   useEffect(() => {
+//     if (isExpanded) {
+//       gsap.from(".media-item", {
+//         opacity: 0,
+//         y: 20,
+//         duration: 0.5,
+//         stagger: 0.03,
+//         ease: "power2.out",
+//       });
+//     }
+//   }, [activeTab, isExpanded]);
+
+//   const renderMediaItems = () => {
+//     switch (activeTab) {
+//       case "images":
+//         return (
+//           <div className="grid grid-cols-5 gap-5">
+//             {mediaItems.images.map((item) => (
+//               <div
+//                 onClick={(e) => {
+//                   const pos = e.currentTarget.getBoundingClientRect();
+
+//                   setopenCostumModel({
+//                     x: pos.x,
+//                     y: pos.y,
+//                     amimate: true,
+//                   });
+//                 }}
+//                 key={item.id}
+//                 className="media-item cursor-pointer opacity-1 aspect-square bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-md"
+//               />
+//             ))}
+//           </div>
+//         );
+//       case "docs":
+//         return (
+//           <div className="space-y-3">
+//             {mediaItems.docs.map((item) => (
+//               <div
+//                 key={item.id}
+//                 className="media-item flex items-center p-3 bg-gray-200 dark:bg-gray-700/50 rounded-lg"
+//               >
+//                 <FileText className="h-5 w-5 mr-3 text-blue-400" />
+//                 <span className="text-sm">{item.name}</span>
+//               </div>
+//             ))}
+//           </div>
+//         );
+//       case "links":
+//         return (
+//           <div className="space-y-3">
+//             {mediaItems.links.map((item) => (
+//               <div
+//                 key={item.id}
+//                 className="media-item flex items-center p-3 bg-gray-200 dark:bg-gray-700/50 rounded-lg"
+//               >
+//                 <Link2 className="h-5 w-5 mr-3 text-green-400" />
+//                 <span className="text-sm">{item.url}</span>
+//               </div>
+//             ))}
+//           </div>
+//         );
+//       default:
+//         return null;
+//     }
+//   };
+
+//   // Rest of the component remains unchanged
+//   return (
+//     <>
+//       <div className="border-none h-full bg-background w-full">
+//         <div className="p-0">
+//           <ScrollArea className="h-[calc(100vh)] px-4" ref={containerRef}>
+//             {/* Avatar and name section */}
+//             <div className="flex flex-col items-center mb-6 pt-4">
+//               <div className="avatar-container">
+//                 <Avatar className="w-24 h-24 ">
+//                   <AvatarImage
+//                     src={selectedContact.avatar}
+//                     alt={`${selectedContact.first_name} profile`}
+//                   />
+//                   <AvatarFallback>
+//                     {selectedContact.first_name[0]}
+//                   </AvatarFallback>
+//                 </Avatar>
+//               </div>
+//               <h2 className="user-name text-2xl font-bold">
+//                 {selectedContact.first_name + " " + selectedContact.last_name}
+//               </h2>
+//             </div>
+
+//             <div className="space-y-6">
+//               {/* Collapsible sections */}
+//               <div className="collapsible flex justify-around">
+//                 <Button variant="ghost" className="flex flex-col items-center">
+//                   <Phone className="h-6 w-6 mb-1" />
+//                   <span className="text-xs">Call</span>
+//                 </Button>
+//                 <Button variant="ghost" className="flex flex-col items-center">
+//                   <Video className="h-6 w-6 mb-1" />
+//                   <span className="text-xs">Video</span>
+//                 </Button>
+//                 <Button variant="ghost" className="flex flex-col items-center">
+//                   <Search className="h-6 w-6 mb-1" />
+//                   <span className="text-xs">Search</span>
+//                 </Button>
+//               </div>
+
+//               <div className="collapsible">
+//                 <h3 className="font-semibold mb-2">Notifications</h3>
+//                 <div className="flex items-center justify-between">
+//                   <span>Mute notifications</span>
+//                   <Switch />
+//                 </div>
+//               </div>
+
+//               {/* Shared Media section */}
+//               <div className="ToUp bg-white">
+//                 <Button
+//                   variant="ghost"
+//                   className="w-full px-0 h-max flex items-center justify-between"
+//                   onClick={toggleExpand}
+//                 >
+//                   <h3 className="font-semibold">Shared Media</h3>
+//                   {isExpanded ? (
+//                     <ChevronDown className="h-4 w-4" />
+//                   ) : (
+//                     <ChevronUp className="h-4 w-4" />
+//                   )}
+//                 </Button>
+
+//                 {isExpanded ? (
+//                   <>
+//                     <Input className="w-full pl-3 p-1 SearchInput" />
+//                     <Tabs
+//                       value={activeTab}
+//                       onValueChange={setActiveTab}
+//                       className="w-full mt-4"
+//                     >
+//                       <TabsList className="grid w-full grid-cols-3">
+//                         <TabsTrigger value="images">Images</TabsTrigger>
+//                         <TabsTrigger value="docs">Docs</TabsTrigger>
+//                         <TabsTrigger value="links">Links</TabsTrigger>
+//                       </TabsList>
+//                       <TabsContent
+//                         value={activeTab}
+//                         className="animted-container mt-4"
+//                       >
+//                         {renderMediaItems()}
+//                       </TabsContent>
+//                     </Tabs>
+//                   </>
+//                 ) : (
+//                   <div className="starter-container grid grid-cols-4 gap-2 mt-2">
+//                     {[1, 2, 3, 4, 5, 6].map((i) => (
+//                       <div
+//                         key={i}
+//                         className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-md"
+//                       />
+//                     ))}
+//                   </div>
+//                 )}
+//               </div>
+
+//               {/* Other collapsible sections remain unchanged */}
+//               <div className="collapsible">
+//                 <h3 className="font-semibold mb-2">Shared Files</h3>
+//                 <div className="space-y-2">
+//                   {[
+//                     "Document.pdf",
+//                     "Presentation.pptx",
+//                     "Spreadsheet.xlsx",
+//                   ].map((file, index) => (
+//                     <div
+//                       key={index}
+//                       className="flex items-center p-2 bg-gray-100 dark:bg-gray-700 rounded-md"
+//                     >
+//                       <FileText className="h-5 w-5 mr-2" />
+//                       <span className="text-sm">{file}</span>
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+
+//               <div className="collapsible">
+//                 <h3 className="font-semibold mb-2">Shared Links</h3>
+//                 <div className="space-y-2">
+//                   {["https://example.com", "https://anotherlink.com"].map(
+//                     (url, index) => (
+//                       <div
+//                         key={index}
+//                         className="flex items-center p-2 bg-gray-100 dark:bg-gray-700 rounded-md"
+//                       >
+//                         <Link2 className="h-5 w-5 mr-2" />
+//                         <span className="text-sm">{url}</span>
+//                       </div>
+//                     )
+//                   )}
+//                 </div>
+//               </div>
+//             </div>
+//           </ScrollArea>
+//         </div>
+//       </div>
+
+//       <CoatumModel
+//         openCostumModel={openCostumModel}
+//         setopenCostumModel={setopenCostumModel}
+//       />
+//     </>
+//   );
+// };
+
+// export default EnhancedContactProfile;
+
+// "use client";
+
+// import { useWebRTC } from "@/hooks/useWebRtc";
+// import {
+//   endVideoCall,
+//   getActiveVideoCall,
+//   startVideoCall,
+// } from "@/lib/videoCalls";
+// import { userResponse } from "@/store/Reducers/mainUser";
+// import { useSendMessageMutation } from "@/store/services/socketApi";
+// import { useEffect, useRef, useState } from "react";
+// import { useDispatch, useSelector } from "react-redux";
+
+// import CoatumModel from "@/app/test/_comp/CoatumModel";
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { ScrollArea } from "@/components/ui/scroll-area";
+// import { Switch } from "@/components/ui/switch";
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import gsap from "gsap";
+// import {
+//   ChevronDown,
+//   ChevronUp,
+//   FileText,
+//   Image,
+//   Link2,
+//   Phone,
+//   Search,
+//   Video,
+// } from "lucide-react";
+// import React, { useEffect, useRef, useState } from "react";
+// // import { Contact } from "../page";
+// import { MessageLinks, MessageMedia, User } from "@prisma/client";
+// import { ChatMediaTabsType } from "@/app/api/chat/chat-media-tabs/route";
+// import TabChatMedia from "../chat/_componets/TabChatMedia";
+// import { Contact } from "../chat/page";
+// import { useWebRTC } from "@/hooks/useWebRtc";
+// import { useDispatch, useSelector } from "react-redux";
+
+// const mediaItems = {
+//   images: Array.from({ length: 30 }, (_, i) => ({
+//     id: `img-${i}`,
+//     type: "image",
+//   })),
+//   docs: Array.from({ length: 5 }, (_, i) => ({
+//     id: `doc-${i}`,
+//     type: "doc",
+//     name: `Document ${i + 1}.pdf`,
+//   })),
+//   links: Array.from({ length: 3 }, (_, i) => ({
+//     id: `link-${i}`,
+//     type: "link",
+//     url: `https://example${i + 1}.com`,
+//   })),
+// };
+
+// const EnhancedContactProfile = ({
+//   selectedContact,
+//   isSelectedUserOnline,
+// }: // chat
+// {
+//   isSelectedUserOnline: User | undefined;
+//   selectedContact: Contact | null;
+// }) => {
+//   const containerRef = useRef<HTMLDivElement>(null);
+//   const [isExpanded, setIsExpanded] = useState(false);
+//   const [activeTab, setActiveTab] = useState<ChatMediaTabsType>("video&image");
+//   const [openCostumModel, setopenCostumModel] = useState<{
+//     medias: MessageMedia[] | MessageLinks[] | [] ,
+//     activeIdx : number
+//     x: number;
+//     y: number;
+//     amimate: boolean;
+//   } | null>(null);
+
+//   const ProfilePic = selectedContact?.profile?.profilePictures?.[0]?.secure_url;
+
+//   const toggleExpand = () => {
+//     if (isExpanded) {
+//       collapse();
+//     } else {
+//       expand();
+//     }
+//   };
+
+//   const expand = () => {
+//     if (!containerRef.current) return;
+//     setIsExpanded(true);
+
+//     const tl = gsap.timeline();
+
+//     tl.to(containerRef.current, {
+//       height: "calc(100vh - 5rem)",
+//       duration: 0.5,
+//       ease: "power2.inOut",
+//     })
+//       .to(
+//         ".avatar-container",
+//         {
+//           scale: 0.5,
+//           y: -15,
+//           x: "-186%",
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//         },
+//         "<"
+//       )
+//       .to(
+//         ".user-name",
+//         {
+//           fontSize: "1rem",
+//           x: "-32%",
+//           y: "-240%",
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//           stagger: 0.01,
+//         },
+//         "<"
+//       )
+//       .to(
+//         ".collapsible",
+//         {
+//           opacity: 0,
+//           height: 0,
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//           autoAlpha: 0,
+//         },
+//         "<"
+//       )
+//       .to(".ToUp", { y: -115 }, "<")
+//       .to(".SearchInput", { autoAlpha: 1, height: "auto" }, "<")
+//       .to(".starter-container", { autoAlpha: 0, height: 0, duration: 0.3 }, "<")
+//       .to(".animted-container", { autoAlpha: 1, duration: 0.5 }, "<")
+//       .from(
+//         ".media-item",
+//         {
+//           opacity: 0,
+//           y: 20,
+//           duration: 0.5,
+//           stagger: 0.03,
+//           ease: "power2.out",
+//         },
+//         "-=0.3"
+//       );
+//   };
+
+//   const collapse = () => {
+//     if (!containerRef.current) return;
+//     const tl = gsap.timeline();
+
+//     tl.to(".media-item", {
+//       opacity: 0,
+//       y: 20,
+//       duration: 0.3,
+//       stagger: 0.02,
+//       ease: "power2.in",
+//     })
+//       .to(
+//         ".animted-container",
+//         { autoAlpha: 0, duration: 0.2, onComplete: () => setIsExpanded(false) },
+//         "<"
+//       )
+//       .to(
+//         ".avatar-container",
+//         {
+//           scale: 1,
+//           y: 0,
+//           x: 0,
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//         },
+//         "<"
+//       )
+//       .to(
+//         ".user-name",
+//         {
+//           fontSize: "1.5rem",
+//           y: 0,
+//           x: 0,
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//         },
+//         "<"
+//       )
+//       .to(
+//         ".collapsible",
+//         {
+//           opacity: 1,
+//           height: "auto",
+//           duration: 0.5,
+//           ease: "power2.inOut",
+//           autoAlpha: 1,
+//         },
+//         "<"
+//       )
+//       .to(".ToUp", { y: 0 }, "<")
+//       .to(".SearchInput", { autoAlpha: 0, height: 0 }, "<")
+//       .to(
+//         ".starter-container",
+//         { autoAlpha: 1, height: "auto", duration: 0.2 },
+//         "<"
+//       );
+//   };
+
+//   useEffect(() => {
+//     if (isExpanded) {
+//       gsap.from(".media-item", {
+//         opacity: 0,
+//         y: 20,
+//         duration: 0.5,
+//         stagger: 0.03,
+//         ease: "power2.out",
+//       });
+//     }
+//   }, [activeTab, isExpanded]);
+
+//   // Rest of the component remains unchanged
+//   return (
+//     <>
+//       <div className="border-none h-full bg-background w-full">
+//         <div className="p-0">
+//           <ScrollArea className="h-[calc(100vh)] px-4" ref={containerRef}>
+//             {/* Avatar and name section */}
+//             <div className="flex flex-col items-center mb-6 pt-4">
+//               <div className="avatar-container">
+//                 <Avatar className="w-24 h-24 ">
+//                   <AvatarImage
+//                     src={ProfilePic || ""}
+//                     alt={`${selectedContact?.first_name} profile`}
+//                   />
+//                   <AvatarFallback>
+//                     {selectedContact?.first_name[0]}
+//                   </AvatarFallback>
+//                 </Avatar>
+//               </div>
+//               <h2 className="user-name text-2xl font-bold">
+//                 {selectedContact?.first_name + " " + selectedContact?.last_name}
+//               </h2>
+//             </div>
+
+//             <div className="space-y-6">
+//               <div className="collapsible flex justify-around">
+//                 <Button variant="ghost" className="flex flex-col items-center">
+//                   <Phone className="h-6 w-6 mb-1" />
+//                   <span className="text-xs">Call</span>
+//                 </Button>
+//                 <Button variant="ghost" className="flex flex-col items-center">
+//                   <Video className="h-6 w-6 mb-1" />
+//                   <span className="text-xs">Video</span>
+//                 </Button>
+//                 <Button variant="ghost" className="flex flex-col items-center">
+//                   <Search className="h-6 w-6 mb-1" />
+//                   <span className="text-xs">Search</span>
+//                 </Button>
+//               </div>
+
+//               <div className="collapsible">
+//                 <h3 className="font-semibold mb-2">Notifications</h3>
+//                 <div className="flex items-center justify-between">
+//                   <span>Mute notifications</span>
+//                   <Switch />
+//                 </div>
+//               </div>
+
+//               {/* Shared Media section */}
+//               <div className="ToUp bg-white">
+//                 <Button
+//                   variant="ghost"
+//                   className="w-full px-0 h-max flex items-center justify-between"
+//                   onClick={toggleExpand}
+//                 >
+//                   <h3 className="font-semibold">Shared Media</h3>
+//                   {isExpanded ? (
+//                     <ChevronDown className="h-4 w-4" />
+//                   ) : (
+//                     <ChevronUp className="h-4 w-4" />
+//                   )}
+//                 </Button>
+
+//                 {isExpanded ? (
+//                   <>
+//                     <Input className="w-full pl-3 p-1 SearchInput" />
+//                     <Tabs
+//                       value={activeTab}
+//                       onValueChange={(value) => {
+//                         const val = value as unknown as ChatMediaTabsType;
+//                         setActiveTab(val);
+//                       }}
+//                       className="w-full mt-4"
+//                     >
+//                       <TabsList className=" h-auto grid w-full grid-cols-3">
+//                         <TabsTrigger value="video&image">
+//                           images&video{" "}
+//                         </TabsTrigger>
+//                         <TabsTrigger value="image">Images</TabsTrigger>
+//                         <TabsTrigger value="video">videos</TabsTrigger>
+//                         <TabsTrigger value="others">Docs</TabsTrigger>
+//                         <TabsTrigger value="link">Links</TabsTrigger>
+//                       </TabsList>
+//                       <TabsContent
+//                         value={activeTab}
+//                         className="animted-container mt-4"
+//                       >
+//                         <TabChatMedia
+//                           chatId={15}
+//                           setOpenCustomModel={setopenCostumModel}
+//                           type={activeTab}
+//                         />
+//                       </TabsContent>
+//                     </Tabs>
+//                   </>
+//                 ) : (
+//                   <div className="starter-container  mt-2">
+//                     <TabChatMedia
+//                       chatId={15}
+//                       setOpenCustomModel={setopenCostumModel}
+//                       type={"video&image"}
+//                     />
+//                   </div>
+//                 )}
+//               </div>
+
+//               {/* Other collapsible sections remain unchanged */}
+//               <div className="collapsible">
+//                 <h3 className="font-semibold mb-2">Shared Files</h3>
+//                 <div className="space-y-2">
+//                   <TabChatMedia
+//                     chatId={15}
+//                     setOpenCustomModel={setopenCostumModel}
+//                     type={"others"}
+//                   />
+//                 </div>
+//               </div>
+
+//               <div className="collapsible">
+//                 <h3 className="font-semibold mb-2">Shared Links</h3>
+//                 <div className="space-y-2">
+//                   <TabChatMedia
+//                     chatId={15}
+//                     setOpenCustomModel={setopenCostumModel}
+//                     type={"link"}
+//                   />
+//                 </div>
+//               </div>
+//             </div>
+//           </ScrollArea>
+//         </div>
+//       </div>
+
+//       <CoatumModel
+//         openCostumModel={openCostumModel}
+//         setopenCostumModel={setopenCostumModel}
+//       />
+//     </>
+//   );
+// };
+
+// export default EnhancedContactProfile;

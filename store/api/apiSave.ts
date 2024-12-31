@@ -62,11 +62,8 @@ export const apiSave = createApi({
         },
         transformResponse: (response: shapeOfgetSaveRes) => response,
         transformErrorResponse: (response, meta, arg) => {
-          console.log(
-            {
-              response
-            }
-          )
+       
+          
           if (response.status === 404) {
             return { };
           } else if (response.status === 500) {

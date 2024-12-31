@@ -1,20 +1,23 @@
-import React from 'react'
-import BluredImage from '../_componsents/ImageWithPlaceholder'
+"use client"
+import { useSelector } from "react-redux";
+import { userResponse } from "@/store/Reducers/mainUser";
+import { Suspense } from "react";
+import Contracts from "./_contacts/Page";
 
-const page = () => {
+export default function Page() {
+  const CachedUser = useSelector(userResponse)!;
+
+  if (!CachedUser) {
+    return <>oOps...</>;
+  }
+
   return (
-    <div className='flex justify-start gap-3 flex-wrap'>
-<BluredImage
-height={400}
-width={400} 
-imageUrl={"http://res.cloudinary.com/dycvu7mua/image/authenticated/s--F3VUTeJQ--/c_scale,e_blur,h_400,w_400/v1727184218/stti1/pwvgtmt1yquaos7lxcvd.jpg"}
-alt='' 
-className='rounded-full '
-/>
-
-
-    </div>
-  )
+    <>
+      <div className="w-screen h-screen flex ">
+        <Suspense fallback={<>loading...</>}>
+          <Contracts userName={CachedUser.user_name} userId={CachedUser.id} />
+        </Suspense>
+      </div>
+    </>
+  );
 }
-
-export default page

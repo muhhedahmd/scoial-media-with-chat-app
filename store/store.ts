@@ -9,7 +9,11 @@ import pagganitionSlice from './Reducers/pagganitionSlice';
 import { commentApi } from './api/apicomment';
 import { NotifcationApi } from './api/apiNotifcation';
 import { apiSave } from './api/apiSave';
+import uiSlice from "./api/uiSlice"
 import mainUserSlice  from './Reducers/mainUser';
+import { addressApi } from './api/apiLocations';
+import { ChatApi } from './api/apiChat';
+import { apiVideoCall } from './api/apiVideoCall';
 // Create the store instance
 export const makeStore = () => {
   return configureStore({
@@ -23,7 +27,11 @@ export const makeStore = () => {
       pagination : pagganitionSlice,
       followersReducer: follwerSlice ,
       mainUserSlice :mainUserSlice,
-      [apiSave.reducerPath] :  apiSave.reducer
+      uiSlice  ,
+      [apiSave.reducerPath] :  apiSave.reducer,
+      [addressApi.reducerPath] : addressApi.reducer,
+      [ChatApi.reducerPath] : ChatApi.reducer,
+      [apiVideoCall.reducerPath]:apiVideoCall.reducer
       // Add your reducers here
       // Example: user: userReducer, products: productsReducer
     },
@@ -47,6 +55,9 @@ export const makeStore = () => {
     .concat(commentApi.middleware)
     .concat(NotifcationApi.middleware)
     .concat(apiSave.middleware)
+    .concat(addressApi.middleware)
+    .concat(ChatApi.middleware)
+    .concat(apiVideoCall.middleware)
     // Optional middleware configuration
     // middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(serializableCheck({
     //   ignoredActions: ['persist/PERSIST'], // ignore the PERSIST action
@@ -56,12 +67,9 @@ export const makeStore = () => {
   });
 };
 
-// Create a store instance to infer the types
 const store = makeStore();
 
-// Infer the `RootState`, `AppDispatch`, and `AppStore` types from the store instance
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 export type AppStore = typeof store;
-// Optional: create a Next.js wrapper for the store
 export const wrapper = createWrapper<AppStore>(makeStore);

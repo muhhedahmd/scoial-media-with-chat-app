@@ -4,7 +4,7 @@ import "swiper/css";
 import UserInfo from "./_comsponents/UserInfo";
 import "swiper/css";
 import "swiper/css/effect-creative";
-import {  useRef, useState } from "react";
+import {  Suspense, useRef, useState } from "react";
 import { LoaderCircle, LucideStepBack } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -40,18 +40,20 @@ const SignUp = () => {
           redirect: false,
           ...userValues,
         });
-
+        console.log({res})
         setResponse({
           status: res?.status,
           ok: res?.ok,
           errors: res?.error && JSON.parse(res?.error).errors.message,
         });
+        
+        console.log({res})
 
         if (res?.ok && res?.status === 200) {
           // Handle successful sign-up
-          setTimeout(() => {
+     
             router.push("/profile"); // Redirect to profile
-          }, 300);
+ 
         } else {
           console.log("Error response", res?.error);
         }
@@ -68,7 +70,16 @@ const SignUp = () => {
 
   return (
     <>
+    <Suspense 
+    fallback={
+      <>
+      loading... 
+      </>
+    }
+    >
+
       <div className="w-screen h-screen">
+        
         <div className="h-10">
           <Link
             className="flex justify-start items-center text-gray-700"
@@ -126,7 +137,9 @@ const SignUp = () => {
           <div className="h-full w-full bg-teal-500" />
         </div>
       </div>
-    </>
+
+      </Suspense>
+      </>
   );
 };
 

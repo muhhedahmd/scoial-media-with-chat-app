@@ -182,7 +182,6 @@ export const PUT = async (
       }
     };
 
-    // Save profile and cover pictures if they exist
     if (profilePictureRes?.data && updateProfile && coverPictureRes?.data) {
       await Promise.all([
         profile_picture

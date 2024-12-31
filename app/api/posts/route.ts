@@ -1,9 +1,11 @@
 import prisma from "@/lib/prisma";
-import { post } from "@prisma/client";
+import { Address, post, post_image } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 export type shapeOfPostsRes = {
+  post_imgs ?: post_image[] 
   id: number;
+  address : Address | null,
   title: string | null;
   author_id: number;
   created_at: Date;
@@ -11,7 +13,9 @@ export type shapeOfPostsRes = {
   parentId: number | null;
   published: number | null;
   shared: {
+    
     id: number;
+    address : Address | null,
     content: string;
     post_id: number | null;
     createdAt: Date;
@@ -19,6 +23,7 @@ export type shapeOfPostsRes = {
     sharedBy: number | undefined;
   } | null;
   parent: {
+    parentAddress : Address | null
     parent_author_id: number;
     mainParentId: Date;
     created_at: Date;
@@ -27,14 +32,25 @@ export type shapeOfPostsRes = {
   } | null;
 };
 
+// async function main() {
+//   //   const stream = await prisma.notification.stream({ name: 'notification-stream'})
+//     const stream = await prisma.user.stream({
+//       name: "all-user-events"
+//     })
+//     for await (const event of stream) {
+//       console.log('New event:', event)
+//     }
+//   }
+
 export const GET = async (req: Request) => {
   const { searchParams } = new URL(req.url);
 
   const pgNum = +(searchParams.get("pgnum") ?? 0);
-  const pgSize = +(searchParams.get("pgsize") ?? 500);
+  const pgSize = +(searchParams.get("pgsize") ?? 10);
 
   const allPostsSortedByInteractions = await prisma.post.findMany({
     include: {
+      addrees : true ,
       Share: {
         include: {
           post: {
@@ -73,8 +89,14 @@ export const GET = async (req: Request) => {
     take: pgSize,
   });
 
+// import prisma from "./prisma"
+
+
+
+
   const fromat = allPostsSortedByInteractions.map((x) => {
     return {
+      address : x.addrees ,
       id: x.id,
       title: x.title,
       author_id: x.author_id,

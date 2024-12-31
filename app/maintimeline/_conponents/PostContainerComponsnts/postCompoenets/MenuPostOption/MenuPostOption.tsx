@@ -1,52 +1,137 @@
-import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@nextui-org/react'
-import { Clipboard, Edit, Trash, Pin, Star, Save, Archive, AlertTriangle, EllipsisVertical } from 'lucide-react'
-import React from 'react'
+import React, { useState, useCallback, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
-const MenuPostOption = () => {
+import { toast } from "@/components/ui/use-toast";
+
+import {
+  Clipboard,
+  Edit,
+  Pin,
+  Star,
+  Save,
+  Archive,
+  AlertTriangle,
+  EllipsisVertical,
+} from "lucide-react";
+import DeleteDialog from "./DeleteDialog";
+
+import EditDialog from "./EditDialog";
+
+export type initialPostData = {
+  title: string;
+  images: any[] | undefined;
+  mentions: string[] | null;
+  location: any | null;
+};
+
+interface MenuPostOptionProps {
+  mainUserId: number;
+  postId: number;
+  authorId: number;
+  postLink: string;
+  initialPostData: initialPostData;
+  isLoadingImages: boolean;
+}
+
+export default function MenuPostOption({
+  isLoadingImages,
+  mainUserId,
+  postId,
+  authorId,
+  postLink,
+  initialPostData,
+}: MenuPostOptionProps) {
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  const [editedPost, setEditedPost] = useState(initialPostData);
+   
+    useEffect(()=>{
+
+    } , [initialPostData])
+
+  const copyPostLink = () => {
+    navigator.clipboard.writeText(postLink);
+    toast({
+      title: "Link copied",
+      description: "Post link has been copied to clipboard.",
+    });
+    setIsPopoverOpen(false);
+  };
+
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
   return (
-    <Popover>
-      <PopoverTrigger>
-        <EllipsisVertical className="text-gray-500 hover:text-gray-700 transition-colors" />
+    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" className="text-gray-800" size="icon">
+          <EllipsisVertical className="h-4 w-4" />
+        </Button>
       </PopoverTrigger>
-      <PopoverContent className=" p-4 bg-white shadow-lg rounded-lg">
-        <div className="flex flex-col gap-2">
-          <Button className='flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors' variant={"link"}>
-            <Clipboard className="text-muted-foreground  w-2/12 " />
-            <span className="text-gray-800 text-start text-small w-3/4">Copy Post link</span>
+      <PopoverContent className="w-56">
+        <div className="grid gap-4">
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={copyPostLink}
+          >
+            <Clipboard className="mr-2 h-4 w-4" />
+            Copy Post link
           </Button>
-          <Button className='flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors' variant={"link"}>
-            <Edit className="text-muted-foreground  w-2/12 " />
-            <span className="text-gray-800 text-start text-small w-3/4">Edit Post</span>
+          {mainUserId === authorId && (
+            <>
+              <DeleteDialog
+                mainUserId={mainUserId}
+                postId={postId}
+                setIsPopoverOpen={setIsPopoverOpen}
+              />
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => setIsEditDialogOpen(true)}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Post
+              </Button>
+              <EditDialog
+              setIsPopoverOpen={setIsPopoverOpen}
+              authorId={authorId}
+              postId={postId}
+              editedPost={editedPost}
+              initialPostData={initialPostData}
+              isEditDialogOpen={isEditDialogOpen}
+              setEditedPost={setEditedPost}
+              setIsEditDialogOpen={setIsEditDialogOpen}
+              />
+            </>
+          )}
+          <Button variant="ghost" className="w-full justify-start hover:text-cyan-400 fill-cyan-400 text-cyan-400">
+            <Pin className="mr-2 h-4 w-4 fill-cyan-400 text-cyan-400" />
+            Pin Post
           </Button>
-          <Button className='flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors' variant={"link"}>
-            <Trash className="text-muted-foreground  w-2/12 " />
-            <span className="text-gray-800 text-start text-small w-3/4">Delete Post</span>
-          </Button>
-          <Button className='flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors' variant={"link"}>
-            <Pin className="text-muted-foreground  w-2/12 " />
-            <span className="text-gray-800 text-start text-small w-3/4">Pin Post</span>
-          </Button>
-          <Button className='flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors' variant={"link"}>
-            <Star className="text-muted-foreground  w-2/12 " />
-            <span className="text-gray-800 text-start text-small w-3/4">Mark as Favorite</span>
-          </Button>
-          <Button className='flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors' variant={"link"}>
-            <Save className="text-muted-foreground  w-2/12 " />
-            <span className="text-gray-800 text-start text-small w-3/4">Save Post</span>
-          </Button>
-          <Button className='flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors' variant={"link"}>
-            <Archive className="text-muted-foreground  w-2/12 " />
-            <span className="text-gray-800 text-start text-small w-3/4">Archive Post</span>
-          </Button>
-          <Button className='flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors' variant={"link"}>
-            <AlertTriangle className="text-muted-foreground  w-2/12 " />
-            <span className="text-gray-800 text-start text-small w-3/4">Report Post</span>
-          </Button>
+          {/* <Button variant="ghost" className="w-full justify-start">
+            <Star className="mr-2 h-4 w-4" />
+            Mark as Favorite
+          </Button> */}
+          {/* <Button variant="ghost" className="w-full justify-start">
+            <Save className="mr-2 h-4 w-4" />
+            Save Post
+          </Button> */}
+          {/* <Button variant="ghost" className="w-full justify-start">
+            <Archive className="mr-2 h-4 w-4" />
+            Archive Post
+          </Button> */}
+          {/* <Button variant="ghost" className="w-full justify-start">
+            <AlertTriangle className="mr-2 h-4 w-4" />
+            Report Post
+          </Button> */}
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
-
-export default MenuPostOption

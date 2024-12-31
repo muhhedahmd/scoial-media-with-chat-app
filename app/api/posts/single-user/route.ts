@@ -27,7 +27,9 @@ export const GET = async (req: Request) => {
         Share: {
           include: {
             post: {
+
               select: {
+                addrees : true ,
                 author: {
                   select: { id: true },
                 },
@@ -36,7 +38,13 @@ export const GET = async (req: Request) => {
             },
           },
         },
-        parent :true
+        addrees : true ,
+
+        parent :{
+          include:{
+            addrees:true
+          }
+        }
     },
     skip: skip * take,
     take: take,
@@ -45,6 +53,7 @@ export const GET = async (req: Request) => {
     if(!findPosts ) return 
     const fromat = findPosts.map((x) => {
         return {
+          address : x.addrees,
           id: x.id,
           title: x.title,
           author_id: x.author_id,
@@ -54,6 +63,7 @@ export const GET = async (req: Request) => {
           published: x.parentId,
           shared: x.Share
             ? {
+                address : x.Share?.post?.addrees,
                 id: x.Share?.id,
                 content: x.Share.content,
                 post_id: x.Share?.post_id,
@@ -63,6 +73,7 @@ export const GET = async (req: Request) => {
               }
             : null,
           parent: x.parent && {
+            parentAddress : x.parent.addrees,
             mainParentId: x.parent.id,
             parent_author_id: x.parent.author_id,
             created_at: x.parent.created_at,

@@ -1,4 +1,4 @@
-import { ShapeOfUserSerchMention } from "@/app/api/users/mentions/route";
+import { ShapeOfUserSearchMention } from "@/app/api/users/mentions/route";
 import { ShapeOFminmalUserType } from "@/app/api/users/singleuser/route";
 import { User } from "@prisma/client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
@@ -13,7 +13,7 @@ export const apiUser = createApi({
     
 
     getUserName: build.query<
-      { data: ShapeOfUserSerchMention[]; hasMore: boolean },
+      { data: ShapeOfUserSearchMention[]; hasMore: boolean },
       {
         size: number;
         take: number;
@@ -24,16 +24,14 @@ export const apiUser = createApi({
       query: ({ size, take, search, userId }) =>
         `/users/mentions?size=${size}&take=${take}&search=${search}&userId=${userId}`,
       serializeQueryArgs: ({ endpointName }) => endpointName,
-
       merge: (currentCache, newItems) => {
         currentCache.data.concat(...newItems.data);
         currentCache.hasMore = newItems.hasMore;
       },
-
       forceRefetch({ currentArg, previousArg }) {
         return currentArg !== previousArg;
       },
-      transformResponse(response: ShapeOfUserSerchMention[], meta, arg) {
+      transformResponse(response: ShapeOfUserSearchMention[], meta, arg) {
         const hasMore = response.length !== 0;
         return { data: response, hasMore };
       },

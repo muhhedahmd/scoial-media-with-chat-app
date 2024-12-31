@@ -24,6 +24,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "prisma/seed.mjs", "app/api/auth/[...nextauth]", "app/api/users/UpdateProfile", "app/api/users/getfollwer&follwing"],
+  "include": ["video.d.ts", "next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "prisma/seed.mjs", "app/api/auth/[...nextauth]", "app/api/users/UpdateProfile", "app/api/users/getfollwer&follwing", "app/api/posts/edit-post", "server.mjs", "lib/prisma.mts"],
   "exclude": ["node_modules"]
 }

@@ -35,6 +35,11 @@ const MinmalCard = ({ author_id, postId, user, title }: MinmalCardProps) => {
     >
       <div className="w-[95%] m-auto p-4 flex justify-start items-start flex-col ">
         <HeaderPost
+        address={null}
+        content={''}
+        created_at={undefined}
+
+        minmal={true}
           share={true}
           MainUserProfileId={MainUserProfile?.id!}
           postId={postId}

@@ -4,14 +4,20 @@ import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { Loader2 } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
+interface Product {
+  id: number
+  name: string
+  price: number
+  description: string
+}
+
 interface InfiniteScrollProps {
-  loadMore: (page: number) => Promise<any[]>
-//   renderItem: (item: any, index: number) => React.ReactNode
+  loadMore: (page: number) => Promise<Product[]>
   direction: 'up' | 'down'
   threshold?: number
   height: number | string
-  initialItems?: any[] ,
-  Data : React.ReactNode
+  initialItems?: Product[]
+  renderItem: (item: Product, index: number) => React.ReactNode
 }
 
 export function InfiniteScroll({
@@ -19,17 +25,17 @@ export function InfiniteScroll({
   direction,
   threshold = 0.8,
   height,
-  Data ,
+  renderItem,
   initialItems = []
 }: InfiniteScrollProps) {
-  const [items, setItems] = useState(initialItems)
+  const [items, setItems] = useState<Product[]>(initialItems)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
 
-  const loadMoreItems =  useCallback(async() => {
+  const loadMoreItems = useCallback(async () => {
     if (loading || !hasMore) return
     setLoading(true)
     try {
@@ -45,7 +51,7 @@ export function InfiniteScroll({
     } finally {
       setLoading(false)
     }
-  } , [direction, hasMore, loadMore, loading, page])
+  }, [direction, hasMore, loadMore, loading, page])
 
   useEffect(() => {
     const options = {
@@ -72,7 +78,7 @@ export function InfiniteScroll({
         observerRef.current.disconnect()
       }
     }
-  }, [threshold, loadMore, page, loading, hasMore, loadMoreItems])
+  }, [threshold, loadMoreItems])
 
   useEffect(() => {
     if (direction === 'up' && containerRef.current) {
@@ -83,7 +89,8 @@ export function InfiniteScroll({
 
   return (
     <ScrollArea 
-      className={`h-[${height}] overflow-y-auto ${direction === 'up' ? 'flex flex-col-reverse' : ''}`}
+      className={`overflow-y-auto ${direction === 'up' ? 'flex flex-col-reverse' : ''}`}
+      style={{ height: typeof height === 'number' ? `${height}px` : height }}
       ref={containerRef}
     >
       {direction === 'up' && loading && (
@@ -91,12 +98,13 @@ export function InfiniteScroll({
           <Loader2 className="h-6 w-6 animate-spin" />
         </div>
       )}
-      {Data}
-      {/* {items.map((item, index) => (
-        <React.Fragment key={index}>
-          {renderItem(item, index)}
-        </React.Fragment>
-      ))} */}
+      <div className="flex flex-col justify-start items-stretch gap-4 p-4">
+        {items.map((item, index) => (
+          <React.Fragment key={item.id}>
+            {renderItem(item, index)}
+          </React.Fragment>
+        ))}
+      </div>
       {direction === 'down' && loading && (
         <div className="flex justify-center p-4">
           <Loader2 className="h-6 w-6 animate-spin" />
@@ -105,3 +113,4 @@ export function InfiniteScroll({
     </ScrollArea>
   )
 }
+

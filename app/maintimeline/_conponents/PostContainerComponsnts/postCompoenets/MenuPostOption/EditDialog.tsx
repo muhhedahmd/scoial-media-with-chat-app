@@ -219,6 +219,7 @@ const EditDialog = ({
             </div>
 
             <div className="flex justify-start items-center gap-4 w-full">
+              
               <Label htmlFor="location" className="text-right text-base">
                 Location
               </Label>

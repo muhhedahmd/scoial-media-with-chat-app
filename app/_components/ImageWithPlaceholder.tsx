@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { BlurhashCanvas } from "react-blurhash";
 import { AnimatePresence, motion } from "framer-motion";
@@ -14,7 +15,7 @@ interface Props {
   blurhash?: string | undefined;
 }
 
-const BluredImage: React.FC<Props> = ({
+const BlurredImage: React.FC<Props> = ({
   imageUrl,
   width,
   height,
@@ -23,14 +24,15 @@ const BluredImage: React.FC<Props> = ({
   quality,
   blurhash,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [blurDataUrl, setBlurDataUrl] = useState<string>("");
 
   useEffect(() => {
     setIsLoading(true);
-    const img = new window.Image(width, height);
+    const img = new window.Image();
     img.src = imageUrl;
-    img.width = width;
-    img.height = height;
+    img.width = width || 1024;
+    img.height = height || 768;
 
     img.onload = () => {
       setIsLoading(false);
@@ -39,55 +41,68 @@ const BluredImage: React.FC<Props> = ({
     img.onerror = () => {
       setIsLoading(false);
     };
-    return (
-      (()=> img.remove())()  )
-  }, [height, imageUrl, width]);
+
+    // generateBlurDataUrl(imageUrl);
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [imageUrl, width, height]);
+
+  const baseUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : process.env.NEXT_PUBLIC_DOMAIN;
+
+
+  
+
+
+  
 
   return (
     <>
       {isLoading && blurhash && (
         <AnimatePresence mode="sync">
           <motion.div
+            transition={{
+              duration: 0.4,
+            }}
             className={className}
-
             animate={{ opacity: 1 }}
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, filter: "blur(0px)" }}
-            >
-            <BlurhashCanvas
-              hash={blurhash || ""}
-              className={className}
-              
-            />
+          >
+            <BlurhashCanvas hash={blurhash} className={className} />
           </motion.div>
         </AnimatePresence>
       )}
 
-      {!isLoading && (
-        <AnimatePresence>
-          <motion.div
-            className={`flex justify-center items-center ` + className}
-            initial={{ opacity: 0, filter: "blur(10px)" }}
-            animate={{ opacity: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: .25 }} // Transition takes 1 second
-          >
-            
-            <Image
-              alt={alt}
-              src={imageUrl }
-              quality={quality}
-              loading="lazy"
-              fill
-              className={className}
-            />
-          </motion.div>
-        </AnimatePresence>
-      )}
+      <AnimatePresence>
+        <motion.div
+          className={`flex justify-center items-center ${className}`}
+          initial={{ opacity: 0, filter: "blur(10px)" }}
+          animate={{ opacity: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Image
+            alt={alt}
+            src={imageUrl}
+            quality={quality}
+            loading="lazy"
+            fill
+            className={className}
+            placeholder="blur"
+            blurDataURL={imageUrl}
+            onLoadingComplete={() => setIsLoading(false)}
+          />
+        </motion.div>
+      </AnimatePresence>
     </>
   );
 };
 
-export default BluredImage;
-
+export default BlurredImage;
 

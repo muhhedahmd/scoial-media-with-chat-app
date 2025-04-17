@@ -40,8 +40,8 @@ const ProfileInfo = (
 
 
       className={cn(`mt-16 text-gray-900`   )}>
-        <h1 className="text-2xl font-bold">{data?.user.first_name + " " + data?.user.last_name}</h1>
-        <p className="text-gray-500">@{data?.user.user_name}</p>
+        <h1 className="text-2xl font-bold">{CachedUser.first_name + " " + CachedUser.last_name}</h1>
+        <p className="text-gray-500">@{CachedUser.user_name}</p>
         <p className="mt-2">
         {
           data?.bio

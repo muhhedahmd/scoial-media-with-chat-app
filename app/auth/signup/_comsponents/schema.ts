@@ -35,9 +35,27 @@ export const userSchema = z
   });
 
 export const ProfileSchema =  z.object({
+  first_name: z
+  .string()
+  .min(1, "First name is required")
+  .regex(/^[/^[\S]+$/, "white space not allwoed").optional(),
+last_name: z
+  .string()
+  .min(1, "Last name is required")
+  .regex(/^[/^[\S]+$/, "white space not allwoed").optional(),
+  user_name: z
+      .string()
+      .min(1, "Username is required")
+      .regex(
+        /^[a-zA-Z0-9_]+$/,
+        "Username must only contain letters, numbers, or underscores and no spaces"
+      ).optional(),
   bio: z.string().min(3, {
     message: "Bio must be at least 3 characters long",
-  }),
+  }).optional(),
+  removeProfilePic : z.enum(["keep" , "update"  ,"remove"]).optional(), 
+  removeCoverPic : z.enum(["keep" , "update"  ,"remove"]).optional(),
+  // location : z.string().optional(),
   profile_picture:  typeof window !== "undefined" ? z
     .instanceof(File, {
       message: "Profile picture must be a valid file",
@@ -56,7 +74,7 @@ export const ProfileSchema =  z.object({
     })
     .nullable()
     .optional() : z.any().nullable().optional(),
-  location: z.string().optional(),
+  location: z.any().optional(),
 
   birthdate: z.preprocess((val) => {
     if (typeof val === "string" || val instanceof Date) {

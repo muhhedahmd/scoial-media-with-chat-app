@@ -33,14 +33,15 @@ export const authOptions: AuthOptions = {
             return response.data;
           }
         } catch (error: any) {
+          return null
           console.log(error.response.data)
-          throw new Error(
-            JSON.stringify({
-              errors: error.response.data,
-              status: 400,
-              ok: false,
-            })
-          );
+          // throw new Error(
+          //   JSON.stringify({
+          //     errors: error.response.data,
+          //     status: 400,
+          //     ok: false,
+          //   })
+          // );
 
         }
         return null;
@@ -130,8 +131,8 @@ export const authOptions: AuthOptions = {
     maxAge: 1 * 24 * 60 * 60,
   },
   pages: {
-    signIn: "/signin",
-    newUser: "/signup",
+    signIn: "/auth/signin",
+    newUser: "/auth/signup",
     signOut: "/signout",
     error: "/error",
   },

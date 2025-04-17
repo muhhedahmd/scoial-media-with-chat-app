@@ -1,46 +1,31 @@
-import { Profile, ProfilePicture, ProfilePictureType } from "@prisma/client";
-import { JsonObject } from "@prisma/client/runtime/library";
+import { Address, Profile, ProfilePicture, ProfilePictureType } from "@prisma/client";
+import { JsonObject, JsonValue } from "@prisma/client/runtime/library";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-export interface UserProfile {
+export interface UserProfile  {
   id: number;
   user_id: number;
-  bio: string;
-  birthdate: Date;
-  cover_picture: string;
-  location: string;
-  phoneNumber: number;
-  profile_picture: string;
-  website: JsonObject;
-  title: string;
-  isCompleteProfile: boolean;
-  created_at:        Date ,
-  updated_at :      Date,
+  location_id : null | number,
+
+  // user_id: number;
+  bio: string | null;
+  location: Address | null;
+  PhoneNumber: number | null;
+  website: JsonValue;
+  birthdate: Date | null;
+  title: string | null;
+  created_at: Date;
+  updated_at: Date,
   user: {
-    first_name: string;
-    last_name: string;
-    user_name: string,
-    email  :string ,
-    isPrivate :boolean 
-  };
-  profilePictures: {
-    id: number;
-    profileId: number;
-    type: ProfilePictureType;
-    format: string;
-    public_url: string;
-    public_id: string;
-    display_name: string;
-    asset_folder: string;
-    secure_url: string;
-    tags: string[];
-    asset_id: string;
-    height: number;
-    width: number;
-    url: string;
-    HashBlur: string;
-  }[];
-}
+      first_name: string;
+      last_name: string;
+      user_name: string,
+      email: string,
+      isPrivate: boolean
+  },
+  profilePictures: ProfilePicture[] | null
+
+} 
 export const apiProfile = createApi({
   reducerPath: "profile",
   tagTypes:["getProfile"] ,
@@ -75,6 +60,9 @@ export const apiProfile = createApi({
         try {
           const { data } = await queryFulfilled;
           const res = data as UserProfile;
+          console.log({
+            UserProfile: res
+          })
           dispatch(
             apiProfile.util.updateQueryData(
               "getProfile",

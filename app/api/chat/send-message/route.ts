@@ -18,7 +18,6 @@ async function generateBlurhash(buffer: Buffer): Promise<string> {
     .ensureAlpha()
     .resize(32, 32, { fit: "inside" })
     .toBuffer({ resolveWithObject: true });
-
   return encode(new Uint8ClampedArray(data), info.width, info.height, 4, 4);
 }
 
@@ -73,7 +72,7 @@ export async function POST(req: NextRequest) {
             .toBuffer();
         } else if (file.type === "application/pdf") {
           try {
-            // axa.pdf-Thumbnail-pdf
+
             const thumbnailBlob = body.get(
               `${file.name}-Thumbnail-pdf`
             ) as File;

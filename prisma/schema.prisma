@@ -134,7 +134,6 @@ model Profile {
   bio               String?
   profile_picture   String?
   cover_picture     String?
-  location          String?
   PhoneNumber       Int?
   isVerified        Boolean          @default(false)
   website           Json?            @default("{}")
@@ -146,6 +145,8 @@ model Profile {
   followers         Follows[]        @relation("UserFollowers")
   following         Follows[]        @relation("UserFollowing")
   user              User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  location_id  Int? @unique
+  location Address? @relation( fields: [location_id] , references: [id])
   profilePictures   ProfilePicture[]
 }
 
@@ -398,6 +399,7 @@ model Address {
   countryEnum Country
   country     String
   post        post?
+  profile Profile?
 }
 
 model post_image {

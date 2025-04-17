@@ -22,8 +22,12 @@ const Page = () => {
   // if(!user )return
   if (!profile || !user?.id) return;
   return (
-    <>
+    <div 
+    className="h-full w-full  "
+    >
+
       <Header user={user} />
+
       <div
         className=" relative gap-3  bg-gray-50 px-4 flex h-full justify-start items-start"
         style={{
@@ -43,7 +47,7 @@ const Page = () => {
 
         <MoreComponets user={user} />
       </div>
-    </>
+    </div>
   );
 };
 

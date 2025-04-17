@@ -1,3 +1,25 @@
+html {
+  font-size: 16px; /* Default size */
+}
+
+@media (max-width: 1200px), (max-height: 800px) {
+  html {
+      font-size: 14px; /* Adjust font size for smaller screens or shorter heights */
+  }
+}
+
+@media (max-width: 768px), (max-height: 600px) {
+  html {
+      font-size: 12px; /* Smaller font size for smaller viewports */
+  }
+}
+
+@media (max-width: 480px), (max-height: 400px) {
+  html {
+      font-size: 10px; /* For very small screens or very short heights */
+  }
+}
+
 
 .before\:\!duration-300::before{
   transition: 5s !important;
@@ -245,3 +267,4 @@ background-image: radial-gradient(at 73% 42%, #254336 0%, transparent 60%), radi
   animation-duration: 1.2s !important;
 
 }
+

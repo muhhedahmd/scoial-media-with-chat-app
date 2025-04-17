@@ -18,7 +18,7 @@ export const PUT = async (
   const bio = formData.get("bio") as string;
   const birthdate = formData.get("birthdate") as string;
   const cover_picture = formData.get("cover_picture") as File;
-  const location = formData.get("location") as string;
+  const location = formData.get("location") as unknown as number;
   const PhoneNumber = Number(formData.get("PhoneNumber"));
   const profile_picture = formData.get("profile_picture") as File;
   const websiteValue = formData.get("website") as string;
@@ -107,7 +107,8 @@ export const PUT = async (
         findUserProfile?.cover_picture ||
         "",
       user_id: +params.id,
-      location: location || findUserProfile?.location || "",
+      
+      location_id: location || findUserProfile?.location_id,
       PhoneNumber: PhoneNumber || findUserProfile?.PhoneNumber || 0,
       profile_picture:
         profilePictureRes?.data?.secure_url ||
@@ -123,7 +124,14 @@ export const PUT = async (
     // Upsert profile data
     const updateProfile = await prisma.profile.upsert({
       where: { user_id: +params.id },
-      update: profileData,
+      update: { ...profileData ,} , 
+        // location_id  : 1
+
+
+
+      include:{
+        profilePictures :true 
+      },
       create: { ...profileData, isCompleteProfile: true },
     });
 

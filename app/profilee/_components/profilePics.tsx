@@ -9,6 +9,7 @@ import { ImageIcon, User2 } from "lucide-react";
 import React from "react";
 
 import { cn } from "@/lib/utils";
+import EditProfileDialog from "./EditProfileDialog";
 
 const ProfilePics = ({
   CachedUser,
@@ -22,8 +23,11 @@ const ProfilePics = ({
   const { isError, isLoading, isFetching, data } = useGetProfileQuery({
     userId: CachedUser?.id,
   });
-  const blurProfile = data?.profilePictures.find((x) => x.type === "profile");
-  const blurCover = data?.profilePictures.find((x) => x.type === "cover");
+  
+  const blurProfile = data?.profilePictures?.find((x) => x.type === "profile");
+  const blurCover = data?.profilePictures?.find((x) => x.type === "cover");
+
+
 
   if (isError) return <div>Error fetching data</div>;
   if (isLoading || isFetching) {
@@ -36,14 +40,13 @@ const ProfilePics = ({
     );
   }
 
-  console.log({
-    blurProfile,
-    blurCover,
-  })
+
+  
   if (minmalcard) {
+
     return (
       <div className="flex justify-start relative items-center   gap-4">
-        {data?.profile_picture ? (
+        {blurProfile ? (
           <div className="flex justify-center items-center absolute ">
             <BluredImage
               width={blurProfile?.width!}
@@ -75,31 +78,35 @@ const ProfilePics = ({
     );
   }
   return (
+
     <div className="relative">
-      {data?.cover_picture ? (
+      {blurCover ? (
         <div className="bg-gray-500 h-40 w-full rounded-lg flex justify-center items-center">
           <BluredImage
             blurhash={blurCover?.HashBlur || ""}
             alt={
               "cover_picture " +
-              data.user.first_name +
+              CachedUser.first_name +
               " " +
-              data.user.last_name
+              CachedUser.last_name
             }
             width={blurCover?.width!}
             height={blurCover?.height!}
             quality={75}
-            imageUrl={data?.cover_picture || ""}
+            imageUrl={blurCover.secure_url || ""}
             className="  h-40    w-full object-cover rounded-md"
           />
+       
         </div>
       ) : (
         <div className="bg-gray-200 h-40 rounded-lg flex justify-center items-center">
           <ImageIcon className="w-10 h-10 text-muted-foreground" />
+       
         </div>
       )}
 
-      {data?.profile_picture ? (
+      {blurProfile ? (
+
         <div className="absolute -bottom-12 left-4 w-24 h-24 flex justify-center items-center shadow-sm border-2 border-gray-300 bg-gray-200 rounded-full">
           <BluredImage
             width={blurProfile?.width!}
@@ -120,9 +127,19 @@ const ProfilePics = ({
         </div>
       )}
       {/* Profile Photo */}
-      <button className="absolute top-4 right-4 px-4 py-1 shadow-sm bg-white text-black rounded-full">
-        Edit Profile
-      </button>
+  
+
+
+      <EditProfileDialog 
+      blurCover={blurCover}
+      blurProfile={blurProfile}
+      profileData={data}
+      isLoading={isLoading}
+      isFetching={isFetching}
+      // error={error}
+      
+      // onClose={()=>{}} 
+       userId={CachedUser.id}/>
     </div>
   );
 };

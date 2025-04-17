@@ -199,7 +199,7 @@ export const uploadFile = async (
     // Convert file to base64
 
     const fileToBase64 = (file: Buffer): string => {
-      return Buffer.from(file).toString("base64");
+      return Buffer.from(file as unknown as any).toString("base64");
     };
 
     const base64Data = fileToBase64(Buffer.from(await file.arrayBuffer()));

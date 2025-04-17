@@ -20,7 +20,9 @@ const LocationSearch = ({
   fullSelected,
   setEditPost,
   setActiveLocation,
+  onChange ,
 }: {
+  onChange? :(value:Address) => void ,  
   isEditing?: boolean;
   fullSelected?: Address;
   activeLocation: number | null;
@@ -63,6 +65,9 @@ const LocationSearch = ({
           location: location,
         };
       });
+    }
+    if(onChange) {
+      onChange(location)
     }
     setIsOpen(false)
   };

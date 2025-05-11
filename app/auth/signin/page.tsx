@@ -47,7 +47,7 @@ const Signin = () => {
 
         if (res?.ok && res?.status === 200) {
           setTimeout(() => {
-            router.push("/profile");
+            router.push("/profilee");
           }, 300);
         }
         

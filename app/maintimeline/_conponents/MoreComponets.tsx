@@ -3,7 +3,11 @@ import React from 'react'
 
 const MoreComponets = ({user}:{user :User}) => {
   return (
-    <div className=' hidden md:flex bg-white rounded-sm h-[90%]  p-4 border-2  shadow-md w-1/3'>
+    <div 
+    style={{
+      height : "calc(100vh - 4rem)"
+    }}
+    className=' hidden md:flex bg-white rounded-md  p-4   shadow-sm w-1/4'>
       
     </div>
   )

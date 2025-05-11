@@ -34,7 +34,7 @@ const Page = () => {
           height: "calc(100vh  - 3rem)",
         }}
       >
-        <div className="hidden lg:flex  flex-col h-full justify-start items-start gap-3 w-1/3">
+        <div className="hidden md:flex  flex-col h-full justify-start items-start gap-3 w-1/3">
           <UserInfo isLoading={status} profile={profile } user={user} />
 
           <Suggestions user={user} />

@@ -1,23 +1,24 @@
-import Tip from "@/app/_components/Tip";
-import { Button } from "@/components/ui/button";
-import { PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+"use client"
+
+import Tip from "@/app/_components/Tip"
+import { Button } from "@/components/ui/button"
+import { PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   useAddSaveCategoryMutation,
   useGetSaveCategoryQuery,
-  useGetSavesByCategoryQuery,
   useGetSingleSaveByPostQuery,
   useToggleSaveMutation,
-} from "@/store/api/apiSave";
-import { Popover } from "@radix-ui/react-popover";
-import { BookmarkIcon, Plus, Save, X } from "lucide-react";
-import React, { memo, useState } from "react";
-import SaveCategory from "./saveCategory";
-import { cn } from "@/lib/utils";
-import { Skeleton } from "@nextui-org/react";
+} from "@/store/api/apiSave"
+import { Popover } from "@radix-ui/react-popover"
+import { BookmarkIcon, Plus, Save } from "lucide-react"
+import { memo, useState } from "react"
+import SaveCategory from "./saveCategory"
+import { cn } from "@/lib/utils"
+import { Skeleton } from "@nextui-org/react"
 
 const SavePopup = memo(({ userId, postId }: { userId: number; postId: number }) => {
-  const [addSaveState, setAddSaveState] = useState(false);
-  const [name, setName] = useState("");
+  const [addSaveState, setAddSaveState] = useState(false)
+  const [name, setName] = useState("")
 
   const {
     data: save,
@@ -27,7 +28,7 @@ const SavePopup = memo(({ userId, postId }: { userId: number; postId: number }) 
   } = useGetSingleSaveByPostQuery({
     post_id: postId,
     userId: userId,
-  });
+  })
 
   const {
     data: catagries,
@@ -37,11 +38,9 @@ const SavePopup = memo(({ userId, postId }: { userId: number; postId: number }) 
     author_id: userId,
     skip: 0,
     take: 4,
-  });
+  })
 
-
-  const [addCategory, { isLoading: loadingAddCategory }] =
-    useAddSaveCategoryMutation();
+  const [addCategory, { isLoading: loadingAddCategory }] = useAddSaveCategoryMutation()
 
   const handleAddCategory = () => {
     try {
@@ -49,23 +48,23 @@ const SavePopup = memo(({ userId, postId }: { userId: number; postId: number }) 
         addCategory({
           author_id: userId,
           name: name,
-        });
+        })
       }
-      setName("");
-      setAddSaveState(false);
+      setName("")
+      setAddSaveState(false)
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
-  };
+  }
 
-  const [Toggle, {isLoading   }] = useToggleSaveMutation();
-  const handleToggle = (cateName : string) => {
+  const [Toggle, { isLoading }] = useToggleSaveMutation()
+  const handleToggle = (cateName: string) => {
     Toggle({
-      cateagory: cateName ,
+      cateagory: cateName,
       postId: postId,
       userId: userId,
-    });
-  };
+    })
+  }
   return (
     <Popover>
       <PopoverTrigger>
@@ -73,17 +72,17 @@ const SavePopup = memo(({ userId, postId }: { userId: number; postId: number }) 
           <Skeleton className="w-10 h-8 rounded-md bg-emerald-500 stroke-emerald-500" />
         ) : (
           <Button
-
+          variant={"ghost"}
             disabled={isFetchingGetSave || isLoadingGetSave}
-            className="bg-emerald-100 p-2 md:p-3 h-auto lg:p-2 min-h-max hover:bg-emerald-200"
+            className="p-2 md:p-3 h-auto lg:p-2 min-h-max "
           >
             {save ? (
               <Tip
                 trigger={
                   <BookmarkIcon
                     className={cn(
-                      "w-5 h-5 text-white stroke-emerald-300  fill-white",
-                      save && "fill-emerald-500 stroke-emerald-500"
+                      "w-7 h-7 text-white stroke-emerald-300  fill-emerald-200",
+                      save && "fill-emerald-500 stroke-emerald-500",
                     )}
                   />
                 }
@@ -92,8 +91,8 @@ const SavePopup = memo(({ userId, postId }: { userId: number; postId: number }) 
             ) : (
               <BookmarkIcon
                 className={cn(
-                  "w-5 h-5 text-white stroke-emerald-300  fill-white",
-                  save && "fill-emerald-500 stroke-emerald-500"
+                  "w-5 h-5 text-white stroke-emerald-300  fill-emerald-200",
+                  save && "fill-emerald-500 stroke-emerald-500",
                 )}
               />
             )}
@@ -115,14 +114,14 @@ const SavePopup = memo(({ userId, postId }: { userId: number; postId: number }) 
           <div className="flex justify-start gap-2 flex-col items-start ">
             {!loadingCatagries && SuccessCatagries && (
               <Button
-              disabled={isLoading}
-              onClick={()=>handleToggle('draft')}
+                disabled={isLoading}
+                onClick={() => handleToggle("draft")}
                 size={"default"}
-                className={cn(  
+                className={cn(
                   save?.Save_catagory.name === "draft" &&
-                  "bg-emerald-100 text-emerald-700  hover:bg-red-100 hover:text-gray-500" 
-                  
-                  ,"p-2 text-muted-foreground text-start flex justify-between items-center w-full text-[1rem] ")}
+                    "bg-emerald-100 text-emerald-700  hover:bg-red-100 hover:text-gray-500",
+                  "p-2 text-muted-foreground text-start flex justify-between items-center w-full text-[1rem] ",
+                )}
                 variant={"ghost"}
               >
                 draft
@@ -133,7 +132,6 @@ const SavePopup = memo(({ userId, postId }: { userId: number; postId: number }) 
               catagries.catagries.map((item, index) => (
                 <SaveCategory
                   active={item.name === save?.Save_catagory?.name}
-
                   key={item.id}
                   item={item}
                   handleToggle={handleToggle}
@@ -164,23 +162,18 @@ const SavePopup = memo(({ userId, postId }: { userId: number; postId: number }) 
                 variant={"ghost"}
                 className="py-1 px-2 h-max "
               >
-                <Plus
-                  size={"1.2rem"}
-                  className="text-muted-foreground text-xs"
-                />
+                <Plus size={"1.2rem"} className="text-muted-foreground text-xs" />
               </Button>
               <Button
                 onClick={() => setAddSaveState(false)}
                 className="py-1 px-2 h-max bg-red-100 hover:bg-red-200 "
-              >
-              
-              </Button>
+              ></Button>
             </div>
           ) : null}
         </div>
       </PopoverContent>
     </Popover>
-  );
+  )
 })
-SavePopup.displayName ="SavePopup"
-export default SavePopup;
+SavePopup.displayName = "SavePopup"
+export default SavePopup

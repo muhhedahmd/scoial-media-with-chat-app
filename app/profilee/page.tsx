@@ -12,7 +12,7 @@ const Profile = dynamic(
    
     loading: () =>      <Skeleton
     // ref={scrollContainerRef} // Attach the scrollContainerRef to the scrollable container
-    className="flex w-full  md:w-[50vw] flex-col  max-h-[90vh] rounded-md   bg-white  text-white "
+    className="flex w-full  md:w-[50vw] flex-col  max-h-[90vh] rounded-md    "
   >
 
 
@@ -108,7 +108,7 @@ export default function ProfileSection() {
 
     <div
       ref={scrollContainerRef}
-      className="scrollprofile relative rounded-md flex flex-col lg:w-[50vw] scrollbar-hide w-full overflow-y-auto"
+      className="scrollprofile border-1 overflow-auto relative rounded-md flex flex-col lg:w-[50vw] scrollbar-hide w-full overflow-y-auto"
       >
       
       <Profile isScrolled={isScrolled} CachedUser={CachedUser} />

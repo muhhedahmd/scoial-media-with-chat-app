@@ -1,26 +1,27 @@
-import { Separator } from "@/components/ui/separator";
-import React, { useEffect } from "react";
+import { Separator } from "@/components/ui/separator"
 
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { useGetFollowercountQuery, useGetFollowingCountQuery, useGetFollowingQuery } from "@/store/api/apiFollows";
-interface  MinmalFollowerSectionProp {
-    userId : number
+import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
+import { useGetFollowercountQuery, useGetFollowingCountQuery } from "@/store/api/apiFollows"
+interface MinmalFollowerSectionProp {
+  userId: number
 }
 
-const MinmalFollowerSection = ({userId} :MinmalFollowerSectionProp) => {
-
-  const { isLoading : LoadingFollower , isFetching  : fetchingFollower,  data : followerCount} = useGetFollowercountQuery({
-    userId: userId
+const MinmalFollowerSection = ({ userId }: MinmalFollowerSectionProp) => {
+  const {
+    isLoading: LoadingFollower,
+    isFetching: fetchingFollower,
+    data: followerCount,
+  } = useGetFollowercountQuery({
+    userId: userId,
   })
 
-  const { 
-    isLoading : LoadingFollowing ,
-    isFetching : fetchingFollowing ,
-    data : followingCount
-
+  const {
+    isLoading: LoadingFollowing,
+    isFetching: fetchingFollowing,
+    data: followingCount,
   } = useGetFollowingCountQuery({
-    userId: userId
+    userId: userId,
   })
 
   return (
@@ -31,27 +32,27 @@ const MinmalFollowerSection = ({userId} :MinmalFollowerSectionProp) => {
           <Button variant={"ghost"} className="h-auto flex justify-start items-center flex-col">
             <p>follwers</p>
 
-            {LoadingFollower ||  fetchingFollower? 
-             <Skeleton className="h-2 w-5"/>
-             :   
-            <p>{followerCount?.followerCount || 0 }</p>
-        }
-          </Button >
+            {LoadingFollower || fetchingFollower ? (
+              <Skeleton className="h-2 w-5" />
+            ) : (
+              <p>{followerCount?.followerCount || 0}</p>
+            )}
+          </Button>
           <Separator className="  h-12" orientation="vertical" />
           <Button variant={"ghost"} className="h-auto flex justify-start items-center flex-col">
             <p>follwimg</p>
-            {LoadingFollowing || fetchingFollower? 
-             <Skeleton className="h-2 w-5"/>
-             :   
-             <p>{followingCount?.followingCount || 0 }</p>
-        }
+            {LoadingFollowing || fetchingFollower ? (
+              <Skeleton className="h-2 w-5" />
+            ) : (
+              <p>{followingCount?.followingCount || 0}</p>
+            )}
           </Button>
         </div>
 
         <Separator />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default MinmalFollowerSection;
+export default MinmalFollowerSection

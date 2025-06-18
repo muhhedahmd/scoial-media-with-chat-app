@@ -18,8 +18,9 @@ const MainUserSide = ({
     const { isError, isLoading, isFetching, data } = useGetProfileQuery({
         userId: CachedUser?.id,
       });
-      const blurProfile = data?.profilePictures.find((x) => x.type === "profile");
-      const blurCover = data?.profilePictures.find((x) => x.type === "cover");
+      
+      const blurProfile = data?.profilePictures?.find((x) => x.type === "profile");
+      const blurCover = data?.profilePictures?.find((x) => x.type === "cover");
     
       if(isLoading || isFetching){
         return (
@@ -41,10 +42,10 @@ const MainUserSide = ({
       }
     return (
     <div 
-    className="flex w-full p-2 justify-center items-center bg-slate-100   gap-2"
+    className="flex w-full p-2 justify-center items-center    gap-2"
     >
     
-       {data?.profile_picture ? (
+       {blurProfile ? (
           <div className="flex justify-center items-center  ">
             <BluredImage
               width={blurProfile?.width!}
@@ -60,13 +61,13 @@ const MainUserSide = ({
             {/* <User2 className="w-10 h-10 text-muted-foreground" /> */}
           </div>
         ) : (
-          <div className=" flex justify-center items-center shadow-sm border-2 border-gray-300 bg-gray-200 rounded-full">
+          <div className=" flex justify-center items-center shadow-sm border-2 border-accent rounded-full">
             <User2 className="w-5 h-5 text-muted-foreground" />
           </div>
         )}
         <div>
             <p className=" text-sm">{CachedUser.first_name} {CachedUser.last_name}</p>
-            <p className=" text-sm text-indigo-900 font-bold">@{CachedUser.user_name}</p>
+            <p className=" text-sm text-neutral-50 font-bold">@{CachedUser.user_name}</p>
         </div>
         <Button
         variant={"ghost"}

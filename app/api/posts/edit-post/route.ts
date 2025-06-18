@@ -85,6 +85,7 @@ export async function PUT(req: Request) {
 
   try {
     const result = await prisma.$transaction(
+
       async (tx) => {
         const post = await tx.post.findUnique({
           where: { id: +input.postId, author_id: +input.authorId },
@@ -157,9 +158,9 @@ export async function PUT(req: Request) {
       },
 
       {
-        timeout: 10000,
+        timeout: 6000000,
       }
-    );
+     );
     const updatedPost = await prisma.post.findUnique({
       where: {
         id: +input.postId,

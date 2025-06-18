@@ -39,7 +39,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
 if(!CachedUser) return
   return (
-    <div className="relative flex flex-col  bg-gradient-to-r from-slate-300 to-slate-500 overflow-hidden max-h-screen justify-start items-start w-full min-h-screen">
+    <div className="relative flex flex-col   overflow-hidden max-h-screen justify-start items-start w-full min-h-screen">
       <Suspense 
       fallback={<>
       
@@ -57,7 +57,7 @@ if(!CachedUser) return
       style={{
         maxHeight : "calc(100vh - 40px)"
       }}
-      className="flex h-min w-full mt-4 gap-4 overflow-hidden justify-center items-start"
+      className="flex h-min w-full mt-4 gap-4 overflow-auto  scrollbar-hide justify-center items-start"
       >
 
 

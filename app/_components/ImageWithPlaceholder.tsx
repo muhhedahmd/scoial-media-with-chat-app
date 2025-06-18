@@ -25,7 +25,6 @@ const BlurredImage: React.FC<Props> = ({
   blurhash,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [blurDataUrl, setBlurDataUrl] = useState<string>("");
 
   useEffect(() => {
     setIsLoading(true);
@@ -50,16 +49,6 @@ const BlurredImage: React.FC<Props> = ({
     };
   }, [imageUrl, width, height]);
 
-  const baseUrl =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000"
-      : process.env.NEXT_PUBLIC_DOMAIN;
-
-
-  
-
-
-  
 
   return (
     <>

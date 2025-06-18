@@ -66,16 +66,10 @@ const UserInfoLogin = forwardRef<ProfileInfoProps, {}>((_, ref) => {
   };
 
   return (
-    <Card className="w-full bg-white  border-none max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>
-          <div className="bg-white">
-
-              <div className="flex justify-start items-center gap-3 ">
-                <Image src="/logo.svg" width={20} height={20} alt="logo" className="h-5 w-auto" />
-                <h2 className="text-3xl font-extrabold text-[#554A4B]">Sign in</h2>
-              </div>
-          </div>
+    <Card className="w-full  dark:bg-gray-800  border-none max-w-md mx-auto">
+      <CardHeader className="pt-2 m-0 h-0">
+        <CardTitle className="p-0 m-0 h-0">
+       
 
               
               </CardTitle>
@@ -84,7 +78,7 @@ const UserInfoLogin = forwardRef<ProfileInfoProps, {}>((_, ref) => {
         <Form {...formUser}>
           <form onSubmit={formUser.handleSubmit(() => {})} className="space-y-6">
             <Tabs value={logWith} onValueChange={handleTabChange}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className=" bg-gray-600 mb-4 -mt-6 grid w-full grid-cols-2">
                 <TabsTrigger value="email">Email</TabsTrigger>
                 <TabsTrigger value="username">Username</TabsTrigger>
               </TabsList>

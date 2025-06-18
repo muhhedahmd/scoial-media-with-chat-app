@@ -57,27 +57,27 @@ const ChatHeader = ({
       chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [chat]);
   return (
-    <div className="flex-1 flex flex-col min-w-[30vw] bg-slate-200  shadow-xl ">
+    <div className="flex-1 flex flex-col min-w-[30vw]  shadow-xl ">
       {(selectedContact as Contact) ? (
         <>
-          <header className="h-14 px-4 shadow-md   bg-white flex items-center justify-between">
+          <header className="h-14 px-4 shadow-md    flex items-center justify-between">
             <div className="flex items-center gap-3 ml-10">
               {selectedContact && (
                 <>
-                  <Avatar className="w-8 h-8 ring-2 ring-white">
+                  <Avatar className="w-8 h-8 ring-2 ring-accent">
                     <AvatarImage
                       src={
                         selectedContact.profile?.profilePictures?.[0]
                           ?.secure_url
                       }
                     />
-                    <AvatarFallback className="bg-gray-300 text-gray-800">
+                    <AvatarFallback className=" text-gray-800">
                       {selectedContact.first_name[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h2 className="font-medium text-sm text-black">{`${selectedContact.first_name} ${selectedContact.last_name}`}</h2>
-                    <p className="text-xs text-gray-800">
+                    <h2 className="font-medium text-sm ">{`${selectedContact.first_name} ${selectedContact.last_name}`}</h2>
+                    <p className="text-xs ">
                       {onlineUsers.find((u) => u.id === selectedContact.id)
                         ? "Online"
                         : "Offline"}
@@ -96,7 +96,7 @@ const ChatHeader = ({
             </Button>
           </header>
 
-          <ScrollArea className="flex-1 p-4     bg-gradient-to-r from-slate-300 to-slate-500">
+          <ScrollArea className="flex-1 p-4     ">
             {chat && (
               <MessagesOfChat
               
@@ -109,13 +109,13 @@ const ChatHeader = ({
             <div ref={chatEndRef} />
           </ScrollArea>
 
-          <footer className="p-3 bg-white border-t border-gray-100">
+          <footer className="p-3 border-t border-gray-100">
             <SendMsg chatId={chat!.id!} receiverId={selectedContact?.id!} />
           </footer>
         </>
       ) : selectedGroupMembers ? (
         <>
-          <header className="h-14 px-4 shadow-md   bg-white flex items-center justify-between">
+          <header className="h-14 px-4 shadow-md    flex items-center justify-between">
             <div
             className="flex justify-start gap-3 w-max  items-center ml-5"
             >
@@ -156,7 +156,7 @@ const ChatHeader = ({
                               e.preventDefault();
                               e.stopPropagation();
                             }}
-                            className="bg-slate-600 text-white"
+                            className=" "
                           >
                             {" "}
                             <Plus className="w-3 h-3" />
@@ -184,7 +184,7 @@ const ChatHeader = ({
             </Button>
           </header>
 
-          <ScrollArea className="flex-1 p-4     bg-gradient-to-r from-slate-300 to-slate-500">
+          <ScrollArea className="flex-1 p-4     ">
             {chat && (
               <MessagesOfChat
                 selectedGroupMembers={selectedGroupMembers}
@@ -196,19 +196,19 @@ const ChatHeader = ({
             <div ref={chatEndRef} />
           </ScrollArea>
 
-          <footer className="p-3 bg-white border-t border-gray-100">
+          <footer className="p-3  border-t border-muted">
             <SendMsg chatId={selectedGroupMembers.chat.id} receiverId={selectedContact?.id!} />
           </footer>
         </>
       ) : startChatWith ? (
         <>
-          <header className="h-14 px-4 shadow-md   bg-white  flex items-center justify-between">
+          <header className="h-14 px-4 shadow-md     flex items-center justify-between">
             <div className="flex items-center justify-start  gap-3 ml-10 min-h-[48rem] ">
               {startChatWith && (
                 <>
                   <Avatar className="w-8 h-8 ring-2 ring-white">
                     <AvatarImage src={profilePicOFSatrtChatwith?.secure_url} />
-                    <AvatarFallback className="bg-gray-300 text-gray-800">
+                    <AvatarFallback className="">
                       {startChatWith.user.first_name[0]}
                     </AvatarFallback>
                   </Avatar>
@@ -225,10 +225,10 @@ const ChatHeader = ({
             </div>
           </header>
           <div className="h-screen w-full  flex justify-center items-center">
-            <div className="w-3/4  shadow-lg  rounded-md bg-white p-3 flex justify-start flex-col items-center">
+            <div className="w-3/4  shadow-lg  rounded-md  p-3 flex justify-start flex-col items-center">
               <div className="relative p-4 w-full">
                 {CoverPicOFSatrtChatwith ? (
-                  <div className="bg-gray-500 h-48 w-full rounded-lg flex justify-center items-center">
+                  <div className=" h-48 w-full rounded-lg flex justify-center items-center">
                     <BluredImage
                       blurhash={CoverPicOFSatrtChatwith?.HashBlur || ""}
                       alt={
@@ -245,13 +245,13 @@ const ChatHeader = ({
                     />
                   </div>
                 ) : (
-                  <div className="bg-gray-200 h-40 rounded-lg flex justify-center items-center">
+                  <div className=" h-40 rounded-lg flex justify-center items-center">
                     <ImageIcon className="w-10 h-10 text-muted-foreground" />
                   </div>
                 )}
 
                 {profilePicOFSatrtChatwith ? (
-                  <div className="absolute top-[80%] left-[50%] -translate-x-[50%] -translate-y-[50%]   w-24 h-24 flex justify-center items-center shadow-sm border-2 border-gray-300 bg-gray-200 rounded-full">
+                  <div className="absolute top-[80%] left-[50%] -translate-x-[50%] -translate-y-[50%]   w-24 h-24 flex justify-center items-center shadow-sm border-2 border-accent rounded-full">
                     <BluredImage
                       width={profilePicOFSatrtChatwith?.width!}
                       height={profilePicOFSatrtChatwith?.height!}
@@ -265,7 +265,7 @@ const ChatHeader = ({
                     />
                   </div>
                 ) : (
-                  <div className="absolute -bottom-10 left-4 w-24 h-24 flex justify-center items-center shadow-sm border-2 border-gray-300 bg-gray-200 rounded-full">
+                  <div className="absolute -bottom-10 left-4 w-24 h-24 flex justify-center items-center shadow-sm border-2 border-accent rounded-full">
                     <User2 className="w-10 h-10 text-muted-foreground" />
                   </div>
                 )}
@@ -284,7 +284,7 @@ const ChatHeader = ({
                 <p>be the cerator of this chat!</p>
                 <Button disabled={isLoading} onClick={AddChat}>
                   {isLoading ? (
-                    <LoaderCircle className="animate-spin w-4 h-4 text-white " />
+                    <LoaderCircle className="animate-spin w-4 h-4 " />
                   ) : (
                     "Chat"
                   )}
@@ -296,7 +296,7 @@ const ChatHeader = ({
       ) : (
         <>
           <div className="flex flex-col items-center justify-center h-screen">
-            <h1 className="text-3xl font-bold text-gray-600">
+            <h1 className="text-3xl font-bold ">
               Select a contact to Chat
             </h1>
           </div>

@@ -1,20 +1,19 @@
-import React from "react";
-import Interactions from "./Interactions";
-import InteractionButtons from "./InteractionButtons";
-import { useGetPostReactionsQuery } from "@/store/api/apiSlice";
-import { Profile, User } from "@prisma/client";
+import Interactions from "./Interactions"
+import InteractionButtons from "./InteractionButtons"
+import { useGetPostReactionsQuery } from "@/store/api/apiSlice"
+import type { Profile, User } from "@prisma/client"
 
 interface ReactionReactionOptionsProps {
-  postId: number;
-  author_id: number;
-  userId: number;
-  MainUserProfile: Profile;
-  created_at: Date;
-  title: string;
-  user: User;
-  parentTitle?: string;
-  Post_parent_id?: number;
-  parent_author_id?: number;
+  postId: number
+  author_id: number
+  userId: number
+  MainUserProfile: Profile
+  created_at: Date
+  title: string
+  user: User
+  parentTitle?: string
+  Post_parent_id?: number
+  parent_author_id?: number
 }
 
 const ReactionReactionOptions = ({
@@ -29,8 +28,8 @@ const ReactionReactionOptions = ({
   parentTitle,
   parent_author_id,
 }: ReactionReactionOptionsProps) => {
-  const { data, isLoading } = useGetPostReactionsQuery({ post_id: postId });
-  const d = data as any;
+  const { data, isLoading } = useGetPostReactionsQuery({ post_id: postId })
+  const d = data as any
 
   return (
     <>
@@ -56,7 +55,7 @@ const ReactionReactionOptions = ({
         postId={postId}
       />
     </>
-  );
-};
+  )
+}
 
-export default ReactionReactionOptions;
+export default ReactionReactionOptions

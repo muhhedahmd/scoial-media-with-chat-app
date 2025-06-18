@@ -1,50 +1,37 @@
-import { useGetProfileQuery } from "@/store/api/apiProfile";
-import { useGetUserQuery, useLazyGetUserQuery } from "@/store/api/apiUser";
-import { Profile, ReactionType } from "@prisma/client";
-import React from "react";
-import { HeaderPostLoader } from "../Loaderes";
+import { useGetProfileQuery } from "@/store/api/apiProfile"
+import { useGetUserQuery } from "@/store/api/apiUser"
+import type { Profile, ReactionType } from "@prisma/client"
+import { HeaderPostLoader } from "../Loaderes"
 
-import { Skeleton } from "@/components/ui/skeleton";
-import Image from "next/image";
-import { Loader2, UserIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useFollowStateQuery, useToggleFollowerMutation } from "@/store/api/apiFollows";
-import { getColor, getEmoji } from "./ReactViewrDialog";
-import { useToast } from "@/components/ui/use-toast";
-import ToggleFollow from "../../../ToggleFollow";
-
+import { Skeleton } from "@/components/ui/skeleton"
+import Image from "next/image"
+import { UserIcon } from "lucide-react"
+import { getColor, getEmoji } from "./ReactViewrDialog"
+import ToggleFollow from "../../../ToggleFollow"
 
 interface ReactViewrDialogSingleProps {
-  author_id: number;
-  id: number;
-  post_id: number;
+  author_id: number
+  id: number
+  post_id: number
 
-  userId: number;
-  type: ReactionType;
-  created_at: Date;
-  updated_at: Date;
-  MainUserProfile: Profile;
+  userId: number
+  type: ReactionType
+  created_at: Date
+  updated_at: Date
+  MainUserProfile: Profile
 }
 
-const ReactViewrDialogSingle = ({
-  MainUserProfile,
-  author_id,
-  userId ,
-  type,
-
-}: ReactViewrDialogSingleProps) => {
-
+const ReactViewrDialogSingle = ({ MainUserProfile, author_id, userId, type }: ReactViewrDialogSingleProps) => {
   const { data: profileData, isLoading: profileLoading } = useGetProfileQuery({
     userId: author_id,
-  });
+  })
 
   const { data: userData, isLoading: userloading } = useGetUserQuery({
     userId: author_id,
-  });
-
+  })
 
   if (userloading || profileLoading) {
-    return <HeaderPostLoader />;
+    return <HeaderPostLoader />
   }
   return (
     <div className=" flex justify-between items-center w-full">
@@ -76,18 +63,14 @@ const ReactViewrDialogSingle = ({
                 <Skeleton className="w-1/4 h-2 mb-3 bg-gray-300" />
               ) : (
                 <div className="flex justify-between items-center w-full">
-                  <p className="">
-                    {userData?.first_name + " " + userData?.last_name}
-                  </p>
+                  <p className="">{userData?.first_name + " " + userData?.last_name}</p>
                 </div>
               )}
 
               {!userData?.user_name ? (
                 <Skeleton className="w-1/5 h-2 bg-gray-300" />
               ) : (
-                <p className="text-muted-foreground">
-                  {"@" + userData?.user_name}
-                </p>
+                <p className="text-muted-foreground">{"@" + userData?.user_name}</p>
               )}
             </div>
           )}
@@ -97,14 +80,10 @@ const ReactViewrDialogSingle = ({
       <div className="flex justify-start gap-3 items-center">
         <p className={getColor(type)}>{getEmoji(type)}</p>
 
-      <ToggleFollow
-      MainUserProfileId={MainUserProfile.id}
-      profileDataId={profileData?.id}
-      />
-
+        <ToggleFollow MainUserProfileId={MainUserProfile.id} profileDataId={profileData?.id} />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ReactViewrDialogSingle;
+export default ReactViewrDialogSingle

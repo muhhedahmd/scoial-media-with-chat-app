@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { userWithProfile } from "@/Types";
 import { Gender, Role } from "@prisma/client";
 import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
@@ -88,14 +89,21 @@ export async function POST(req: Request) {
  
       },
       select: {
-        id: true,
-        email: true,
-        first_name: true,
-        last_name: true,
-        user_name: true,
-        role: true,
+      created_at :true, 
+          updated_at :true,
+          country :true ,
+          expiresAt :true ,
+          gender :true ,
+          isPrivate :true ,
+          is_2FA :true ,
+          timezone :true,
+          first_name :true,
+          id :true,
+          last_name :true,
+          role :true,
+          user_name :true,
       },
-    });
+    }) 
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {

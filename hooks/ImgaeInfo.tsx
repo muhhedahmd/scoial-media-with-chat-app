@@ -99,6 +99,7 @@ const useImageFile = (file: File | null): ImageMetadata => {
     setIsLoading(false);
   };
 
+  
   return {
     url,
     dimensions,

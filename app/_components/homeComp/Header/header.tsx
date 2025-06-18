@@ -50,11 +50,11 @@ const Header = () => {
         <Link href="/">SocialApp</Link>
       </div>
       <nav>
-        <Link href="auth/login" className="mr-4 hover:text-gray-300">
+        <Link href="auth/signin" className="mr-4 hover:text-gray-300">
           Login
         </Link>
         <Link
-          href="auth/signin"
+          href="auth/signup"
           className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500"
         >
           Sign Up

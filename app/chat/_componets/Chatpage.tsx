@@ -84,14 +84,14 @@ const Chatpage = ({
     <div className=" relative h-screen w-full">
       {isCalling && !isCallStarted   && (
 
-        <div className="flex justify-start gap-2 p-2  shadow-md z-30 bg-slate-50 absolute top-1 left-2 rounded-xl">
+        <div className="flex justify-start gap-2 p-2  shadow-md z-30  absolute top-1 left-2 rounded-xl">
           <div className="flex justify-start items-center gap-2">
             <Avatar 
-            className="bg-white "
+            className=""
             >
               <AvatarImage src={profilePic?.secure_url}></AvatarImage>
               <AvatarFallback 
-              className="bg-white"
+              className=""
               >
                 {selectedContact?.first_name.charAt(0)}
               </AvatarFallback>
@@ -136,9 +136,9 @@ const Chatpage = ({
 
       )}
 
-      <div className="flex h-screen bg-gradient-to-br   from-purple-100 to-blue-100">
+      <div className="flex h-screen ">
 
-        <div className="flex flex-col h-screen w-fit bg-white  shadow-md relative">
+        <div className="flex flex-col h-screen w-fit   shadow-md relative">
           <ChoseMemberGroupProvider>
             <SidebarProvider>
               <AppSidebarContent
@@ -148,7 +148,7 @@ const Chatpage = ({
                 setChat={setChat}
               />
 
-              <SidebarTrigger className=" absolute top-3  left-full text-white bg-black" />
+              <SidebarTrigger className=" absolute top-3  left-full " />
             </SidebarProvider>
           </ChoseMemberGroupProvider>
         </div>

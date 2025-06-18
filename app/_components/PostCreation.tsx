@@ -221,35 +221,12 @@ const PostCreation = ({
           <form className="w-[88%] sm:w-[91%] flex-col h-auto justify-center items-center">
             <div className="flex justify-between w-full items-center">
               <MentionInput
-                className={"col-span-12 md:col-span-3 md:mb-0"}
+                className={"col-span-12 bg-transparent md:col-span-3 md:mb-0"}
                 inputValue={inputValue}
                 setInputValue={setInputValue}
                 parsedData={parsedData}
                 setParsedData={setParsedData}
               />
-              {/* {images.length ? ( */}
-                <MultiCropModel
-                setImages={setImages}
-                  handleFinish={handleClick}
-                  images={images}
-                  CropedImages={imageHolder}
-                  openDialog={openDialog}
-                  setImageHolder={setImageHolder}
-                  setOpenDialog={setOpenDialog}
-                />
-              {/* ) : ( */}
-                <Button
-                  disabled={isLoading}
-                  onClick={(e) => handleClick(e)}
-                  size={"icon"}
-                  className="w-14 h-9 flex justify-center items-center bg-gray-900"
-                >
-                  {isLoading ? (
-                    <LoaderCircle className="text-white animate-spin" />
-                  ) : (
-                    <Rocket className="w-6 h-6 font-light text-white" />
-                  )}
-                </Button>
               {/* )} */}
             </div>
             {!isScrolled && (
@@ -262,6 +239,7 @@ const PostCreation = ({
                 >
                   <PostCreationOptions
                     activeLocation={activeLocation}
+
                     setActiveLocation={setActiveLocation}
                     disabled={isLoading}
                     video={video}
@@ -269,6 +247,28 @@ const PostCreation = ({
                     setImages={setImages}
                     setVideo={setVideo}
                   />
+                <MultiCropModel
+                setImages={setImages}
+                  handleFinish={handleClick}
+                  images={images}
+                  CropedImages={imageHolder}
+                  openDialog={openDialog}
+                  setImageHolder={setImageHolder}
+                  setOpenDialog={setOpenDialog}
+                />
+                <Button
+                  disabled={isLoading}
+                  onClick={(e) => handleClick(e)}
+                  size={"icon"}
+                  className="w-14 h-9 flex justify-center items-center bg-gray-900"
+                >
+                  {isLoading ? (
+                    <LoaderCircle className="text-white animate-spin" />
+                  ) : (
+                    <Rocket className="w-6 h-6 font-light text-white" />
+                  )}
+                </Button>
+
                 </motion.div>
               </AnimatePresence>
             )}

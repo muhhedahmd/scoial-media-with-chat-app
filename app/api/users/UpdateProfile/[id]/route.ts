@@ -1,4 +1,6 @@
+import { authOptions } from "@/lib/authOptions";
 import prisma from "@/lib/prisma";
+import { CustomSession, userWithProfile } from "@/Types";
 import {
   CloudinaryUploadResponse,
   deleteCloudinaryAsset,
@@ -6,13 +8,20 @@ import {
   Upload_coludnairy,
 } from "@/utils";
 import { ProfilePictureType } from "@prisma/client";
+import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-export const PUT = async (
-  req: Request,
-  { params }: { params: { id: string } }
-) => {
+export const PUT = async (req : Request) => {
   const formData = await req.formData();
+
+        const session = (await getServerSession(authOptions
+        )) as CustomSession;
+        const userId = session?.user?.id;
+
+        if (!session || !userId) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
 
   // Extract form data
   const bio = formData.get("bio") as string;
@@ -23,11 +32,20 @@ export const PUT = async (
   const profile_picture = formData.get("profile_picture") as File;
   const websiteValue = formData.get("website") as string;
   const title = formData.get("title") as string;
+  const removeProfilePic = formData.get("removeProfilePic") as "update" | "keep" | "remove" | undefined;
+  const DimantionNewProfile = formData.get("DimantionNewProfile")
+  const removeCoverPic = formData.get("removeCoverPic") as "update" | "keep" | "remove" | undefined;
+
+
+
+  const blurHashProfileNew = formData.get("blurHashProfileNew") as string
+  const DimantionNewCover = formData.get("DimantionNewCover")
+  const blurHashCoverNew = formData.get("blurHashCoverNew") as string
 
   // Find user and profile in parallel
   const [selectUser, findUserProfile] = await Promise.all([
-    prisma.user.findFirst({ where: { id: +params.id } }),
-    prisma.profile.findUnique({ where: { user_id: +params.id } }),
+    prisma.user.findFirst({ where: { id: +session.user.id } }),
+    prisma.profile.findUnique({ where: { user_id: +session.user.id } }),
   ]);
 
   // Check if user exists
@@ -53,7 +71,7 @@ export const PUT = async (
   const existingProfilePictures = await prisma.profilePicture.findMany({
     where: {
       profile: {
-        user_id: +params.id,
+        user_id: +session.user.id,
       },
     },
   });
@@ -72,27 +90,27 @@ export const PUT = async (
     (e) => e.type === "profile"
   );
 
-  if(existingCoverPic && cover_picture) {
+  if (removeCoverPic === "remove" && existingCoverPic) {
     await deleteCloudinaryAsset(existingCoverPic.public_id);
     coverPictureRes = await uploadImage(
       cover_picture,
       selectUser.user_name
     );
-  }else {
-    coverPictureRes = await uploadImage(cover_picture, selectUser.user_name+"Profile");
+  } else {
+    coverPictureRes = await uploadImage(cover_picture, selectUser.user_name + "Profile");
 
   }
 
-  if(existingProfilePic && cover_picture) {
+  if (removeProfilePic === "remove" && existingProfilePic) {
     await deleteCloudinaryAsset(existingProfilePic.public_id);
     profilePictureRes = await uploadImage(
       profile_picture,
       selectUser.user_name
     );
-  }else {
-    profilePictureRes = await uploadImage(profile_picture, selectUser.user_name+"Profile");
+  } else {
+    profilePictureRes = await uploadImage(profile_picture, selectUser.user_name + "Profile");
   }
-  
+
 
 
   try {
@@ -106,8 +124,8 @@ export const PUT = async (
         coverPictureRes?.data?.secure_url ||
         findUserProfile?.cover_picture ||
         "",
-      user_id: +params.id,
-      
+      user_id: +session.user.id,
+
       location_id: location || findUserProfile?.location_id,
       PhoneNumber: PhoneNumber || findUserProfile?.PhoneNumber || 0,
       profile_picture:
@@ -123,17 +141,73 @@ export const PUT = async (
 
     // Upsert profile data
     const updateProfile = await prisma.profile.upsert({
-      where: { user_id: +params.id },
-      update: { ...profileData ,} , 
-        // location_id  : 1
-
-
-
-      include:{
-        profilePictures :true 
-      },
+      where: { user_id: +session.user.id },
+      update: { ...profileData, },
+      // location_id  : 1
       create: { ...profileData, isCompleteProfile: true },
-    });
+
+
+
+      select: {
+        user: {
+          select: {
+            id: true,
+            user_name: true,
+            first_name: true,
+            last_name: true,
+            gender: true,
+            email: true,
+            role: true,
+            profile: {
+              select: {
+                isCompleteProfile: true,
+                location_id: true,
+                user_id: true,
+                id: true,
+                birthdate: true,
+                PhoneNumber: true,
+                bio: true,
+                created_at: true,
+                updated_at: true,
+                title: true,
+                location: true,
+                website: true,
+                cover_picture: true,
+                profile_picture: true,
+                profilePictures: true
+              }
+            }
+          }
+        }
+      },
+    })
+    const fixed = {
+      id: updateProfile.user.id,
+      user_name: updateProfile.user.user_name,
+      first_name: updateProfile.user.first_name,
+      last_name: updateProfile.user.last_name,
+      gender: updateProfile.user.gender,
+      email: updateProfile.user.email,
+      role: updateProfile.user.role,
+      profile: {
+
+        isCompleteProfile: updateProfile.user?.profile?.isCompleteProfile,
+        location_id: updateProfile.user?.profile?.location_id,
+        user_id: updateProfile.user?.profile?.user_id,
+        id: updateProfile.user?.profile?.id,
+        birthdate: updateProfile.user?.profile?.birthdate,
+        PhoneNumber: updateProfile.user?.profile?.PhoneNumber,
+        bio: updateProfile.user?.profile?.bio,
+        created_at: updateProfile.user?.profile?.created_at,
+        updated_at: updateProfile.user?.profile?.updated_at,
+        title: updateProfile.user?.profile?.title,
+        location: updateProfile.user?.profile?.location,
+        website: updateProfile.user?.profile?.website,
+        cover_picture: updateProfile.user?.profile?.cover_picture,
+        profile_picture: updateProfile.user?.profile?.profile_picture,
+        profilePictures: updateProfile.user?.profile?.profilePictures
+      }
+    } as userWithProfile
 
     // Function to save profile pictures
     const saveProfilePicture = async (
@@ -141,12 +215,30 @@ export const PUT = async (
       type: ProfilePictureType,
       updateProfileId: number
     ) => {
-      const blurhash = await generateBlurhash(
-        imageRes.eager[0].url,
-        imageRes.eager[0].width,
-        imageRes.eager[0].height
-      );
+      let blurhash: string;
+      if (
+        type === "cover" &&
+        DimantionNewCover &&
+        blurHashCoverNew
+      ) {
+        blurhash = blurHashCoverNew
 
+      } else if (
+        type === "cover" &&
+        DimantionNewCover &&
+        blurHashCoverNew
+      ) {
+        blurhash = blurHashProfileNew
+
+      } else {
+
+        blurhash = await generateBlurhash(
+          imageRes.eager[0].url,
+          imageRes.eager[0].width,
+          imageRes.eager[0].height
+        );
+
+      }
       // Check if the profile picture already exists
       const existingProfilePicture = await prisma.profilePicture.findUnique({
         where: {
@@ -191,16 +283,17 @@ export const PUT = async (
     };
 
     if (profilePictureRes?.data && updateProfile && coverPictureRes?.data) {
+
       await Promise.all([
         profile_picture
           ? saveProfilePicture(
-              profilePictureRes?.data,
-              "profile",
-              updateProfile.id
-            )
+            profilePictureRes?.data,
+            "profile",
+            fixed?.profile?.id!
+          )
           : Promise.resolve(),
         cover_picture
-          ? saveProfilePicture(coverPictureRes.data, "cover", updateProfile.id)
+          ? saveProfilePicture(coverPictureRes.data, "cover", fixed?.profile?.id!)
           : Promise.resolve(),
       ]);
     }

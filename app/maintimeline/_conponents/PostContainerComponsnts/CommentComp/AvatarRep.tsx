@@ -1,12 +1,11 @@
-import { useGetProfileQuery } from "@/store/api/apiProfile";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import { User, User2 } from "lucide-react";
-import React from "react";
+import { useGetProfileQuery } from "@/store/api/apiProfile"
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
+import { User2 } from "lucide-react"
 
 const AvatarRep = ({ author_id }: { author_id: number }) => {
   const { data: profileData, isLoading: loaddingProfile } = useGetProfileQuery({
     userId: author_id,
-  });
+  })
   return (
     <Avatar>
       <AvatarImage
@@ -21,15 +20,11 @@ const AvatarRep = ({ author_id }: { author_id: number }) => {
       text-sm
       border-2 border-[#e7e7e7]"
         >
-          {!profileData?.profile_picture ? (
-            <User2 className="w-4 h-4 " size={"sm"} />
-          ) : (
-            <></>
-          )}
+          {!profileData?.profile_picture ? <User2 className="w-4 h-4 " size={"sm"} /> : <></>}
         </div>
       </AvatarFallback>
     </Avatar>
-  );
-};
+  )
+}
 
-export default AvatarRep;
+export default AvatarRep

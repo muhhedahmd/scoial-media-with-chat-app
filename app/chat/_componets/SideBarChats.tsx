@@ -162,7 +162,7 @@ export default function AppSidebarContent({
   const [cerateDialog, setCerateDialog] = useState(false);
   return (
     <>
-      <Sidebar ref={sidebarRef} className="transition-colors duration-300">
+      <Sidebar ref={sidebarRef} className=" bg-background transition-colors  duration-300">
         <SidebarHeader className="">
           <div className="flex flex-row justify-start gap-2">
             <h2>Chat</h2>
@@ -188,12 +188,12 @@ export default function AppSidebarContent({
                     >
                       <div className="p-3 flex justify-start items-center gap-2 md:p-4">
                         <div className="relative mb-4 flex-grow">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 " />
                           <Input
                             onChange={(e) => setSearchTerm(e.target.value)}
                             value={searchTerm}
                             placeholder="Search..."
-                            className="pl-10 py-1 text-sm bg-gray-100 border-none focus:ring-2 focus:ring-purple-300 w-full"
+                            className="pl-10 py-1 text-sm  border-none focus:ring-2 focus:ring-purple-300 w-full"
                           />
                         </div>
                         <Button

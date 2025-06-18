@@ -16,7 +16,7 @@ import gsap from "gsap";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Image from "next/image";
 import { ShapeOfUserSearchMention } from "@/app/api/users/mentions/route";
-import { Textarea } from "@nextui-org/react";
+import { Textarea } from "@/components/ui/textarea";
 // Enum for input types
 enum InputType {
   Mention = "mention",
@@ -31,16 +31,18 @@ const dummyHashtags = ["#example", "#sample", "#test", "#demo"];
 
 const MentionInput = ({
   parsedData,
-  setParsedData ,
-  className, 
+  setParsedData,
+  className,
   inputValue,
-setInputValue
-} : {
-  className: string |undefined 
-  parsedData : parserData | undefined
-  setParsedData :React.Dispatch<React.SetStateAction<parserData | undefined>> 
-  inputValue : string
-  setInputValue : React.Dispatch<React.SetStateAction<string>>
+  setInputValue  ,
+  placeholder
+}: {
+  placeholder : string
+  className: string | undefined
+  parsedData: parserData | undefined
+  setParsedData: React.Dispatch<React.SetStateAction<parserData | undefined>>
+  inputValue: string
+  setInputValue: React.Dispatch<React.SetStateAction<string>>
 }) => {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<
@@ -76,32 +78,32 @@ setInputValue
       if (inputRef.current && measurementDivRef.current) {
         const textarea = inputRef.current;
         const measurementDiv = measurementDivRef.current;
-  
+
         const cursorPosition = textarea.selectionStart || 0;
-        
+
         const textBeforeCursor = textarea.value.substring(0, cursorPosition);
-        const cursorLine =textarea.value.slice(0, cursorPosition).split("\n").length - 1;
-  
+        const cursorLine = textarea.value.slice(0, cursorPosition).split("\n").length - 1;
+
         // Create a div to measure text width
         measurementDiv.textContent = textBeforeCursor;
         const textWidth = measurementDiv.offsetWidth;
-  
+
         const lineHeight = parseInt(
           window.getComputedStyle(textarea).lineHeight,
           10
         );
-  
+
 
         const textareaRect = textarea.getBoundingClientRect();
         const paddingAndBorderTop = textareaRect.top - textarea.offsetTop;
-  
+
         setDropdownPosition({
-          top: (cursorLine * lineHeight) + 33 ,
+          top: (cursorLine * lineHeight) + 33,
           left: cursorPosition + 10,
         });
       }
     };
-  
+
     updateDropdownPosition();
   }, [inputValue]);
 
@@ -246,7 +248,7 @@ setInputValue
     setInputType(InputType.Regular);
   };
 
- useEffect(() => {
+  useEffect(() => {
     const mentionRegex = /@[\w_]+(?![\w_])/g;
     const hashtagRegex = /#[\w_]+(?![\w_])/g;
     const mentions: any[] = [];
@@ -278,7 +280,7 @@ setInputValue
         });
       } else {
         mentions.push({
-          userId : users.data.find((user) => user.user_name.toLowerCase() === mention.substring(1).toLowerCase())?.id ,
+          userId: users.data.find((user) => user.user_name.toLowerCase() === mention.substring(1).toLowerCase())?.id,
           value: mention,
           startIndex: match.index,
           endIndex: mention.length,
@@ -318,7 +320,7 @@ setInputValue
       regularTexts,
       fullText: inputValue,
     });
-  } ,[inputValue, setParsedData, users?.data])
+  }, [inputValue, setParsedData, users?.data])
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement> | KeyboardEvent
@@ -396,16 +398,25 @@ setInputValue
   }, [dispatch, isFetching, skip, take, users?.hasMore]);
 
   return (
-    <div className="relative  w-[92%]">
+    <div className="relative   w-[92%]">
 
-      <div className=" relative  flex flex-col gap-2 w-full">
+      <div className="   relative  flex flex-col gap-2 w-full">
         <Textarea
+
+          style={{
+            border: "none !important",
+            outline: "none !important" ,
+            resize :"none"
+          }}
+
+          // color="default"
+          id="castoumInput"
           ref={inputRef}
           value={inputValue}
           onChange={(e) => handleChange(e)}
           onKeyDown={(e) => handleKeyDown(e)}
-          placeholder="Type @username or #hashtag"
-          className={className || "col-span-12 md:col-span-6 md:mb-0"}
+          placeholder={placeholder ? placeholder :"Type @username or #hashtag"}
+          className={" col-span-12 md:col-span-6 md:mb-0 border-none  bg-transparent"}
           onFocus={() => {
             if (
               inputType === InputType.Mention ||
@@ -415,17 +426,17 @@ setInputValue
             }
           }}
         />
-      <div
-        ref={measurementDivRef}
-        style={{
-          position: "absolute",
-          visibility: "hidden",
-          whiteSpace: "pre-wrap",
-          font: inputRef?.current ?  window.getComputedStyle(inputRef?.current!).font  : "",
-        }}
-      >
-        
-      </div>
+        <div
+          ref={measurementDivRef}
+          style={{
+            position: "absolute",
+            visibility: "hidden",
+            whiteSpace: "pre-wrap",
+            font: inputRef?.current ? window.getComputedStyle(inputRef?.current!).font : "",
+          }}
+        >
+
+        </div>
       </div>
 
 
@@ -440,10 +451,12 @@ setInputValue
           scrollableTarget="scrollableDropdown"
         >
           <div
+
             ref={suggestionRef}
             id="scrollableDropdown"
-            className="absolute bg-white border border-gray-300 mt-1 max-h-60 overflow-y-auto z-10 rounded-lg shadow-lg min-w-[18rem]"
+            className="absolute scrollbar-hide bg-muted  mt-1 max-h-60 overflow-y-auto z-10 rounded-lg  min-w-[15rem]"
             style={{
+              boxShadow:"0px 4px 5px 0px rgba(0, 0, 0, 0.1)",
               top: dropdownPosition?.top,
               left: dropdownPosition?.left + 20,
             }}
@@ -453,9 +466,8 @@ setInputValue
                 typeof item === "string" ? (
                   <div
                     key={item}
-                    className={`p-2 cursor-pointer hover:bg-gray-100 ${
-                      highlightedIndex === index ? "bg-gray-200" : ""
-                    }`}
+                    className={`p-2 cursor-pointer transition-all tranisit duration-150 hover ${highlightedIndex === index ? "bg-gray-200" : ""
+                      }`}
                     onClick={() => handleSelectSuggestion(item)}
                   >
                     {item}
@@ -463,9 +475,8 @@ setInputValue
                 ) : (
                   <div
                     key={item.id}
-                    className={`p-2 cursor-pointer w-full flex justify-start items-start gap-3 hover:bg-gray-100 ${
-                      highlightedIndex === index ? "bg-gray-200" : ""
-                    }`}
+                    className={`p-2 cursor-pointer w-full flex justify-start items-start gap-3  ${highlightedIndex === index ? "bg-gray-200" : ""
+                      }`}
                     onClick={() => handleSelectSuggestion(item)}
                   >
                     <div
@@ -473,12 +484,12 @@ setInputValue
                   flex justify-center items-center
                   "
                     >
-                      {item.profile?.profilePictures && item.profile?.profilePictures?.find((x)=>x.type === "profile") ? (
+                      {item.profile?.profilePictures && item.profile?.profilePictures?.find((x) => x.type === "profile") ? (
                         <Image
-                          src={item.profile?.profilePictures?.find((x)=>x.type === "profile")?.secure_url || ""}
+                          src={item.profile?.profilePictures?.find((x) => x.type === "profile")?.secure_url || ""}
                           alt={item.first_name + "profile_picture"}
-                          height={75}
-                          width={75}
+                          height={50}
+                          width={50}
                           className="rounded-full h-12 w-12 p-1"
                         />
                       ) : (
@@ -494,7 +505,7 @@ setInputValue
                       )}
                     </div>
 
-                    <div className="flex flex-col w-3/4  justify-start items-start ">
+                    <div className="flex flex-col w-3/4   text-smjustify-start items-start ">
                       <p>
                         {item.first_name} {item.last_name}
                       </p>
@@ -509,8 +520,8 @@ setInputValue
           </div>
         </InfiniteScroll>
       )}
-    
-  
+
+
     </div>
   );
 };

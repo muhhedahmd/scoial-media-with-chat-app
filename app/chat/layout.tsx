@@ -21,8 +21,9 @@ const Layout =  async ({
   return (
     <div className='w-full h-auto'>
         
+       
         <PresenceProvider  
-         authenticatedUser={session.user as User}
+         authenticatedUser={session.user as any}
         >
         {children}
         </PresenceProvider>

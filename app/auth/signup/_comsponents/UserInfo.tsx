@@ -63,7 +63,7 @@ const ProfileInfo = forwardRef<ProfileInfoProps, {}>((_, ref) => {
   return (
     <Form {...formUser}>
       <form
-        className="flex flex-col md:w-[58%] w-[100%] justify-center gap-[5rem] items-start"
+        className="flex flex-col  w-[100%] justify-center gap-[5rem] items-start"
         onSubmit={formUser.handleSubmit(()=>{})}
       >
         <div className="flex justify-start w-full flex-col md:flex-row gap-[3rem] items-start">
@@ -72,7 +72,10 @@ const ProfileInfo = forwardRef<ProfileInfoProps, {}>((_, ref) => {
               name="first_name"
               control={formUser.control}
               render={({ field }) => (
-                <FormItem>
+                <FormItem
+                
+                className="w-full"
+                >
                   <FormLabel>First name</FormLabel>
                   <FormControl>
                     <Input placeholder="Juon" {...field} />
@@ -88,7 +91,12 @@ const ProfileInfo = forwardRef<ProfileInfoProps, {}>((_, ref) => {
               name="email"
               control={formUser.control}
               render={({ field }) => (
-                <FormItem>
+                <FormItem
+
+className="w-full"
+
+                
+                >
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input placeholder="Jsck@example.com" {...field} />
@@ -102,7 +110,10 @@ const ProfileInfo = forwardRef<ProfileInfoProps, {}>((_, ref) => {
                 name="password"
                 control={formUser.control}
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem
+                  
+                  className="w-full"
+                  >
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input placeholder="*********" type="password" {...field} />
@@ -115,7 +126,10 @@ const ProfileInfo = forwardRef<ProfileInfoProps, {}>((_, ref) => {
                 name="confirm_password"
                 control={formUser.control}
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem
+                  
+                  className="w-full"
+                  >
                     <FormLabel>Confirm password</FormLabel>
                     <FormControl>
                       <Input placeholder="*********" type="password" {...field} />
@@ -130,7 +144,10 @@ const ProfileInfo = forwardRef<ProfileInfoProps, {}>((_, ref) => {
               name="last_name"
               control={formUser.control}
               render={({ field }) => (
-                <FormItem>
+                <FormItem
+                
+                className="w-full"
+                >
                   <FormLabel>Last name</FormLabel>
                   <FormControl>
                     <Input placeholder="stevvd" {...field} />
@@ -146,7 +163,10 @@ const ProfileInfo = forwardRef<ProfileInfoProps, {}>((_, ref) => {
                 name="gender"
                 control={formUser.control}
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem
+                  
+                  className="w-full"
+                  >
                     <FormLabel>Gender</FormLabel>
                     <Controller
                       control={formUser.control}
@@ -175,7 +195,10 @@ const ProfileInfo = forwardRef<ProfileInfoProps, {}>((_, ref) => {
                 name="role"
                 control={formUser.control}
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem
+                  
+                  className="w-full"
+                  >
                     <FormLabel>Role</FormLabel>
                     <Controller
                       control={formUser.control}
@@ -202,7 +225,10 @@ const ProfileInfo = forwardRef<ProfileInfoProps, {}>((_, ref) => {
               name="user_name"
               control={formUser.control}
               render={({ field }) => (
-                <FormItem>
+                <FormItem
+                
+                className="w-full"
+                >
                   <FormLabel>User Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Jack_1a" {...field} />

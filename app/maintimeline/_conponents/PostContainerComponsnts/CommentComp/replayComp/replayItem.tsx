@@ -1,29 +1,31 @@
-import React from "react";
-import AvatarRep from "../AvatarRep";
-import UserInfoHeader from "../UserInfoHeader";
-import TimeStamp from "../TimeStamp";
-import ContentDialog from "./ContentDialog";
-import ToggleLikeReplay from "./ToggleLikeReplay";
-import { Separator } from "@radix-ui/react-separator";
-import NestedReplies from "./NestedReplies";
-import { cn } from "@/lib/utils";
-import { shapeOfReplies } from "@/app/api/comment/replay/route";
-import NestedReplayAddation from "./nestedReplayAddation";
-import RepliedTo from "./ReplayTo";
+"use client"
+
+import React from "react"
+import AvatarRep from "../AvatarRep"
+import UserInfoHeader from "../UserInfoHeader"
+import TimeStamp from "../TimeStamp"
+import ContentDialog from "./ContentDialog"
+import ToggleLikeReplay from "./ToggleLikeReplay"
+import { Separator } from "@radix-ui/react-separator"
+import NestedReplies from "./NestedReplies"
+import { cn } from "@/lib/utils"
+import type { shapeOfReplies } from "@/app/api/comment/replay/route"
+import NestedReplayAddation from "./nestedReplayAddation"
+import RepliedTo from "./ReplayTo"
 
 interface ReplayItemProps {
-  comment_id: number;
-  MainUserId: number;
-  post_id: number;
-  rep: shapeOfReplies;
-  focused: number | null;
-  level: number;
-  setLevel: React.Dispatch<React.SetStateAction<number>>;
-  setFocused: React.Dispatch<React.SetStateAction<number | null>>;
-  openReplay: number | null;
-  author_comment: number;
-  setOpenReplay: React.Dispatch<React.SetStateAction<number | null>>;
-  mainReps: shapeOfReplies[];
+  comment_id: number
+  MainUserId: number
+  post_id: number
+  rep: shapeOfReplies
+  focused: number | null
+  level: number
+  setLevel: React.Dispatch<React.SetStateAction<number>>
+  setFocused: React.Dispatch<React.SetStateAction<number | null>>
+  openReplay: number | null
+  author_comment: number
+  setOpenReplay: React.Dispatch<React.SetStateAction<number | null>>
+  mainReps: shapeOfReplies[]
 }
 
 const ReplayItem: React.FC<ReplayItemProps> = React.memo(
@@ -41,8 +43,8 @@ const ReplayItem: React.FC<ReplayItemProps> = React.memo(
     mainReps,
     author_comment,
   }) => {
-    const handleMouseEnter = () => setFocused(rep.id);
-    const handleMouseLeave = () => setFocused(null);
+    const handleMouseEnter = () => setFocused(rep.id)
+    const handleMouseLeave = () => setFocused(null)
 
     return (
       <>
@@ -51,21 +53,18 @@ const ReplayItem: React.FC<ReplayItemProps> = React.memo(
             "relative w-full flex flex-col sm:gap-2 gap-5 ",
             "transition-all duration-300",
             `ml-${level * 4}`, // Adjust margin based on the level
-            `md:ml-${level * 6}` // Adjust margin on larger screens
+            `md:ml-${level * 6}`, // Adjust margin on larger screens
           )}
           style={{
             opacity:
-              (focused === rep.id || focused === rep.parentId) &&
-              focused !== null
+              (focused === rep.id || focused === rep.parentId) && focused !== null
                 ? 1
-                : (focused !== rep.id || focused !== rep.parentId) &&
-                  focused !== null
-                ? 0.5
-                : 1,
+                : (focused !== rep.id || focused !== rep.parentId) && focused !== null
+                  ? 0.5
+                  : 1,
             marginLeft:
-              (focused === rep.id || focused === rep.parentId) &&
-              focused !== null
-                ? `calc(${level *8}px + 1rem)`
+              (focused === rep.id || focused === rep.parentId) && focused !== null
+                ? `calc(${level * 8}px + 1rem)`
                 : `calc(${level * 8}px + 0.5rem)`,
             transition: ".3s",
           }}
@@ -86,9 +85,7 @@ const ReplayItem: React.FC<ReplayItemProps> = React.memo(
                   {rep.parentId ? (
                     <RepliedTo mainReps={mainReps} parentId={rep.parentId} />
                   ) : (
-                    <div className="text-sm text-muted-foreground">
-                      replied to comment
-                    </div>
+                    <div className="text-sm text-muted-foreground">replied to comment</div>
                   )}
                 </div>
                 <TimeStamp key={rep.id} created_at={rep.created_at} />
@@ -100,20 +97,14 @@ const ReplayItem: React.FC<ReplayItemProps> = React.memo(
                 </div>
                 <Separator orientation="vertical" className="h-[1rem]" />
 
-                <ToggleLikeReplay
-                  rpelayid={rep.id}
-                  post_id={post_id}
-                  MainUserId={MainUserId}
-                />
+                <ToggleLikeReplay rpelayid={rep.id} post_id={post_id} MainUserId={MainUserId} />
                 <Separator orientation="vertical" className="h-4" />
                 <div
                   className={cn(
                     "text-sm text-muted-foreground cursor-pointer",
-                    openReplay === rep.id && "text-emerald-600"
+                    openReplay === rep.id && "text-emerald-600",
                   )}
-                  onClick={() =>
-                    setOpenReplay((prev) => (prev === rep.id ? null : rep.id))
-                  }
+                  onClick={() => setOpenReplay((prev) => (prev === rep.id ? null : rep.id))}
                 >
                   Reply
                 </div>
@@ -139,18 +130,13 @@ const ReplayItem: React.FC<ReplayItemProps> = React.memo(
 
         {openReplay === rep.id && (
           <div className="ml-6 md:ml-8">
-            <NestedReplayAddation
-              comment_id={comment_id}
-              replay_id={rep.id}
-              post_id={post_id}
-              userId={MainUserId}
-            />
+            <NestedReplayAddation comment_id={comment_id} replay_id={rep.id} post_id={post_id} userId={MainUserId} />
           </div>
         )}
       </>
-    );
-  }
-);
+    )
+  },
+)
 
-ReplayItem.displayName = "ReplayItem";
-export default ReplayItem;
+ReplayItem.displayName = "ReplayItem"
+export default ReplayItem

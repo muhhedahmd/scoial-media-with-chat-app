@@ -1,29 +1,30 @@
-import { useGetUserQuery } from "@/store/api/apiUser";
-import { Comment } from "@prisma/client";
-import { formatDistance } from "date-fns";
-import Replaies from "./replayComp/Replaies";
-import ReplayAdditon from "./replayComp/replayAddetion";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { AvatarFallback } from "@radix-ui/react-avatar";
-import { useGetProfileQuery } from "@/store/api/apiProfile";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+"use client"
 
-import { Emoji } from "./EmojiPicker";
-import CommentReactions from "./CommentReactions";
-import { FixedComment } from "@/app/api/comment/route";
-import { useGetRepliesLikesQuery } from "@/store/api/apicomment";
-import { Separator } from "@radix-ui/react-separator";
-import { UserIcon } from "lucide-react";
-import ContentDialog from "./replayComp/ContentDialog";
+import type React from "react"
+
+import { useGetUserQuery } from "@/store/api/apiUser"
+import { formatDistance } from "date-fns"
+import Replaies from "./replayComp/Replaies"
+import ReplayAdditon from "./replayComp/replayAddetion"
+import { Avatar, AvatarImage } from "@/components/ui/avatar"
+import { AvatarFallback } from "@radix-ui/react-avatar"
+import { useGetProfileQuery } from "@/store/api/apiProfile"
+import { Button } from "@/components/ui/button"
+import { useState } from "react"
+
+import { Emoji } from "./EmojiPicker"
+import CommentReactions from "./CommentReactions"
+import type { FixedComment } from "@/app/api/comment/route"
+import { Separator } from "@radix-ui/react-separator"
+import ContentDialog from "./replayComp/ContentDialog"
 
 interface CommentItemProps {
-  comment: FixedComment;
-  userId: number;
-  post_id: number;
-  hideAddition?: boolean;
-  author_id_comment: number;
-  post_id_from_comment: number;
+  comment: FixedComment
+  userId: number
+  post_id: number
+  hideAddition?: boolean
+  author_id_comment: number
+  post_id_from_comment: number
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
@@ -36,18 +37,18 @@ const CommentItem: React.FC<CommentItemProps> = ({
 }) => {
   const { data: commentedUSer, isLoading: loadingUSer } = useGetUserQuery({
     userId: +comment?.author_id,
-  });
+  })
 
   const { data: profileData, isLoading: loaddingProfile } = useGetProfileQuery({
     userId: commentedUSer?.id!,
-  });
+  })
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
   const timeStamp = comment.created_at
     ? formatDistance(comment.created_at, new Date(), {
         addSuffix: true,
       })
-    : null;
+    : null
 
   return (
     <div className="space-y-4  ">
@@ -64,11 +65,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               alt={commentedUSer?.user_name + "profile"}
               className="w-10 h-10 rounded-full object-cover"
             />
-            <AvatarFallback
-              role="dialog"
-              className="w-16 h-10 flex bg-gray-100 justify-center items-center"
-            >
-     
+            <AvatarFallback role="dialog" className="w-16 h-10 flex bg-gray-100 justify-center items-center">
               {commentedUSer?.first_name.charAt(0)}
             </AvatarFallback>
           </Avatar>
@@ -82,12 +79,12 @@ const CommentItem: React.FC<CommentItemProps> = ({
           </div>
           <div className="flex justify-start flex-col  items-start gap-2">
             <div className="flex justify-start flex-col md:flex-row mb-2 items-center gap-3">
-            <div className="max-w-full break-words">
-                  <ContentDialog content={comment.content} />
-                </div>
+              <div className="max-w-full break-words">
+                <ContentDialog content={comment.content} />
+              </div>
               {/* <p className=" text-gray-700 w-max">{comment.content}</p> */}
             </div>
-             
+
             {isOpen ? (
               <Replaies
                 post_id={post_id}
@@ -100,11 +97,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
           {isOpen ? (
             <div>
-              <ReplayAdditon
-                post_id={post_id}
-                comment_id={comment.id}
-                userId={userId}
-              />
+              <ReplayAdditon post_id={post_id} comment_id={comment.id} userId={userId} />
             </div>
           ) : null}
           <div className="flex justify-start w-max gap-1">
@@ -125,18 +118,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
             </Button>
             <Separator orientation="horizontal" />
             <div className="w-full flex-row flex  gap-3">
-                <CommentReactions comment_id={comment.id} />
-                <Emoji
-                  post_id={post_id}
-                  commentId={comment.id}
-                  userId={userId}
-                />
-              </div>
+              <CommentReactions comment_id={comment.id} />
+              <Emoji post_id={post_id} commentId={comment.id} userId={userId} />
+            </div>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CommentItem;
+export default CommentItem

@@ -117,12 +117,15 @@ export const POST = async (req: Request) => {
             type: "POST_REACT",
           }
         }
+
       },
+
 
     });
     return NextResponse.json(
       {
         react: {
+          author_id: interaction.author_id,
           ...newReaction,
         },
         tag: "add",

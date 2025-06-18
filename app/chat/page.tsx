@@ -24,6 +24,7 @@ import { Chat, ProfilePicture, VideoChat } from "@prisma/client";
 import { FixedContractGroup } from "../api/chat/start-chat-group/route";
 
 import {  VideoCallProvider } from "@/context/CallContext";
+import Header from "../maintimeline/_conponents/Header";
 
 export type Contact = {
   id: number;
@@ -103,15 +104,21 @@ export default function ChatApp() {
 
   return (
     
+
     <VideoCallProvider 
     chat={chat}
     currentUser={CachedUser}
     >
+      <div className="w-full h-full flex justify-start items-start flex-col">
+
       
+ <Header
+        user={CachedUser }
+        />
 
     <Chatpage
     AddChat={AddChat}
-
+    
     chat={chat}
     // chatEndRef={chatEndRef}
     isLoading={isLoading}
@@ -126,6 +133,7 @@ export default function ChatApp() {
     setStartChatWith={setStartChatWith}
 
     />
+    </div>
     </VideoCallProvider>
     
   );

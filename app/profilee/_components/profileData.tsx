@@ -24,7 +24,7 @@ const Profile = ({isScrolled  , CachedUser}  :{
       {/* Scrollable Container */}
       <div
         ref={scrollContainerRef} // Attach the scrollContainerRef to the scrollable container
-        className="flex w-full  md:w-[50vw] flex-col  max-h-[90vh] rounded-md   bg-white  text-white "
+        className="flex w-full  md:w-[50vw] flex-col  max-h-[90vh] rounded-md"
       >
 
         {/* Profile Header */}

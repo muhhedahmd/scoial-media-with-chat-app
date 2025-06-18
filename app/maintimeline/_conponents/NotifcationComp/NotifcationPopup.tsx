@@ -1,28 +1,16 @@
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@nextui-org/react";
+"use client"
+import { Popover, PopoverContent, PopoverTrigger } from "@nextui-org/react"
 
-import { mentionType, Notification, NotificationType, User } from "@prisma/client";
-import { Bell, Dot } from "lucide-react";
-import React from "react";
-import {
-  HeaderPostLoader,
-  HeaderPostLoaderNotifaction,
-} from "../PostContainerComponsnts/postCompoenets/Loaderes";
-import {
-  useGetNotifcationQuery,
-  useLazyGetNotifcationQuery,
-} from "@/store/api/apiNotifcation";
-import NotifcationHeader from "./NotifcationHeader";
-import { Skeleton } from "@/components/ui/skeleton";
+import { type Notification, NotificationType, type User } from "@prisma/client"
+import { Bell, Dot } from "lucide-react"
+import { HeaderPostLoaderNotifaction } from "../PostContainerComponsnts/postCompoenets/Loaderes"
+import NotifcationHeader from "./NotifcationHeader"
 
 function getNotificationColors(notificationType: NotificationType): {
-  flatColor: string;
-  textColor: string;
+  flatColor: string
+  textColor: string
 } {
-  const colors: Record<
-    NotificationType,
-    { flatColor: string; textColor: string }
-  > = {
+  const colors: Record<NotificationType, { flatColor: string; textColor: string }> = {
     [NotificationType.MENTION]: {
       flatColor: "#00a3e473",
       textColor: "#FFFFFF",
@@ -89,25 +77,23 @@ function getNotificationColors(notificationType: NotificationType): {
       flatColor: "",
       textColor: "",
     },
-  };
+  }
 
-  return (
-    colors[notificationType] || { flatColor: "#CCCCCC", textColor: "#000000" }
-  );
+  return colors[notificationType] || { flatColor: "#CCCCCC", textColor: "#000000" }
 }
 
 const NotifcationPopup = ({
   Notifcations,
-isLoading,
-isFetching,
+  isLoading,
+  isFetching,
   user,
   fetchNotifcation,
 }: {
-  Notifcations :Notification[] | undefined
-isLoading : boolean
-isFetching: boolean
-  fetchNotifcation: any;
-  user: User | null;
+  Notifcations: Notification[] | undefined
+  isLoading: boolean
+  isFetching: boolean
+  fetchNotifcation: any
+  user: User | null
 }) => {
   // const {
   //   data: Notifcations,
@@ -125,16 +111,14 @@ isFetching: boolean
         skip: 0,
         take: 10,
         userId: user?.id,
-      });
-  };
+      })
+  }
 
-  const Len = Notifcations?.filter((e) => e.read === false).length;
+  const Len = Notifcations?.filter((e) => e.read === false).length
   return (
     <Popover offset={10} showArrow>
       <PopoverTrigger>
-        <div
-        onClick={handleClick}
-          className="relative flex  justify-center items-center">
+        <div onClick={handleClick} className="relative flex  justify-center items-center">
           {Len && (
             <span
               className="
@@ -168,20 +152,13 @@ isFetching: boolean
                   >
                     <HeaderPostLoaderNotifaction />
                   </div>
-                );
+                )
               })
-            :Notifcations&& Notifcations?.map((notfi) => {
+            : Notifcations &&
+              Notifcations?.map((notfi) => {
                 return (
-                  <div
-                    style={{}}
-                    key={notfi.id}
-                    className=" relative w-full flex justify-start items-center   gap-3"
-                  >
-                    <NotifcationHeader
-                      notifierId={notfi.notifierId}
-                      type={notfi.type}
-                      createdAt={notfi.createdAt}
-                    />
+                  <div style={{}} key={notfi.id} className=" relative w-full flex justify-start items-center   gap-3">
+                    <NotifcationHeader notifierId={notfi.notifierId} type={notfi.type} createdAt={notfi.createdAt} />
 
                     <Dot
                       style={{
@@ -193,12 +170,12 @@ isFetching: boolean
                       className=" absolute w-10 h-10"
                     />
                   </div>
-                );
+                )
               })}
         </div>
       </PopoverContent>
     </Popover>
-  );
-};
+  )
+}
 
-export default NotifcationPopup;
+export default NotifcationPopup

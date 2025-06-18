@@ -1,14 +1,10 @@
-import { useGetUserQuery } from "@/store/api/apiUser";
-import { Skeleton } from "@nextui-org/react";
-import React from "react";
-import TimeStamp from "../PostContainerComponsnts/CommentComp/TimeStamp";
-import { UserIcon } from "lucide-react";
-import Image from "next/image";
-import { NotificationType } from "@prisma/client";
-function getNotificationContent(
-  type: NotificationType,
-  userName: string
-): string {
+import { useGetUserQuery } from "@/store/api/apiUser"
+import { Skeleton } from "@nextui-org/react"
+import TimeStamp from "../PostContainerComponsnts/CommentComp/TimeStamp"
+import { UserIcon } from "lucide-react"
+import Image from "next/image"
+import { NotificationType } from "@prisma/client"
+function getNotificationContent(type: NotificationType, userName: string): string {
   const notificationMessages: Record<NotificationType, string> = {
     [NotificationType.MENTION]: `mentioned you in a post as ${userName}`,
     [NotificationType.LIKE]: `liked your post as ${userName}`,
@@ -31,9 +27,9 @@ function getNotificationContent(
     [NotificationType.COMMENT_REACT_COMMENTER]: `reacted to your comment as ${userName}`,
     COMMENT_REACT: "",
     REPLAY_REACT: "",
-  };
+  }
 
-  return notificationMessages[type] || `Notification from ${userName}`;
+  return notificationMessages[type] || `Notification from ${userName}`
 }
 
 const NotifcationHeader = ({
@@ -41,13 +37,13 @@ const NotifcationHeader = ({
   createdAt,
   type,
 }: {
-  notifierId: number;
-  createdAt: Date;
-  type: NotificationType;
+  notifierId: number
+  createdAt: Date
+  type: NotificationType
 }) => {
   const { data, isLoading, isFetching } = useGetUserQuery({
     userId: +notifierId,
-  });
+  })
   if (isLoading || isFetching) {
     return (
       <div className="flex justify-start w-full items-center gap-3">
@@ -57,7 +53,7 @@ const NotifcationHeader = ({
           <Skeleton className="w-1/5 h-2 bg-gray-300" />
         </div>
       </div>
-    );
+    )
   } else {
     return (
       <>
@@ -78,19 +74,15 @@ const NotifcationHeader = ({
           )}
 
           <div className="flex w-full  justify-between items-start  gap-2 flex-col">
-            <p className="min-w-max font-semibold ">
-              {`${data?.first_name} ${data?.last_name}`}
-            </p>
-            <div className=" -mt-2">
-              {getNotificationContent(type, data?.user_name || "")}
-            </div>
+            <p className="min-w-max font-semibold ">{`${data?.first_name} ${data?.last_name}`}</p>
+            <div className=" -mt-2">{getNotificationContent(type, data?.user_name || "")}</div>
           </div>
 
           <TimeStamp created_at={createdAt} />
         </div>
       </>
-    );
+    )
   }
-};
+}
 
-export default NotifcationHeader;
+export default NotifcationHeader

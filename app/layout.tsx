@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import UserSessionProvider from "./_components/UserSessionComp/UserSessionProvider";
 import { MessageOpenProvider } from "@/context/comment";
 import BottomNav from "./_components/BottomNav";
+import { ThemeProvider } from "./_components/theme-provider";
 // import NavProgress from "./_components/NavProgress";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -26,6 +27,8 @@ function RootLayout({
 
       </head>
       <body className={inter.className}>
+            <ThemeProvider attribute="class" defaultTheme="light">
+
         <StoreProvider>
           <MessageOpenProvider>{children}</MessageOpenProvider>
           <Toaster />
@@ -34,6 +37,7 @@ function RootLayout({
 
         </StoreProvider>
 
+            </ThemeProvider>
         {/* <NavProgress /> */}
       </body>
     </html>

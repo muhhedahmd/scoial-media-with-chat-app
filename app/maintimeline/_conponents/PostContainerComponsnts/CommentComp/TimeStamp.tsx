@@ -1,9 +1,8 @@
-import { formatDistance } from 'date-fns';
-import React from 'react'
+import { formatDistance } from "date-fns"
 
-const TimeStamp = ({created_at} :{created_at?:Date}) => {
-    const time = formatDistance(new Date(created_at || ""), new Date());
-    const shortTime = time
+const TimeStamp = ({ created_at }: { created_at?: Date }) => {
+  const time = formatDistance(new Date(created_at || ""), new Date())
+  const shortTime = time
     .replace("minutes", "min")
     .replace("minute", "min")
     .replace("hours", "hrs")
@@ -16,11 +15,9 @@ const TimeStamp = ({created_at} :{created_at?:Date}) => {
     .replace("month", "mo")
     .replace("years", "yr")
     .replace("year", "yr")
-    .replace("about" , "")
-  
-  return (
-    <p className="min-w-max text-sm text-gray-500">{shortTime}</p>
-  )
+    .replace("about", "")
+
+  return <p className="min-w-max text-sm text-gray-500">{shortTime}</p>
 }
 
 export default TimeStamp

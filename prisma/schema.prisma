@@ -10,38 +10,45 @@ datasource db {
 }
 
 model User {
-  id                    Int                    @id @default(autoincrement())
-  email                 String                 @unique
+  id                    Int                   @id @default(autoincrement())
+  email                 String                @unique
   first_name            String
-  role                  Role                   @default(user)
+  role                  Role                  @default(user)
   password              String
   last_name             String
-  user_name             String                 @unique
-  gender                Gender                 @default(MALE)
-  expiresAt             DateTime               @default(dbgenerated("(now() + '6 mons'::interval)"))
-  isPrivate             Boolean                @default(false)
-  videoCallStatus       VideoCallStatus        @default(AVAILABLE)
-  ChatCreation          Chat[]                 @relation("createdChats")
-  ChatReciver           Chat[]                 @relation("receivedChats")
+  user_name             String                @unique
+  gender                Gender                @default(MALE)
+  expiresAt             DateTime              @default(dbgenerated("(now() + '6 mons'::interval)"))
+  isPrivate             Boolean               @default(false)
+  videoCallStatus       VideoCallStatus       @default(AVAILABLE)
+  created_at            DateTime?             @db.Date
+  updated_at            DateTime?             @db.Date
+  country               Country?              @default(Egypt)
+  timezone              DateTime?             @default(now()) @db.Timestamptz(6)
+  is_2FA                Boolean?              @default(false)
+  ChatCreation          Chat[]                @relation("createdChats")
+  ChatReciver           Chat[]                @relation("receivedChats")
   groupMemberships      GroupMember[]
   HashtagFollow         HashtagFollow[]
   Interaction           Interaction[]
   Mention               Mention[]
-  MessageReciver        Message[]              @relation("messagesReceived")
-  MessageSender         Message[]              @relation("messagesSent")
-  notificationsSent     Notification[]         @relation("UserNotifier")
-  notificationsReceived Notification[]         @relation("UserNotifying")
+  MessageReciver        Message[]             @relation("messagesReceived")
+  MessageSender         Message[]             @relation("messagesSent")
+  notificationsSent     Notification[]        @relation("UserNotifier")
+  notificationsReceived Notification[]        @relation("UserNotifying")
   profile               Profile?
   roomParticipations    RoomParticipant[]
   Save_catagory         Save_catagory[]
-  SignalingReceived     Signaling[]            @relation("signalingReceived")
-  SignalingSent         Signaling[]            @relation("signalingSent")
-  VideoChatReciver      VideoChat[]            @relation("VideoChatReciver")
-  VideoChatSender       VideoChat[]            @relation("VideoChatSender")
-  VideoChatParticipant  VideoChatParticipant[]
+  Session               Session[]
+  SignalingReceived     Signaling[]           @relation("signalingReceived")
+  SignalingSent         Signaling[]           @relation("signalingSent")
+  VideoChatReciver      VideoChat[]           @relation("VideoChatReciver")
+  VideoChatSender       VideoChat[]           @relation("VideoChatSender")
+  VideoChatParticipant  VideoChatParticipant?
   category_post_User    category_post_User[]
   InvitationHistory     groupInvitation[]
   post                  post[]
+  
 
   @@index([user_name], type: Hash)
 }
@@ -134,7 +141,7 @@ model Profile {
   bio               String?
   profile_picture   String?
   cover_picture     String?
-  PhoneNumber       Int?
+  PhoneNumber       String?
   isVerified        Boolean          @default(false)
   website           Json?            @default("{}")
   birthdate         DateTime?
@@ -142,11 +149,11 @@ model Profile {
   title             String?
   created_at        DateTime         @default(now())
   updated_at        DateTime         @updatedAt
+  location_id       Int?             @unique
   followers         Follows[]        @relation("UserFollowers")
   following         Follows[]        @relation("UserFollowing")
+  location          Address?         @relation(fields: [location_id], references: [id])
   user              User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  location_id  Int? @unique
-  location Address? @relation( fields: [location_id] , references: [id])
   profilePictures   ProfilePicture[]
 }
 
@@ -388,18 +395,16 @@ model category_post_User {
 }
 
 model Address {
-  id          Int      @id @default(autoincrement())
-  street      String
-  city        String
-  state       String
-  zip         String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  flag        String
-  countryEnum Country
-  country     String
-  post        post?
-  profile Profile?
+  id        Int      @id @default(autoincrement())
+  street    String
+  city      String
+  state     String
+  zip       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  country   String
+  profile   Profile?
+  post      post?
 }
 
 model post_image {
@@ -515,17 +520,14 @@ model VideoChat {
 }
 
 model VideoChatParticipant {
-  
   id          Int         @id @default(autoincrement())
-  userId      Int? @unique
+  userId      Int?        @unique
   videoChatId Int
   joinedAt    DateTime    @default(now())
   leftAt      DateTime?
+  Signaling   Signaling[]
   user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   videoChat   VideoChat   @relation(fields: [videoChatId], references: [id], onDelete: Cascade)
-  
-  Signaling   Signaling[]
-
 
   @@unique([userId, videoChatId])
 }
@@ -587,20 +589,35 @@ model RoomParticipant {
 }
 
 model Signaling {
+  id                    String                @id @default(cuid())
+  roomId                Int
+  data                  String
+  createdAt             DateTime              @default(now())
+  receiverId            Int?
+  senderId              Int
+  type                  SignalingType
+  receiverParticipantId Int?
+  receiver              User?                 @relation("signalingReceived", fields: [receiverId], references: [id])
+  VideoChatParticipant  VideoChatParticipant? @relation(fields: [receiverParticipantId], references: [userId], onDelete: Cascade)
+  room                  Room                  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender                User                  @relation("signalingSent", fields: [senderId], references: [id])
 
-  id                     String                @id @default(cuid())
-  roomId                 Int
-  data                   String
-  createdAt              DateTime              @default(now())
-  receiverId             Int?
-  senderId               Int
-  receiverParticipantId  Int?  
-  VideoChatParticipant   VideoChatParticipant? @relation(fields: [receiverParticipantId], references: [userId] ,onDelete:  Cascade)
-  type                   SignalingType
-  receiver               User?                 @relation("signalingReceived", fields: [receiverId], references: [id])
-  room                   Room                  @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  sender                 User                  @relation("signalingSent", fields: [senderId], references: [id])
   @@index([roomId])
+}
+
+model Session {
+  id                  String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionToken        String                  @unique
+  userId              Int
+  expires             DateTime                @db.Timestamptz(6)
+  userAgent           String?
+  ipAddress           String?
+  is2FACompleted      Boolean?                @default(false)
+  isDeviceVerfcation  Boolean?                @default(false)
+  createdAt           DateTime?               @default(now()) @db.Timestamptz(6)
+  verificationMethod  verificationMethodEnum?
+  verificationContact String?                 @default("")
+  User                User                    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_user")
 }
 
 enum Role {
@@ -922,4 +939,9 @@ enum SignalingType {
   OFFER
   ANSWER
   ICE_CANDIDATE
+}
+
+enum verificationMethodEnum {
+  phone
+  email
 }

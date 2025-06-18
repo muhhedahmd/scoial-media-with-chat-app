@@ -1,34 +1,36 @@
-import { Address, Profile, ProfilePicture, ProfilePictureType } from "@prisma/client";
+import { userWithProfile } from "@/Types";
+import { Address, Gender, Profile, ProfilePicture, ProfilePictureType, Role } from "@prisma/client";
 import { JsonObject, JsonValue } from "@prisma/client/runtime/library";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-export interface UserProfile  {
+export interface UserProfile {
+
   id: number;
   user_id: number;
-  location_id : null | number,
+  location_id: null | number,
 
   // user_id: number;
   bio: string | null;
   location: Address | null;
-  PhoneNumber: number | null;
+  PhoneNumber: string | null;
   website: JsonValue;
   birthdate: Date | null;
   title: string | null;
   created_at: Date;
   updated_at: Date,
+  profilePictures: ProfilePicture[] | undefined
   user: {
-      first_name: string;
-      last_name: string;
-      user_name: string,
-      email: string,
-      isPrivate: boolean
+    first_name: string;
+    last_name: string;
+    user_name: string,
+    email: string,
+    isPrivate: boolean
   },
-  profilePictures: ProfilePicture[] | null
 
-} 
+}
 export const apiProfile = createApi({
   reducerPath: "profile",
-  tagTypes:["getProfile"] ,
+  tagTypes: ["getProfile"],
   baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API! }),
   endpoints: (build) => ({
     getProfile: build.query<
@@ -40,11 +42,11 @@ export const apiProfile = createApi({
       query: ({ userId }) => `/users/profile/${userId}`,
       keepUnusedDataFor: 300, // keep cached data for 5 minutes
       providesTags(result, error, arg, meta) {
-          return [{ type: 'getProfile', id: arg.userId }];
+        return [{ type: 'getProfile', id: arg.userId }];
       },
-      
+
     }),
-    editProfile: build.mutation<UserProfile, any>({
+    editProfile: build.mutation<userWithProfile, any>({
       query: ({
         userId,
         profileData,
@@ -59,10 +61,8 @@ export const apiProfile = createApi({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          const res = data as UserProfile;
-          console.log({
-            UserProfile: res
-          })
+          const res = data;
+
           dispatch(
             apiProfile.util.updateQueryData(
               "getProfile",
@@ -70,10 +70,33 @@ export const apiProfile = createApi({
                 userId: arg.userId,
               },
               (draft) => {
-                if (draft.id === res.id) {
-                  return res;
+                if (draft.id === res.profile?.id) {
+                  return {
+                    id: res?.profile?.id!,
+                    user_id: res?.profile?.user_id!,
+                    location_id: res?.profile?.location_id!,
+                    // user_id: number;
+                    bio: res?.profile?.bio!,
+                    location: res?.profile?.location!,
+                    PhoneNumber: res?.profile?.PhoneNumber!,
+                    website: res?.profile?.website!,
+                    birthdate: res?.profile?.birthdate!,
+                    title: res?.profile?.title!,
+                    created_at: res?.profile?.created_at!,
+                    updated_at: res?.profile?.updated_at!,
+                    profilePictures: res?.profile?.profilePictures!,
+                    user: {
+                      first_name: res.first_name,
+                      last_name: res.last_name,
+                      user_name: res.user_name,
+                      email: res.email,
+                      isPrivate: false  // hard coded
+                    },
+
+                  } as UserProfile;
                 } else {
-                  return draft;
+
+
                 }
               }
             )
@@ -84,8 +107,81 @@ export const apiProfile = createApi({
         }
       },
     }),
+    updateUserInfo: build.mutation<{
+      first_name: string,
+      last_name: string,
+      user_name: string,
+      email: string,
+      gender: Gender,
+      role: Role
+}, FormData >({
+      query: (FormData) => ({
+        url: `/users/update`,
+        method: "PUT",
+        body: FormData,
+      }),
+    }),
+    CompleteProfile: build.mutation<userWithProfile, FormData>({
+      query: (FormData: FormData) => ({
+        url: `/users/profile/complete`,
+        method: "PUT",
+        body: FormData,
+      }),
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          const res = data;
+
+          // dispatch(
+          //   apiProfile.util.updateQueryData(
+          //     "getProfile",
+          //     {
+          //       userId: arg.userId,
+          //     },
+          //     (draft) => {
+          //       if (draft.id === res.profile?.id) {
+          //         return {
+          //           id: res?.profile?.id!,
+          //           user_id: res?.profile?.user_id!,
+          //           location_id: res?.profile?.location_id!,
+          //           // user_id: number;
+          //           bio: res?.profile?.bio!,
+          //           location: res?.profile?.location!,
+          //           PhoneNumber: res?.profile?.PhoneNumber!,
+          //           website: res?.profile?.website!,
+          //           birthdate: res?.profile?.birthdate!,
+          //           title: res?.profile?.title!,
+          //           created_at: res?.profile?.created_at!,
+          //           updated_at: res?.profile?.updated_at!,
+          //           profilePictures: res?.profile?.profilePictures!,
+          //           user: {
+          //             first_name: res.first_name,
+          //             last_name: res.last_name,
+          //             user_name: res.user_name,
+          //             email: res.email,
+          //             isPrivate: false  // hard coded
+          //           },
+
+          //         } as UserProfile;
+          //       } else {
+
+
+          //       }
+          //     }
+          //   )
+          // );
+        } catch (error) {
+          console.log(error);
+          // dispatch(editProfileError(error));
+        }
+      },
+    }),
   }),
 });
 
 // Export the generated hooks
-export const { useGetProfileQuery, useEditProfileMutation } = apiProfile;
+export const { useGetProfileQuery,  
+  useUpdateUserInfoMutation,
+    useEditProfileMutation  ,
+   useCompleteProfileMutation
+  } = apiProfile;

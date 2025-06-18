@@ -33,9 +33,9 @@ const ProfilePics = ({
   if (isLoading || isFetching) {
     return (
       <div className="relative">
-        <Skeleton className="bg-gray-200 h-40 rounded-lg" /> {/* Cover Photo */}
-        <Skeleton className="absolute -bottom-12 left-4 w-24 h-24 bg-white rounded-full" />
-        <Skeleton className="absolute top-4 right-4 px-4 py-1 bg-white text-black rounded-full" />
+        <Skeleton className=" h-40 rounded-lg" /> {/* Cover Photo */}
+        <Skeleton className="absolute -bottom-12 left-4 w-24 h-24 rounded-full" />
+        <Skeleton className="absolute top-4 right-4 px-4 py-1  rounded-full" />
       </div>
     );
   }
@@ -62,7 +62,7 @@ const ProfilePics = ({
             {/* <User2 className="w-10 h-10 text-muted-foreground" /> */}
           </div>
         ) : (
-          <div className=" flex justify-center items-center shadow-sm border-2 border-gray-300 bg-gray-200 rounded-full">
+          <div className=" flex justify-center items-center shadow-sm border-1 border-gray-300  rounded-full">
             <User2 className="w-10 h-10 text-muted-foreground" />
           </div>
         )}
@@ -99,7 +99,7 @@ const ProfilePics = ({
        
         </div>
       ) : (
-        <div className="bg-gray-200 h-40 rounded-lg flex justify-center items-center">
+        <div className=" h-40 rounded-lg flex border-1 justify-center items-center">
           <ImageIcon className="w-10 h-10 text-muted-foreground" />
        
         </div>
@@ -107,7 +107,7 @@ const ProfilePics = ({
 
       {blurProfile ? (
 
-        <div className="absolute -bottom-12 left-4 w-24 h-24 flex justify-center items-center shadow-sm border-2 border-gray-300 bg-gray-200 rounded-full">
+        <div className="absolute -bottom-12 left-4 w-24 h-24 flex justify-center items-center shadow-sm border-2 border-gray-300  rounded-full">
           <BluredImage
             width={blurProfile?.width!}
             height={blurProfile?.height!}
@@ -122,7 +122,7 @@ const ProfilePics = ({
           />
         </div>
       ) : (
-        <div className="absolute -bottom-12 left-4 w-24 h-24 flex justify-center items-center shadow-sm border-2 border-gray-300 bg-gray-200 rounded-full">
+        <div className="absolute -bottom-12 left-4 w-24 h-24 flex justify-center items-center shadow-sm border-1 rounded-full">
           <User2 className="w-10 h-10 text-muted-foreground" />
         </div>
       )}

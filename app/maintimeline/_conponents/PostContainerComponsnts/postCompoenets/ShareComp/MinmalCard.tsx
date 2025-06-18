@@ -1,32 +1,20 @@
-import React from "react";
-import ContentPost from "../ContentPost";
-import HeaderPost from "../HeaderPost";
-import { User } from "@prisma/client";
-import { useGetProfileQuery } from "@/store/api/apiProfile";
+import ContentPost from "../ContentPost"
+import HeaderPost from "../HeaderPost"
+import type { User } from "@prisma/client"
+import { useGetProfileQuery } from "@/store/api/apiProfile"
 
 interface MinmalCardProps {
-  author_id: number;
-  postId: number;
-  user: User;
-  title: string;
+  author_id: number
+  postId: number
+  user: User
+  title: string
 }
 
 const MinmalCard = ({ author_id, postId, user, title }: MinmalCardProps) => {
-  const {
-    data: MainUserProfile,
-    isLoading: status,
-    isSuccess,
-    isError,
-  } = useGetProfileQuery({ userId: user?.id });
+  const { data: MainUserProfile, isLoading: status, isSuccess, isError } = useGetProfileQuery({ userId: user?.id })
 
-  const {
-    data: profileData,
-    isLoading,
-    error,
-    isError: ErrorAuthor,
-  } = useGetProfileQuery({ userId: author_id });
+  const { data: profileData, isLoading, error, isError: ErrorAuthor } = useGetProfileQuery({ userId: author_id })
 
- 
   return (
     <div
       id={`${postId}`}
@@ -35,11 +23,10 @@ const MinmalCard = ({ author_id, postId, user, title }: MinmalCardProps) => {
     >
       <div className="w-[95%] m-auto p-4 flex justify-start items-start flex-col ">
         <HeaderPost
-        address={null}
-        content={''}
-        created_at={undefined}
-
-        minmal={true}
+          address={null}
+          content={""}
+          created_at={undefined}
+          minmal={true}
           share={true}
           MainUserProfileId={MainUserProfile?.id!}
           postId={postId}
@@ -55,7 +42,7 @@ const MinmalCard = ({ author_id, postId, user, title }: MinmalCardProps) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default MinmalCard;
+export default MinmalCard

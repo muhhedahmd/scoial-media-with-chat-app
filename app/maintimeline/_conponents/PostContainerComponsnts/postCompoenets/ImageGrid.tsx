@@ -1,4 +1,7 @@
-import React, { useCallback, useState, useRef } from "react";
+"use client"
+
+import type React from "react"
+import { useCallback, useState, useRef } from "react"
 import {
   DndContext,
   DragOverlay,
@@ -8,85 +11,75 @@ import {
   PointerSensor,
   TouchSensor,
   KeyboardSensor,
-} from "@dnd-kit/core";
+} from "@dnd-kit/core"
 import {
   SortableContext,
   arrayMove,
   horizontalListSortingStrategy,
   sortableKeyboardCoordinates,
-} from "@dnd-kit/sortable";
-import SingleImageGrid from "../SingleImageGrid";
-import { ImageWithId } from "../../../../_components/PostCreation";
-import { initialPostData } from "./MenuPostOption/MenuPostOption";
-import { post_image } from "@prisma/client";
-import { cn } from "@/lib/utils";
+} from "@dnd-kit/sortable"
+import SingleImageGrid from "../SingleImageGrid"
+import type { ImageWithId } from "../../../../_components/PostCreation"
+import type { initialPostData } from "./MenuPostOption/MenuPostOption"
+import type { post_image } from "@prisma/client"
+import { cn } from "@/lib/utils"
 
 interface ImageGridProps {
-  images: ImageWithId[] | post_image[] | initialPostData;
+  images: ImageWithId[] | post_image[] | initialPostData
   setImages:
     | React.Dispatch<React.SetStateAction<ImageWithId[]>>
     | React.Dispatch<React.SetStateAction<initialPostData>>
-    | React.Dispatch<
-        React.SetStateAction<{ images: ImageWithId[] | post_image[] }>
-      >
-    | undefined;
-  isEditMode: boolean;
-  editableDialog?: boolean;
+    | React.Dispatch<React.SetStateAction<{ images: ImageWithId[] | post_image[] }>>
+    | undefined
+  isEditMode: boolean
+  editableDialog?: boolean
 }
 
 const ImageGrid = ({ images, setImages, isEditMode }: ImageGridProps) => {
-  const [toggle, setToggle] = useState<string | number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [toggle, setToggle] = useState<string | number | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const handleDragEnd = useCallback(
     (event: any) => {
-      const { active, over } = event;
-      if (!active || !over || active.id === over.id) return;
+      const { active, over } = event
+      if (!active || !over || active.id === over.id) return
 
       const getImageArray = () => {
         if (Array.isArray(images)) {
-          return images;
+          return images
         } else if (typeof images === "object" && images.images) {
-          return images.images;
+          return images.images
         }
-        return [];
-      };
+        return []
+      }
 
-      const currentImages = getImageArray();
+      const currentImages = getImageArray()
 
-      const sourceIndex = currentImages.findIndex(
-        (image) => image.id === active.id
-      );
-      const targetIndex = currentImages.findIndex(
-        (image) => image.id === over.id
-      );
+      const sourceIndex = currentImages.findIndex((image) => image.id === active.id)
+      const targetIndex = currentImages.findIndex((image) => image.id === over.id)
 
       if (sourceIndex !== targetIndex) {
         if (Array.isArray(images)) {
-          if(setImages){
-
-            const a =  arrayMove(images as ImageWithId[], sourceIndex, targetIndex) as unknown[] as any
-            setImages?.(a);
-        }
+          if (setImages) {
+            const a = arrayMove(images as ImageWithId[], sourceIndex, targetIndex) as unknown[] as any
+            setImages?.(a)
+          }
         } else if (typeof images === "object" && images.images) {
-
-          
           setImages?.((prevImages: any) => ({
             ...prevImages,
-            images: 
-              arrayMove(prevImages.images  , sourceIndex, targetIndex).map((img : any  , i)=>{
-                return {
-                  ...img,
-                  
-                  order : i+1
-                }
-              })
-          }));
+            images: arrayMove(prevImages.images, sourceIndex, targetIndex).map((img: any, i) => {
+              return {
+                ...img,
+
+                order: i + 1,
+              }
+            }),
+          }))
         }
       }
     },
-    [images, setImages]
-  );
+    [images, setImages],
+  )
 
   const sensors = useSensors(
     useSensor(TouchSensor),
@@ -97,26 +90,23 @@ const ImageGrid = ({ images, setImages, isEditMode }: ImageGridProps) => {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+    }),
+  )
 
   function isImageWithId(image: any): image is ImageWithId {
-    return (
-      (image as ImageWithId).id !== undefined &&
-      (image as ImageWithId).file !== undefined
-    );
+    return (image as ImageWithId).id !== undefined && (image as ImageWithId).file !== undefined
   }
 
   const getImageArray = () => {
     if (Array.isArray(images)) {
-      return images;
+      return images
     } else if (typeof images === "object" && images.images) {
-      return images.images;
+      return images.images
     }
-    return [];
-  };
+    return []
+  }
 
-  const currentImages = getImageArray();
+  const currentImages = getImageArray()
 
   return (
     <div
@@ -125,21 +115,9 @@ const ImageGrid = ({ images, setImages, isEditMode }: ImageGridProps) => {
       style={{ overscrollBehavior: "contain" }}
     >
       {currentImages.length > 0 && (
-        <div
-          className={cn(
-            "flex justify-start w-max items-start gap-2",
-            !isEditMode && "h-48"
-          )}
-        >
-          <DndContext
-            sensors={sensors}
-            onDragEnd={handleDragEnd}
-            collisionDetection={closestCorners}
-          >
-            <SortableContext
-              items={currentImages}
-              strategy={horizontalListSortingStrategy}
-            >
+        <div className={cn("flex justify-start w-max items-start gap-2", !isEditMode && "h-48")}>
+          <DndContext sensors={sensors} onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
+            <SortableContext items={currentImages} strategy={horizontalListSortingStrategy}>
               {currentImages.map((image, index) => {
                 if (isEditMode && !isImageWithId(image)) {
                   return (
@@ -156,16 +134,14 @@ const ImageGrid = ({ images, setImages, isEditMode }: ImageGridProps) => {
                               ? prev.filter((img: any) => img.id !== id)
                               : {
                                   ...prev,
-                                  images: prev.images.filter(
-                                    (img: any) => img.id !== id
-                                  ),
-                                }
+                                  images: prev.images.filter((img: any) => img.id !== id),
+                                },
                           )
                         }
                         toggele={toggle}
                       />
                     </div>
-                  );
+                  )
                 } else if (!isEditMode && isImageWithId(image)) {
                   return (
                     <SingleImageGrid
@@ -179,17 +155,15 @@ const ImageGrid = ({ images, setImages, isEditMode }: ImageGridProps) => {
                             ? prev.filter((img: any) => img.id !== id)
                             : {
                                 ...prev,
-                                images: prev.images.filter(
-                                  (img: any) => img.id !== id
-                                ),
-                              }
+                                images: prev.images.filter((img: any) => img.id !== id),
+                              },
                         )
                       }
                       toggele={toggle}
                     />
-                  );
+                  )
                 }
-                return null;
+                return null
               })}
             </SortableContext>
             <DragOverlay>{toggle ? <div /> : null}</DragOverlay>
@@ -197,7 +171,7 @@ const ImageGrid = ({ images, setImages, isEditMode }: ImageGridProps) => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ImageGrid;
+export default ImageGrid

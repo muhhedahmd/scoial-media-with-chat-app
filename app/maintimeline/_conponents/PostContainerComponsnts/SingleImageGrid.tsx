@@ -1,14 +1,15 @@
-import React, { memo, useMemo, useState } from "react";
-import { AnimateLayoutChanges, NewIndexGetter, useSortable, UseSortableArguments } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Dot, MoveHorizontalIcon, X } from "lucide-react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
-import { useToast } from "@/components/ui/use-toast";
-import BluredImage from "@/app/_components/ImageWithPlaceholder";
-import { post_image } from "@prisma/client";
-import { Disabled, SortingStrategy } from "@dnd-kit/sortable/dist/types";
-import { SortableTransition } from "@dnd-kit/sortable/dist/hooks/types";
+"use client"
+
+import type React from "react"
+import { memo, useMemo, useState } from "react"
+import { useSortable } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+import { MoveHorizontalIcon, X } from "lucide-react"
+import Image from "next/image"
+import { cn } from "@/lib/utils"
+import { useToast } from "@/components/ui/use-toast"
+import BluredImage from "@/app/_components/ImageWithPlaceholder"
+import type { post_image } from "@prisma/client"
 
 // Define the Arguments interface
 // export interface Arguments
@@ -22,19 +23,18 @@ import { SortableTransition } from "@dnd-kit/sortable/dist/hooks/types";
 // }
 
 interface SingleImageGridProps {
-  file?: File;
-  id: string | number;
-  handleDelete: (id: string | number) => void;
-  settoggele: React.Dispatch<React.SetStateAction<string | number | null>>;
-  toggele: string | number | null;
-  image?: post_image;
-  isEditMode?: boolean;
+  file?: File
+  id: string | number
+  handleDelete: (id: string | number) => void
+  settoggele: React.Dispatch<React.SetStateAction<string | number | null>>
+  toggele: string | number | null
+  image?: post_image
+  isEditMode?: boolean
   newImg?: boolean
 }
 
 const SingleImageGrid = memo(
   ({
-
     isEditMode = false,
     toggele,
     settoggele,
@@ -42,57 +42,37 @@ const SingleImageGrid = memo(
     file,
     image,
     handleDelete,
-    newImg = false
+    newImg = false,
   }: SingleImageGridProps) => {
     // Sortable setup with drag sensitivity control
 
-
-   
-
-  
-    // const getNewIndex = 
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-      isDragging,
-    } = useSortable({
-
+    // const getNewIndex =
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
       id,
-      getNewIndex  : ({ activeIndex, id, items, overIndex }) => {
-        const threshold = 20; // Drag sensitivity threshold in pixels
-      
-        const activeItem = items[activeIndex];
-        const overItem = items[overIndex];
-      
+      getNewIndex: ({ activeIndex, id, items, overIndex }) => {
+        const threshold = 20 // Drag sensitivity threshold in pixels
+
+        const activeItem = items[activeIndex]
+        const overItem = items[overIndex]
+
         // Calculate the difference in position
-        if (
-          activeItem &&
-          overItem ) {
+        if (activeItem && overItem) {
           // Math.abs(activeItem - overItem) > threshold
           // Only change the index if the position difference is greater than the threshold
-          return overIndex;
+          return overIndex
         }
-        return activeIndex; // Return null to keep the current index if within the threshold
+        return activeIndex // Return null to keep the current index if within the threshold
       },
       transition: {
         duration: 200, // Duration of drag transition
         easing: "ease-out", // Easing function for smoothness
       },
-    });
+    })
 
-    const [croppedImage, setCroppedImage] = useState<File | null>(null);
-    const MemeoCropedUrl = useMemo(
-      () => (croppedImage ? URL.createObjectURL(croppedImage) : ""),
-      [croppedImage]
-    );
-    const MemeoMainUrl = useMemo(
-      () => file && URL.createObjectURL(file),
-      [file]
-    );
-    const { toast } = useToast();
+    const [croppedImage, setCroppedImage] = useState<File | null>(null)
+    const MemeoCropedUrl = useMemo(() => (croppedImage ? URL.createObjectURL(croppedImage) : ""), [croppedImage])
+    const MemeoMainUrl = useMemo(() => file && URL.createObjectURL(file), [file])
+    const { toast } = useToast()
 
     return (
       <div
@@ -107,18 +87,15 @@ const SingleImageGrid = memo(
           !isEditMode && "h-48",
           toggele === id && !isEditMode && "w-[18.75rem] h-48",
           toggele === id && isEditMode && "",
-          isDragging && "z-50 opacity-90"
+          isDragging && "z-50 opacity-90",
         )}
         key={id}
       >
         {isEditMode && image ? (
           <div
-
-          className={ cn( ' overflow-x-hidden',  
-            newImg && 'border-2 rounded-md  border-emerald-500'
-          )}
+            className={cn(" overflow-x-hidden", newImg && "border-2 rounded-md  border-emerald-500")}
             onClick={() => {
-              settoggele(e => e===id ? null : id);
+              settoggele((e) => (e === id ? null : id))
             }}
           >
             <BluredImage
@@ -139,10 +116,10 @@ const SingleImageGrid = memo(
             alt={`Uploaded ${id}`}
             className={cn(
               "rounded-md w-full h-full duration-500 transition-all",
-              toggele === id ? "object-contain" : "object-cover"
+              toggele === id ? "object-contain" : "object-cover",
             )}
             onClick={() => {
-              settoggele(e => e===id ? null : id);
+              settoggele((e) => (e === id ? null : id))
             }}
           />
         )}
@@ -154,33 +131,26 @@ const SingleImageGrid = memo(
               borderRadius: "0  0 6px  0",
             }}
           >
-                        {
-              newImg ?       <div
-              // onClick={() => handleDelete(id)}
-              className="text-emerald-400 rounded-full hover:bg-none bg-emerald-400 w-2 h-2 "
-            />: null
-            }
+            {newImg ? (
+              <div
+                // onClick={() => handleDelete(id)}
+                className="text-emerald-400 rounded-full hover:bg-none bg-emerald-400 w-2 h-2 "
+              />
+            ) : null}
 
-            <div
-              className="text-orange-400 w-fit h-fit top-0 z-10 hover:bg-none rounded-md"
-              {...listeners}
-            >
+            <div className="text-orange-400 w-fit h-fit top-0 z-10 hover:bg-none rounded-md" {...listeners}>
               <MoveHorizontalIcon className="w-4 h-4" />
             </div>
-            <div
-              onClick={() => handleDelete(id)}
-              className="text-red-400 hover:bg-none"
-            >
+            <div onClick={() => handleDelete(id)} className="text-red-400 hover:bg-none">
               <X className="w-4 h-4" />
             </div>
-     
           </div>
         )}
       </div>
-    );
-  }
-);
+    )
+  },
+)
 
-export default SingleImageGrid;
+export default SingleImageGrid
 
-SingleImageGrid.displayName = "SingleImageGrid";
+SingleImageGrid.displayName = "SingleImageGrid"

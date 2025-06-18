@@ -59,7 +59,7 @@ const TapsComp = ({ CachedUser, isScrolled }: { isScrolled:boolean, CachedUser: 
           >
             <>
             <div
-            className="bg-red-50 h-[300vh]"
+            className=" h-[300vh]"
             />
             </>
             {/* Media content */}

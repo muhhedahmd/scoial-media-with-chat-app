@@ -30,7 +30,7 @@ const ProfileTaps = ({
   ];
 
   return (
-    <motion.div className="sticky  top-[-17px] bg-white backdrop-blur-[10px]  mt-4 flex-col  flex justify-start z-[1] items-start pt-4 border-b  border-gray-600 pb-2">
+    <motion.div className="sticky  top-[-17px]  backdrop-blur-[10px]  mt-4 flex-col  flex justify-start z-[1] items-start pt-4 border-b  border-gray-600 pb-2">
     { 
     isScrolled  ? 
     <AnimatePresence>
@@ -52,7 +52,7 @@ const ProfileTaps = ({
             onClick={() => setActive(index)}
             className={cn(
               "relative w-20 text-center transition-colors duration-300 font-medium",
-              index === active ? "text-black font-bold" : "text-gray-400"
+              index === active ? "text-primary" : "text-muted-foreground"
             )}
           >
             {label}
